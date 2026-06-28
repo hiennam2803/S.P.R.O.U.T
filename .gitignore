@@ -1,2 +1,2 @@
-echo "Python/*.json" >> .gitignore
-echo "Python/serviceAccountKey.json" >> .gitignore
+echo "*.json" >> .gitignore
+echo "serviceAccountKey.json" >> .gitignore

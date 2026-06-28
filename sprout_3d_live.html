@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S.P.R.O.U.T — 3D Live Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #0a0f1a;
+  color: #c8d8e8;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 18px;
+  background: #0d1320;
+  border-bottom: 1px solid #1e2d42;
+  flex-shrink: 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+header h1 { font-size: 1rem; font-weight: 600; color: #4ade80; letter-spacing: 3px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge {
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.badge.online  { background:#14532d; color:#86efac; }
+.badge.offline { background:#450a0a; color:#fca5a5; }
+.badge.auto    { background:#1e3a5f; color:#93c5fd; }
+.badge.manual  { background:#7c2d12; color:#fdba74; }
+.badge.warn    { background:#713f12; color:#fde68a; }
+#ts { font-size: 10px; color: #4a6080; }
+
+/* ── MAIN LAYOUT ── */
+main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+}
+
+/* ── 3D CANVAS ── */
+#wrap3d {
+  flex: 1 1 0;
+  position: relative;
+  min-width: 0;
+  cursor: grab;
+}
+#wrap3d:active { cursor: grabbing; }
+canvas { display: block; width: 100% !important; height: 100% !important; }
+
+#hint {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; color: #3a5070; pointer-events: none;
+  background: #0d132088; padding: 3px 10px; border-radius: 10px;
+}
+
+/* 3D overlay labels */
+.lbl3d {
+  position: absolute;
+  font-size: 10px; font-weight: 600;
+  background: #0d1320cc;
+  border: 1px solid #2a4060;
+  border-radius: 5px;
+  padding: 2px 7px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.lbl3d.on  { color: #4ade80; border-color: #166534; }
+.lbl3d.off { color: #4a6080; }
+.lbl3d.warn{ color: #fb923c; border-color: #7c2d12; }
+
+/* ── SIDE PANEL ── */
+#panel {
+  width: 240px;
+  flex-shrink: 0;
+  background: #0d1320;
+  border-left: 1px solid #1e2d42;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 10px;
+  gap: 10px;
+}
+
+.card {
+  background: #111827;
+  border: 1px solid #1e2d42;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.card h4 {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  color: #3a5070; text-transform: uppercase; margin-bottom: 8px;
+}
+
+/* Sensor grid */
+.sg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.si {
+  background: #0d1320; border-radius: 7px; padding: 8px 6px;
+  text-align: center;
+}
+.sv { font-size: 18px; font-weight: 600; color: #4ade80; line-height: 1; }
+.sv.warn { color: #f87171; }
+.sl { font-size: 9px; color: #3a5070; margin-top: 3px; }
+
+/* Mode buttons */
+.mrow { display: flex; gap: 6px; margin-bottom: 6px; }
+.mbtn {
+  flex: 1; padding: 7px 4px;
+  border-radius: 7px; border: 1px solid #1e2d42;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  background: #0d1320; color: #4a6080;
+  transition: all .2s;
+}
+.mbtn.active.abtn { background: #1e3a5f; color: #93c5fd; border-color: #2563eb; }
+.mbtn.active.mbtn2{ background: #7c2d12; color: #fdba74; border-color: #c2410c; }
+
+/* Device rows */
+.drow {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #1a2535;
+}
+.drow:last-child { border-bottom: none; }
+.dname { font-size: 12px; color: #8aaac8; display: flex; align-items: center; gap: 5px; }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #2a3a4a; flex-shrink: 0; transition: all .3s;
+}
+.dot.on  { background: #4ade80; box-shadow: 0 0 5px #4ade8066; }
+.dot.warn{ background: #fb923c; box-shadow: 0 0 5px #fb923c66; }
+
+/* Toggle */
+.tog {
+  width: 36px; height: 19px; border-radius: 10px;
+  background: #1e2d42; border: none; position: relative;
+  cursor: pointer; transition: background .3s; flex-shrink: 0;
+}
+.tog::after {
+  content:''; position: absolute; width: 15px; height: 15px;
+  border-radius: 50%; background: #4a6080;
+  top: 2px; left: 2px; transition: all .3s;
+}
+.tog.on { background: #166534; }
+.tog.on::after { left: 19px; background: #4ade80; }
+.tog.disabled { opacity: .35; cursor: not-allowed; }
+
+/* Threshold sliders */
+.srow { margin-bottom: 6px; }
+.srow label {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: #4a6080; margin-bottom: 3px;
+}
+.srow label span:last-child { color: #8aaac8; font-weight: 600; }
+input[type=range] {
+  width: 100%; accent-color: #2563eb; height: 3px; cursor: pointer;
+}
+
+/* AI box */
+#aiBox {
+  font-size: 11px; color: #7a9ab8; line-height: 1.6;
+  min-height: 44px;
+}
+#aiBox .ait { font-size: 9px; color: #2a4060; margin-top: 4px; }
+
+/* Alert box */
+#alertBox {
+  font-size: 11px; color: #fb923c; line-height: 1.5; min-height: 30px;
+}
+
+/* Offline overlay */
+#offlineOverlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: #0a0f1aee;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px;
+}
+#offlineOverlay h2 { color: #f87171; font-size: 1.2rem; }
+#offlineOverlay p  { color: #4a6080; font-size: 13px; text-align: center; max-width: 320px; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #1e2d42;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌱 S.P.R.O.U.T</h1>
+  <div class="badges">
+    <span class="badge offline" id="bdgOnline">⚫ Offline</span>
+    <span class="badge auto"    id="bdgMode">AUTO</span>
+    <span class="badge warn"    id="bdgWarn" style="display:none">⚠ Cảnh báo</span>
+  </div>
+  <span id="ts">--</span>
+</header>
+
+<main>
+  <!-- 3D viewport -->
+  <div id="wrap3d">
+    <canvas id="c"></canvas>
+    <div id="hint">Kéo để xoay · Cuộn để zoom</div>
+    <!-- Overlay labels (vị trí tính bằng JS projection) -->
+    <div class="lbl3d off" id="lbl-fan"   style="display:none">Quạt</div>
+    <div class="lbl3d off" id="lbl-pump"  style="display:none">Bơm</div>
+    <div class="lbl3d off" id="lbl-heat"  style="display:none">Sưởi</div>
+    <div class="lbl3d off" id="lbl-light" style="display:none">Đèn</div>
+    <div class="lbl3d off" id="lbl-door"  style="display:none">Cửa</div>
+  </div>
+
+  <!-- Side panel -->
+  <div id="panel">
+
+    <div class="card">
+      <h4>Cảm biến thật — Arduino</h4>
+      <div class="sg">
+        <div class="si"><div class="sv" id="sv-t">--</div><div class="sl">Nhiệt độ °C</div></div>
+        <div class="si"><div class="sv" id="sv-h">--</div><div class="sl">Độ ẩm KK %</div></div>
+        <div class="si"><div class="sv" id="sv-s">--</div><div class="sl">Đất %</div></div>
+        <div class="si"><div class="sv" id="sv-w">--</div><div class="sl">Bồn nước %</div></div>
+        <div class="si"><div class="sv" id="sv-l">--</div><div class="sl">Ánh sáng %</div></div>
+        <div class="si"><div class="sv" id="sv-d" style="font-size:13px">--</div><div class="sl">Cửa buồng</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Chế độ điều khiển</h4>
+      <div class="mrow">
+        <button class="mbtn abtn  active" id="btn-auto"   onclick="setMode('AUTO')">⚡ AUTO</button>
+        <button class="mbtn mbtn2"        id="btn-manual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
+      </div>
+      <div class="drow">
+        <div class="dname"><div class="dot" id="d-fan"></div>Quạt nhiệt</div>
+        <button class="tog" id="t-fan" onclick="cmdDev('CMD_QUAT',this)"></button>
+      </div>
+      <div class="drow">
+        <div class="dname"><div class="dot" id="d-pump"></div>Bơm tưới</div>
+        <button class="tog" id="t-pump" onclick="cmdDev('CMD_BOM',this)"></button>
+      </div>
+      <div class="drow">
+        <div class="dname"><div class="dot" id="d-heat"></div>Lò sưởi</div>
+        <button class="tog" id="t-heat" onclick="cmdDev('CMD_SUOI',this)"></button>
+      </div>
+      <div class="drow">
+        <div class="dname"><div class="dot" id="d-light"></div>Đèn</div>
+        <button class="tog" id="t-light" onclick="cmdDev('CMD_DEN',this)"></button>
+      </div>
+      <div class="drow">
+        <div class="dname"><div class="dot" id="d-humid"></div>Tăng ẩm</div>
+        <button class="tog" id="t-humid" onclick="cmdDev('CMD_TANGAM',this)"></button>
+      </div>
+      <div class="drow">
+        <div class="dname"><div class="dot" id="d-dehu"></div>Hút ẩm</div>
+        <button class="tog" id="t-dehu" onclick="cmdDev('CMD_HUTAM',this)"></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Ngưỡng nhiệt độ</h4>
+      <div class="srow">
+        <label><span>Min</span><span id="sv-tmin">18°C</span></label>
+        <input type="range" min="10" max="25" value="18" step="1" id="sl-tmin" oninput="onSlider()">
+      </div>
+      <div class="srow">
+        <label><span>Max</span><span id="sv-tmax">30°C</span></label>
+        <input type="range" min="25" max="40" value="30" step="1" id="sl-tmax" oninput="onSlider()">
+      </div>
+      <div class="srow" style="margin-top:8px">
+        <label><span>Độ ẩm đất Min</span><span id="sv-smin">30%</span></label>
+        <input type="range" min="10" max="60" value="30" step="1" id="sl-smin" oninput="onSlider()">
+      </div>
+      <div class="srow">
+        <label><span>Độ ẩm đất Max</span><span id="sv-smax">70%</span></label>
+        <input type="range" min="50" max="90" value="70" step="1" id="sl-smax" oninput="onSlider()">
+      </div>
+      <button onclick="applyThresh()"
+        style="width:100%;margin-top:6px;padding:6px;background:#1e3a5f;
+               color:#93c5fd;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
+        Áp dụng → Arduino
+      </button>
+    </div>
+
+    <div class="card">
+      <h4>🤖 AI tư vấn</h4>
+      <div id="aiBox">Đang chờ kết nối Arduino...</div>
+    </div>
+
+    <div class="card">
+      <h4>🚨 Cảnh báo</h4>
+      <div id="alertBox">Không có cảnh báo</div>
+    </div>
+
+  </div><!-- #panel -->
+</main>
+
+<!-- Offline overlay -->
+<div id="offlineOverlay">
+  <div class="spinner"></div>
+  <h2>Đang kết nối Firebase...</h2>
+  <p>Đảm bảo <code>bridge.py</code> đang chạy và Proteus đang mô phỏng.</p>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ================================================================
+// FIREBASE CONFIG — đổi theo project của bạn
+// ================================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyAEVGBzSqFDXMQuUrIMX4NFzz5Zq6pRthQ",
+  authDomain:        "sprout-3609f.firebaseapp.com",
+  databaseURL:       "https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "sprout-3609f",
+  storageBucket:     "sprout-3609f.firebasestorage.app",
+  messagingSenderId: "1026541317812",
+  appId:             "1:1026541317812:web:82c07bd9999cebe01171e1"
+};
+
+const app = initializeApp(firebaseConfig);
+const fdb = getDatabase(app);
+
+// Trạng thái local (phản ánh Firebase, dùng cho 3D)
+const S = {
+  mode: "AUTO",
+  dev: { quat:0, bom:0, suoi:0, den:0, hutAm:0, tangAm:0 },
+  cb:  { nhietDo:0, doAmKK:0, doAmDat:0, mucNuoc:0, anhSang:0, cuaMo:false },
+  ng:  { nhietMin:18, nhietMax:30, datMin:30, datMax:70 },
+  online: false
+};
+
+// ── Firebase listeners ──────────────────────────────────────────
+
+onValue(ref(fdb, "/sprout/trangThai"), snap => {
+  const d = snap.val(); if (!d) return;
+
+  S.online = !!d.online;
+  S.mode   = d.mode || "AUTO";
+
+  // overlay
+  document.getElementById("offlineOverlay").style.display = S.online ? "none" : "flex";
+
+  // badges
+  setb("bdgOnline", S.online ? "🟢 Online" : "⚫ Offline", S.online ? "online" : "offline");
+  setb("bdgMode", S.mode, S.mode === "AUTO" ? "auto" : "manual");
+
+  // mode buttons
+  el("btn-auto").classList.toggle("active", S.mode === "AUTO");
+  el("btn-manual").classList.toggle("active", S.mode === "MANUAL");
+  lockToggles(S.mode === "AUTO");
+
+  if (d.capNhatLuc) el("ts").textContent = d.capNhatLuc;
+
+  if (d.aiMoiNhat) {
+    el("aiBox").innerHTML =
+      `${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc||""}</div>`;
+  }
+
+  if (d.canhBaoMoi) {
+    el("bdgWarn").style.display = "";
+    el("alertBox").textContent = `${d.canhBaoMoi}  ${d.canhBaoLuc||""}`;
+  }
+});
+
+onValue(ref(fdb, "/sprout/camBien"), snap => {
+  const d = snap.val(); if (!d) return;
+  Object.assign(S.cb, d);
+
+  sval("sv-t", d.nhietDo?.toFixed(1), d.nhietDo, S.ng.nhietMin, S.ng.nhietMax);
+  sval("sv-h", d.doAmKK?.toFixed(1),  d.doAmKK,  50, 85);
+  sval("sv-s", d.doAmDat,             d.doAmDat, S.ng.datMin, S.ng.datMax);
+  sval("sv-w", d.mucNuoc,             d.mucNuoc, 10, 100);
+  el("sv-l").textContent = d.anhSang ?? "--";
+  const cu = !!d.cuaMo;
+  el("sv-d").textContent = cu ? "🔓 MỞ" : "🔒 Đóng";
+  el("sv-d").className   = "sv" + (cu ? " warn" : "");
+});
+
+onValue(ref(fdb, "/sprout/thietBi"), snap => {
+  const d = snap.val(); if (!d) return;
+  Object.assign(S.dev, d);
+  updDev("fan",   d.quat,   "t-fan",   "d-fan");
+  updDev("pump",  d.bom,    "t-pump",  "d-pump");
+  updDev("heat",  d.suoi,   "t-heat",  "d-heat");
+  updDev("light", d.den,    "t-light", "d-light");
+  updDev("humid", d.tangAm, "t-humid", "d-humid");
+  updDev("dehu",  d.hutAm,  "t-dehu",  "d-dehu");
+});
+
+onValue(ref(fdb, "/sprout/nguong"), snap => {
+  const d = snap.val(); if (!d) return;
+  Object.assign(S.ng, { nhietMin: d.nhietMin, nhietMax: d.nhietMax,
+                         datMin: d.datMin, datMax: d.datMax });
+  if(d.nhietMin){ el("sl-tmin").value=d.nhietMin; el("sv-tmin").textContent=d.nhietMin+"°C"; }
+  if(d.nhietMax){ el("sl-tmax").value=d.nhietMax; el("sv-tmax").textContent=d.nhietMax+"°C"; }
+  if(d.datMin)  { el("sl-smin").value=d.datMin;   el("sv-smin").textContent=d.datMin+"%"; }
+  if(d.datMax)  { el("sl-smax").value=d.datMax;   el("sv-smax").textContent=d.datMax+"%"; }
+});
+
+// ── Ghi lệnh xuống Firebase (/sprout/lenh) ─────────────────────
+
+function writeCmd(obj) {
+  set(ref(fdb, "/sprout/lenh"), {
+    ...obj,
+    thoiGian: new Date().toLocaleString("vi-VN")
+  });
+}
+
+window.setMode = m => writeCmd({ loai: "SET_MODE", giaTri: m });
+
+window.cmdDev = (cmd, btn) => {
+  if (S.mode !== "MANUAL") {
+    alert("Chuyển sang MANUAL trước!"); return;
+  }
+  const on = btn.classList.toggle("on");
+  writeCmd({ loai: cmd, giaTri: on ? "1" : "0" });
+};
+
+window.onSlider = () => {
+  el("sv-tmin").textContent = el("sl-tmin").value + "°C";
+  el("sv-tmax").textContent = el("sl-tmax").value + "°C";
+  el("sv-smin").textContent = el("sl-smin").value + "%";
+  el("sv-smax").textContent = el("sl-smax").value + "%";
+};
+
+window.applyThresh = () => {
+  writeCmd({ loai:"SET_TEMP", min:+el("sl-tmin").value, max:+el("sl-tmax").value });
+  setTimeout(()=>
+    writeCmd({ loai:"SET_SOIL", min:+el("sl-smin").value, max:+el("sl-smax").value }), 300);
+};
+
+// ── Helper UI ──────────────────────────────────────────────────
+
+function el(id) { return document.getElementById(id); }
+
+function setb(id, txt, cls) {
+  const e = el(id);
+  e.textContent = txt;
+  e.className = "badge " + cls;
+}
+
+function sval(id, display, val, mn, mx) {
+  const e = el(id);
+  e.textContent = display ?? "--";
+  e.className = "sv" + (val < mn || val > mx ? " warn" : "");
+}
+
+function updDev(key, on, tid, did) {
+  const t = el(tid), d = el(did);
+  if (t) { t.classList.toggle("on", !!on); }
+  if (d) { d.className = "dot" + (on ? " on" : ""); }
+}
+
+function lockToggles(lock) {
+  document.querySelectorAll(".tog").forEach(t => {
+    t.classList.toggle("disabled", lock);
+    t.disabled = lock;
+  });
+}
+
+// expose S cho three.js
+window._S = S;
+
+</script>
+
+<!-- Three.js scene — đọc window._S real-time -->
+<script>
+(function() {
+  const wrap = document.getElementById("wrap3d");
+  let W = wrap.clientWidth, H = wrap.clientHeight;
+
+  const scene    = new THREE.Scene();
+  scene.background = new THREE.Color(0x07090f);
+  scene.fog        = new THREE.Fog(0x07090f, 20, 35);
+
+  const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
+  camera.position.set(0, 5, 14);
+  camera.lookAt(0, 1.5, 0);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.setSize(W, H);
+
+  // ── Materials ──────────────────────────────────────────────────
+  const MAT = {
+    glass:  new THREE.MeshPhysicalMaterial({ color:0x88bbdd, transparent:true, opacity:0.16, roughness:0, metalness:0.1, side:THREE.DoubleSide }),
+    frame:  new THREE.MeshStandardMaterial({ color:0x2a3a52, roughness:0.4, metalness:0.9 }),
+    floor:  new THREE.MeshStandardMaterial({ color:0x101a0a, roughness:0.95 }),
+    soil:   new THREE.MeshStandardMaterial({ color:0x2d1204, roughness:1 }),
+    stem:   new THREE.MeshStandardMaterial({ color:0x14532d, roughness:0.8 }),
+    leaf:   new THREE.MeshStandardMaterial({ color:0x16a34a, roughness:0.7 }),
+    device: new THREE.MeshStandardMaterial({ color:0x1e3a5f, roughness:0.5, metalness:0.6 }),
+    lamp:   new THREE.MeshStandardMaterial({ color:0xfefce8, emissive:0xffffaa, emissiveIntensity:0 }),
+    heater: new THREE.MeshStandardMaterial({ color:0x7f1d1d, emissive:0x7f1d1d, emissiveIntensity:0 }),
+    water:  new THREE.MeshStandardMaterial({ color:0x3b82f6, transparent:true, opacity:0.75 }),
+  };
+
+  // ── Build scene ────────────────────────────────────────────────
+  const add = (geo, mat, x,y,z, rx,ry,rz) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x,y,z);
+    if(rx) m.rotation.x=rx;
+    if(ry) m.rotation.y=ry;
+    if(rz) m.rotation.z=rz;
+    m.castShadow = m.receiveShadow = true;
+    scene.add(m); return m;
+  };
+
+  // Floor & soil
+  add(new THREE.BoxGeometry(8,0.14,6), MAT.floor, 0,-0.07,0);
+  add(new THREE.BoxGeometry(6,0.18,4), MAT.soil,  0, 0.14,0);
+
+  // Glass walls
+  [[8,4,0.07,0,2,-3],[8,4,0.07,0,2,3],[0.07,4,6,-4,2,0],[0.07,4,6,4,2,0]].forEach(([w,h,d,x,y,z])=>
+    add(new THREE.BoxGeometry(w,h,d), MAT.glass, x,y,z));
+
+  // Roof
+  const roof = add(new THREE.ConeGeometry(5.8,2.2,4), MAT.glass, 0,5.1,0);
+  roof.rotation.y = Math.PI/4;
+
+  // Frame edges
+  [
+    [8.1,0.1,0.1,0,0,-3],[8.1,0.1,0.1,0,0,3],
+    [8.1,0.1,0.1,0,4,-3],[8.1,0.1,0.1,0,4,3],
+    [0.1,0.1,6.1,-4,0,0],[0.1,0.1,6.1,4,0,0],
+    [0.1,0.1,6.1,-4,4,0],[0.1,0.1,6.1,4,4,0],
+    [0.1,4,0.1,-4,2,-3],[0.1,4,0.1,4,2,-3],
+    [0.1,4,0.1,-4,2,3],[0.1,4,0.1,4,2,3],
+  ].forEach(([w,h,d,x,y,z])=>add(new THREE.BoxGeometry(w,h,d), MAT.frame, x,y,z));
+
+  // Plants (5 vị trí)
+  const plants = [];
+  [[-2,0,1],[0,0,-1.2],[2,0,1],[-1,0,-0.3],[1,0,0.5]].forEach(([px,py,pz],i)=>{
+    const h = 0.5+Math.random()*0.9;
+    add(new THREE.CylinderGeometry(0.05,0.08,h,8), MAT.stem, px, 0.27+h/2, pz);
+    const lr = 0.22+Math.random()*0.18;
+    const leaf = add(new THREE.SphereGeometry(lr,10,8), MAT.leaf.clone(), px, 0.27+h+lr*0.8, pz);
+    plants.push(leaf);
+  });
+
+  // Fan (blades xoay)
+  add(new THREE.CylinderGeometry(0.16,0.16,0.14,16), MAT.device, -2,3.82,-1.5);
+  const blades = [];
+  for(let i=0;i<3;i++){
+    const b = add(new THREE.BoxGeometry(0.85,0.05,0.2), MAT.device, -2,3.72,-1.5);
+    b.userData = {i};
+    blades.push(b);
+  }
+
+  // Lamp
+  add(new THREE.CylinderGeometry(0.03,0.03,0.45,8), MAT.frame, 2,3.78,1);
+  const lampHead = add(new THREE.CylinderGeometry(0.32,0.22,0.11,16), MAT.lamp, 2,3.52,1);
+
+  // Heater
+  const heaterMesh = add(new THREE.BoxGeometry(0.55,0.28,0.28), MAT.heater, -3.5,0.5,2);
+
+  // Water tank
+  add(new THREE.BoxGeometry(0.75,0.55,0.45), MAT.water, 3.2,0.43,-2);
+
+  // Mist nozzle
+  add(new THREE.CylinderGeometry(0.04,0.06,0.18,8), MAT.device, 0,3.7,1.5, 0,0,Math.PI/2);
+
+  // Door panel
+  const doorMesh = add(new THREE.BoxGeometry(0.07,3,1.5), MAT.glass.clone(), 4,1.8,1.2);
+  doorMesh.material.color.set(0xaaddff); doorMesh.material.opacity=0.3;
+
+  // ── Lights ────────────────────────────────────────────────────
+  scene.add(new THREE.AmbientLight(0x0d1a2e, 3));
+  const sun = new THREE.DirectionalLight(0x6688bb, 1.2);
+  sun.position.set(6,10,6); sun.castShadow=true; scene.add(sun);
+
+  const growLight  = new THREE.PointLight(0xffffaa, 0, 6);
+  growLight.position.set(2,3.3,1); scene.add(growLight);
+
+  const heatLight  = new THREE.PointLight(0xff4400, 0, 4);
+  heatLight.position.set(-3.5,1,2); scene.add(heatLight);
+
+  const mistLight  = new THREE.PointLight(0x88ccff, 0, 4);
+  mistLight.position.set(0,3.5,1.5); scene.add(mistLight);
+
+  // ── Particles (mist) ──────────────────────────────────────────
+  const MIST_N = 150;
+  const mistPos = new Float32Array(MIST_N*3);
+  const mistVel = [];
+  for(let i=0;i<MIST_N;i++){
+    mistPos[i*3]   = (Math.random()-.5)*6.5;
+    mistPos[i*3+1] = Math.random()*3.8;
+    mistPos[i*3+2] = (Math.random()-.5)*4.5;
+    mistVel.push({ vx:(Math.random()-.5)*.003, vy:.003+Math.random()*.005 });
+  }
+  const mistGeo = new THREE.BufferGeometry();
+  mistGeo.setAttribute("position", new THREE.BufferAttribute(mistPos,3));
+  const mistMat = new THREE.PointsMaterial({ color:0x88ccff, size:0.06, transparent:true, opacity:0 });
+  scene.add(new THREE.Points(mistGeo, mistMat));
+
+  // ── Water drops ───────────────────────────────────────────────
+  const drops = [];
+  for(let i=0;i<25;i++){
+    const d = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045,6,6),
+      new THREE.MeshStandardMaterial({ color:0x60a5fa, transparent:true, opacity:0 })
+    );
+    d.userData = { active:false, vy:0 };
+    d.position.y = -10; scene.add(d); drops.push(d);
+  }
+
+  // ── Drag / zoom ───────────────────────────────────────────────
+  let drag=false, px=0, py=0, rotY=0.35, rotX=0.18, zoom=14;
+  const c = document.getElementById("c");
+  c.addEventListener("mousedown", e=>{ drag=true; px=e.clientX; py=e.clientY; });
+  window.addEventListener("mouseup", ()=>drag=false);
+  window.addEventListener("mousemove", e=>{
+    if(!drag)return;
+    rotY+=(e.clientX-px)*.008; rotX+=(e.clientY-py)*.004;
+    rotX=Math.max(-.45,Math.min(.55,rotX)); px=e.clientX; py=e.clientY;
+  });
+  c.addEventListener("wheel", e=>{ zoom=Math.max(6,Math.min(22,zoom+e.deltaY*.01)); });
+  c.addEventListener("touchstart", e=>{ drag=true; px=e.touches[0].clientX; py=e.touches[0].clientY; });
+  window.addEventListener("touchend", ()=>drag=false);
+  window.addEventListener("touchmove", e=>{
+    if(!drag)return;
+    rotY+=(e.touches[0].clientX-px)*.01; rotX+=(e.touches[0].clientY-py)*.005;
+    rotX=Math.max(-.45,Math.min(.55,rotX)); px=e.touches[0].clientX; py=e.touches[0].clientY;
+  });
+
+  // ── 2D label projection ───────────────────────────────────────
+  const tmpV = new THREE.Vector3();
+  function project3D(x,y,z,labelId,text,cls){
+    tmpV.set(x,y,z).project(camera);
+    const lx = (tmpV.x*.5+.5)*W, ly = (-.5*tmpV.y+.5)*H;
+    const lb = document.getElementById(labelId);
+    if(!lb)return;
+    if(tmpV.z > 1){ lb.style.display="none"; return; }
+    lb.style.display  = "";
+    lb.style.left     = lx+"px";
+    lb.style.top      = ly+"px";
+    lb.textContent    = text;
+    lb.className      = "lbl3d "+cls;
+  }
+
+  // ── Clock ─────────────────────────────────────────────────────
+  const clock = new THREE.Clock();
+  let fanAngle = 0;
+
+  // ── Animate ───────────────────────────────────────────────────
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt = clock.getDelta();
+    const t  = clock.elapsedTime;
+    const S  = window._S || {};
+    const dev = S.dev || {};
+    const cb  = S.cb  || {};
+
+    // Camera orbit
+    camera.position.x = Math.sin(rotY)*Math.cos(rotX)*zoom;
+    camera.position.y = Math.sin(rotX)*zoom*.7+3;
+    camera.position.z = Math.cos(rotY)*Math.cos(rotX)*zoom;
+    camera.lookAt(0,1.5,0);
+
+    // Fan blades
+    if(dev.quat){ fanAngle += dt*7; }
+    blades.forEach((b,i)=>{
+      const a=(i/3)*Math.PI*2+fanAngle;
+      b.position.set(-2+Math.cos(a)*.43, 3.72, -1.5+Math.sin(a)*.43);
+      b.rotation.y=a;
+    });
+
+    // Grow light
+    growLight.intensity = dev.den ? 3+Math.sin(t*1.5)*.3 : 0;
+    lampHead.material.emissiveIntensity = dev.den ? 2 : 0;
+
+    // Heat glow
+    heatLight.intensity = dev.suoi ? 2+Math.sin(t*5)*.5 : 0;
+    heaterMesh.material.emissiveIntensity = dev.suoi ? .8+Math.sin(t*5)*.2 : 0;
+
+    // Mist
+    const mistOn = !!dev.tangAm;
+    mistMat.opacity = mistOn ? .55 : Math.max(0, mistMat.opacity-.01);
+    mistLight.intensity = mistOn ? 1 : 0;
+    if(mistOn){
+      const pos = mistGeo.attributes.position.array;
+      for(let i=0;i<MIST_N;i++){
+        pos[i*3+1]+=mistVel[i].vy; pos[i*3]+=mistVel[i].vx;
+        if(pos[i*3+1]>3.9){ pos[i*3+1]=0.3; pos[i*3]=(Math.random()-.5)*6.5; }
+      }
+      mistGeo.attributes.position.needsUpdate=true;
+    }
+
+    // Water drops (pump)
+    drops.forEach((d,i)=>{
+      if(dev.bom && !d.userData.active && Math.random()<.05){
+        d.userData.active=true; d.userData.vy=0;
+        d.position.set((Math.random()-.5)*4.5, 2.4, (Math.random()-.5)*3);
+        d.material.opacity=.85;
+      }
+      if(d.userData.active){
+        d.userData.vy-=.015; d.position.y+=d.userData.vy;
+        if(d.position.y<.3){ d.userData.active=false; d.material.opacity=0; d.position.y=-10; }
+      }
+      if(!dev.bom){ d.userData.active=false; d.material.opacity=0; d.position.y=-10; }
+    });
+
+    // Plant sway
+    plants.forEach((p,i)=>{
+      p.rotation.z = Math.sin(t*.6+i)*(dev.quat?.08:.02);
+      // Leaf color: healthy=green, warn if soil low
+      const soilLow = cb.doAmDat < (S.ng?.datMin||30);
+      p.material.color.set(soilLow ? 0x854d0e : 0x16a34a);
+    });
+
+    // Door
+    doorMesh.rotation.y = cb.cuaMo ? -Math.PI*.38 : 0;
+
+    // 2D labels
+    project3D(-2,4,-1.5, "lbl-fan",   dev.quat  ? "🌀 Quạt BẬT":"Quạt TẮT",  dev.quat  ?"on":"off");
+    project3D(2,3.7,1,   "lbl-light", dev.den   ? "💡 Đèn BẬT" :"Đèn TẮT",   dev.den   ?"on":"off");
+    project3D(-3.5,1,2,  "lbl-heat",  dev.suoi  ? "🔥 Sưởi BẬT":"Sưởi TẮT",  dev.suoi  ?"on":"off");
+    project3D(0,.5,0,    "lbl-pump",  dev.bom   ? "💧 Bơm BẬT" :"Bơm TẮT",   dev.bom   ?"on":"off");
+    project3D(4,2,1.2,   "lbl-door",  cb.cuaMo  ? "🚪 Cửa MỞ!" :"Cửa đóng",  cb.cuaMo  ?"warn":"off");
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  // Resize
+  window.addEventListener("resize", ()=>{
+    W=wrap.clientWidth; H=wrap.clientHeight;
+    camera.aspect=W/H; camera.updateProjectionMatrix();
+    renderer.setSize(W,H);
+  });
+})();
+</script>
+</body>
+</html>
