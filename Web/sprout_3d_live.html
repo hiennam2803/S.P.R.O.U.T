@@ -426,8 +426,9 @@ function lockToggles(lock){
   const vp=document.getElementById("vp");
   let W=vp.clientWidth, H=vp.clientHeight;
   const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x04080e);
-  scene.fog=new THREE.FogExp2(0x04080e,.025);
+  // 🎨 Nền xanh nhạt để làm nổi bật lòng kính
+  scene.background=new THREE.Color(0x1a3a5a);
+  scene.fog=new THREE.Fog(0x1a3a5a, 25, 45);
 
   const cam=new THREE.PerspectiveCamera(40,W/H,.1,100);
   cam.position.set(0,6,15);
@@ -438,27 +439,55 @@ function lockToggles(lock){
   ren.shadowMap.enabled=true;
   ren.shadowMap.type=THREE.PCFSoftShadowMap;
   ren.setSize(W,H);
+  ren.toneMapping=THREE.ACESFilmicToneMapping;
+  ren.toneMappingExposure=1.2;
 
   /* ── MATERIALS ── */
   const M={
-    glass:  new THREE.MeshPhysicalMaterial({color:0x7ab8d8,transparent:true,opacity:.14,roughness:.05,metalness:.15,side:THREE.DoubleSide,envMapIntensity:.5}),
-    glassDoor:new THREE.MeshPhysicalMaterial({color:0x9dd0f0,transparent:true,opacity:.22,roughness:.05,metalness:.1,side:THREE.DoubleSide}),
-    frame:  new THREE.MeshStandardMaterial({color:0x1a2e44,roughness:.35,metalness:.85}),
+    // Kính trong suốt màu xanh nhạt, tăng opacity để thấy rõ bên trong
+    glass:  new THREE.MeshPhysicalMaterial({
+      color:0x8ecae6,
+      transparent:true,
+      opacity:.25,
+      roughness:.05,
+      metalness:.1,
+      side:THREE.DoubleSide,
+      envMapIntensity:.8
+    }),
+    glassDoor:new THREE.MeshPhysicalMaterial({
+      color:0xa8d8ea,
+      transparent:true,
+      opacity:.30,
+      roughness:.05,
+      metalness:.1,
+      side:THREE.DoubleSide,
+      envMapIntensity:.6
+    }),
+    frame:  new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.35,metalness:.85}),
     floor:  new THREE.MeshStandardMaterial({color:0x0a1208,roughness:.98}),
-    soil:   new THREE.MeshStandardMaterial({color:0x231205,roughness:1}),
-    stem:   new THREE.MeshStandardMaterial({color:0x0f4020,roughness:.8}),
-    leaf:   new THREE.MeshStandardMaterial({color:0x1a7a35,roughness:.65}),
-    device: new THREE.MeshStandardMaterial({color:0x1a2e44,roughness:.45,metalness:.7}),
-    device2:new THREE.MeshStandardMaterial({color:0x243850,roughness:.5,metalness:.6}),
+    soil:   new THREE.MeshStandardMaterial({color:0x3a2a1a,roughness:1}),
+    stem:   new THREE.MeshStandardMaterial({color:0x1a6a3a,roughness:.8}),
+    leaf:   new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65}),
+    device: new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.45,metalness:.7}),
+    device2:new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.5,metalness:.6}),
     lampCover:new THREE.MeshStandardMaterial({color:0xfef3c7,emissive:0xfef3c7,emissiveIntensity:0}),
-    heatLamp:new THREE.MeshStandardMaterial({color:0x7f1d1d,emissive:0xff2200,emissiveIntensity:0}),
-    waterTank:new THREE.MeshPhysicalMaterial({color:0x1e4fa8,transparent:true,opacity:.35,roughness:.1,metalness:.2,side:THREE.DoubleSide}),
-    waterFill:new THREE.MeshStandardMaterial({color:0x3b82f6,transparent:true,opacity:.7}),
-    pipe:   new THREE.MeshStandardMaterial({color:0x2a4060,roughness:.4,metalness:.8}),
-    fanBlade:new THREE.MeshStandardMaterial({color:0x1e3550,roughness:.3,metalness:.9}),
-    fanHub: new THREE.MeshStandardMaterial({color:0x0e2035,roughness:.3,metalness:.95}),
-    mistDev:new THREE.MeshStandardMaterial({color:0x1a3048,roughness:.5,metalness:.6}),
-    ceilPanel:new THREE.MeshStandardMaterial({color:0x10192a,roughness:.7}),
+    heatLamp:new THREE.MeshStandardMaterial({color:0x7f1d1d,emissive:0xff4400,emissiveIntensity:0}),
+    waterTank:new THREE.MeshPhysicalMaterial({color:0x2a6aaa,transparent:true,opacity:.35,roughness:.1,metalness:.2,side:THREE.DoubleSide}),
+    waterFill:new THREE.MeshStandardMaterial({color:0x4a9af6,transparent:true,opacity:.7}),
+    pipe:   new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.4,metalness:.8}),
+    fanBlade:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.3,metalness:.9}),
+    fanHub: new THREE.MeshStandardMaterial({color:0x1a3a5a,roughness:.3,metalness:.95}),
+    mistDev:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.5,metalness:.6}),
+    // Trần lồng kính: dùng vật liệu kính xanh trong suốt thay vì màu tối
+    ceilPanel:new THREE.MeshPhysicalMaterial({
+      color:0x8ecae6,
+      transparent:true,
+      opacity:.18,
+      roughness:.05,
+      metalness:.05,
+      side:THREE.DoubleSide,
+      envMapIntensity:.5
+    }),
   };
 
   const mesh=(geo,mat,x,y,z,rx,ry,rz)=>{
@@ -488,10 +517,10 @@ function lockToggles(lock){
   ];
   panels.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.glass,x,y,z));
 
-  /* Ceiling panel */
-  mesh(new THREE.BoxGeometry(GW,.08,GD),M.ceilPanel,0,GH,.0);
+  /* Ceiling panel — now made of glass (transparent) */
+  mesh(new THREE.BoxGeometry(GW,.06,GD),M.ceilPanel,0,GH,0);
 
-  /* Frame edges */
+  /* Frame edges (slightly brighter) */
   const frameE=[
     [GW+.1,.1,.1,0,0,-GD/2],[GW+.1,.1,.1,0,0,GD/2],
     [GW+.1,.1,.1,0,GH,-GD/2],[GW+.1,.1,.1,0,GH,GD/2],
@@ -595,7 +624,6 @@ function lockToggles(lock){
   mesh(new THREE.BoxGeometry(.22,.22,.16),M.device2,GW/2+.12,1.18,-.1);
   mesh(new THREE.CylinderGeometry(.03,.03,5.5,8),M.pipe,0,4.8,-.5,0,0,Math.PI/2);
 
-  /* ── FIX: dropperX defined INSIDE the IIFE so animate() can access it ── */
   const dropperX=[-2.2,-1.0,0,1.0,2.2];
   dropperX.forEach(dx=>{
     mesh(new THREE.CylinderGeometry(.015,.015,.9,6),M.pipe,dx,4.35,-.5);
@@ -613,7 +641,7 @@ function lockToggles(lock){
     const stemH=h;
     mesh(new THREE.CylinderGeometry(.04,.07,stemH,8),M.stem,px,py+stemH/2,pz);
     const lr=.18+Math.random()*.15;
-    const lm=new THREE.MeshStandardMaterial({color:0x1a7a35,roughness:.65});
+    const lm=new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65});
     const lf=mesh(new THREE.SphereGeometry(lr,10,8),lm,px,py+stemH+lr*.7,pz);
     leafMats.push(lm);
     plantMeshes.push({mesh:lf,px,py,pz,h:stemH});
@@ -653,8 +681,8 @@ function lockToggles(lock){
   scene.add(new THREE.Points(mistGeo,mistMat));
 
   /* ── LIGHTS ── */
-  scene.add(new THREE.AmbientLight(0x0d1a2e,4));
-  const sun=new THREE.DirectionalLight(0x4a6a8a,1.5);
+  scene.add(new THREE.AmbientLight(0x3a5a7a,2.5));
+  const sun=new THREE.DirectionalLight(0x8ac4e8,2.0);
   sun.position.set(8,12,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);
   scene.add(sun);
@@ -755,7 +783,7 @@ function lockToggles(lock){
       mistGeo.attributes.position.needsUpdate=true;
     }
 
-    /* Water drops — now dropperX is in scope! */
+    /* Water drops */
     const pumpOn=!!dev.bom;
     drops.forEach((d,i)=>{
       if(pumpOn&&!d.userData.active&&Math.random()<.04){
@@ -784,7 +812,7 @@ function lockToggles(lock){
     const soilLow=(cb.doAmDat||0)<(ng.datMin||30);
     plantMeshes.forEach((p,i)=>{
       p.mesh.rotation.z=Math.sin(t*.5+i)*(fanOn?.1:.025);
-      p.mesh.material.color.set(soilLow?0x7a5a10:0x1a7a35);
+      p.mesh.material.color.set(soilLow?0x7a5a10:0x2a9a4a);
       p.mesh.material.emissive=new THREE.Color(growOn?0x001a00:0x000000);
       p.mesh.material.emissiveIntensity=growOn?.15:0;
     });
@@ -814,7 +842,7 @@ function lockToggles(lock){
     ren.setSize(W,H);
   });
 
-})(); /* ── END IIFE ── dropperX is now safely inside ── */
+})();
 </script>
 
 </body>
