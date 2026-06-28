@@ -1,2 +1,3 @@
-echo "*.json" >> .gitignore
-echo "serviceAccountKey.json" >> .gitignore
+serviceAccountKey.json
+firebase-adminsdk*.json
+sprout-3609f-firebase-adminsdk-fbsvc-eabd4ae960.json

@@ -3,295 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>S.P.R.O.U.T — 3D Live Dashboard</title>
+<title>S.P.R.O.U.T — Dashboard</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #0a0f1a;
-  color: #c8d8e8;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060b10;--bg2:#0c1520;--bg3:#111d2a;
+  --border:#1a2d42;--border2:#243d58;
+  --green:#22c55e;--green2:#166534;--green3:#14532d;
+  --blue:#3b82f6;--blue2:#1d4ed8;
+  --amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
+  --text:#c8dae8;--text2:#6a8aaa;--text3:#3a5268;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 20px;
+  background:linear-gradient(90deg,#060e18,#0a1520);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;gap:10px;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:32px;height:32px;background:var(--green3);
+  border-radius:8px;border:1px solid var(--green2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.logo h1{font-size:.95rem;font-weight:700;color:var(--green);letter-spacing:4px;white-space:nowrap}
+.logo p{font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{
+  padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.pill.online{background:#052e16;color:#4ade80;border:1px solid #14532d}
+.pill.offline{background:#1c0a0a;color:#f87171;border:1px solid #450a0a}
+.pill.auto{background:#0a1e3a;color:#60a5fa;border:1px solid #1e3a6a}
+.pill.manual{background:#2c1000;color:#fb923c;border:1px solid #7c2d12}
+.pill.warn{background:#271800;color:#fbbf24;border:1px solid #78350f;animation:blink 1.5s infinite}
+#ts{font-size:10px;color:var(--text3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* MAIN */
+main{display:flex;flex:1;min-height:0;overflow:hidden}
+
+/* VIEWPORT 3D */
+#vp{flex:1 1 0;position:relative;min-width:0;cursor:grab;overflow:hidden}
+#vp:active{cursor:grabbing}
+canvas{display:block;width:100%!important;height:100%!important}
+#hint3d{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--text3);background:#0c1520cc;
+  padding:3px 12px;border-radius:12px;border:1px solid var(--border);
+  pointer-events:none;white-space:nowrap;
 }
 
-/* ── HEADER ── */
-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 18px;
-  background: #0d1320;
-  border-bottom: 1px solid #1e2d42;
-  flex-shrink: 0;
-  gap: 12px;
-  flex-wrap: wrap;
+/* 3D LABELS */
+.l3{
+  position:absolute;font-size:10px;font-weight:700;
+  border-radius:5px;padding:2px 7px;pointer-events:none;white-space:nowrap;
+  border:1px solid;line-height:1.4;
 }
-header h1 { font-size: 1rem; font-weight: 600; color: #4ade80; letter-spacing: 3px; }
-.badges { display: flex; gap: 8px; flex-wrap: wrap; }
-.badge {
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-}
-.badge.online  { background:#14532d; color:#86efac; }
-.badge.offline { background:#450a0a; color:#fca5a5; }
-.badge.auto    { background:#1e3a5f; color:#93c5fd; }
-.badge.manual  { background:#7c2d12; color:#fdba74; }
-.badge.warn    { background:#713f12; color:#fde68a; }
-#ts { font-size: 10px; color: #4a6080; }
+.l3.on{color:#4ade80;border-color:#166534;background:#0516100e}
+.l3.off{color:#3a5268;border-color:#1a2d42;background:#0c1520aa}
+.l3.warn{color:#f59e0b;border-color:#78350f;background:#1c0e00aa}
 
-/* ── MAIN LAYOUT ── */
-main {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  gap: 0;
+/* SIDE PANEL */
+#panel{
+  width:248px;flex-shrink:0;background:var(--bg2);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+  padding:10px;gap:8px;scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
 }
 
-/* ── 3D CANVAS ── */
-#wrap3d {
-  flex: 1 1 0;
-  position: relative;
-  min-width: 0;
-  cursor: grab;
+/* CARD */
+.card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;
 }
-#wrap3d:active { cursor: grabbing; }
-canvas { display: block; width: 100% !important; height: 100% !important; }
+.card h4{
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  color:var(--text3);text-transform:uppercase;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.card h4::before{content:'';flex:1;height:1px;background:var(--border)}
 
-#hint {
-  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-  font-size: 10px; color: #3a5070; pointer-events: none;
-  background: #0d132088; padding: 3px 10px; border-radius: 10px;
+/* SENSOR GRID */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.si{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:7px;padding:7px 5px;text-align:center;
 }
+.sv{font-size:16px;font-weight:700;color:var(--green);line-height:1}
+.sv.warn{color:var(--red)}
+.sv.ok{color:var(--green)}
+.sl{font-size:8px;color:var(--text3);margin-top:3px}
 
-/* 3D overlay labels */
-.lbl3d {
-  position: absolute;
-  font-size: 10px; font-weight: 600;
-  background: #0d1320cc;
-  border: 1px solid #2a4060;
-  border-radius: 5px;
-  padding: 2px 7px;
-  pointer-events: none;
-  white-space: nowrap;
-}
-.lbl3d.on  { color: #4ade80; border-color: #166534; }
-.lbl3d.off { color: #4a6080; }
-.lbl3d.warn{ color: #fb923c; border-color: #7c2d12; }
+/* SENSOR BAR */
+.sbar-wrap{margin-bottom:5px}
+.sbar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px}
+.sbar-label span:last-child{color:var(--text);font-weight:600}
+.sbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
 
-/* ── SIDE PANEL ── */
-#panel {
-  width: 240px;
-  flex-shrink: 0;
-  background: #0d1320;
-  border-left: 1px solid #1e2d42;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 10px;
-  gap: 10px;
+/* MODE */
+.mrow{display:flex;gap:5px;margin-bottom:7px}
+.mbtn{
+  flex:1;padding:7px 4px;border-radius:7px;border:1px solid var(--border);
+  font-size:11px;font-weight:700;cursor:pointer;
+  background:var(--bg);color:var(--text3);transition:all .2s;
 }
+.mbtn.a.active{background:#0a1e3a;color:#60a5fa;border-color:#1d4ed8}
+.mbtn.m.active{background:#2c1000;color:#fb923c;border-color:#c2410c}
 
-.card {
-  background: #111827;
-  border: 1px solid #1e2d42;
-  border-radius: 10px;
-  padding: 10px 12px;
+/* DEVICES */
+.drow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;border-bottom:1px solid #0f1e2d;
 }
-.card h4 {
-  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
-  color: #3a5070; text-transform: uppercase; margin-bottom: 8px;
-}
+.drow:last-child{border-bottom:none}
+.dname{font-size:11px;color:#8aaac8;display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:#1a2d42;flex-shrink:0;transition:all .3s}
+.dot.on{background:var(--green);box-shadow:0 0 6px #22c55e55}
+.dot.warn{background:var(--amber);box-shadow:0 0 6px #f59e0b55}
 
-/* Sensor grid */
-.sg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.si {
-  background: #0d1320; border-radius: 7px; padding: 8px 6px;
-  text-align: center;
+/* TOGGLE */
+.tog{
+  width:34px;height:18px;border-radius:9px;background:#1a2d42;
+  border:none;position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;
 }
-.sv { font-size: 18px; font-weight: 600; color: #4ade80; line-height: 1; }
-.sv.warn { color: #f87171; }
-.sl { font-size: 9px; color: #3a5070; margin-top: 3px; }
+.tog::after{
+  content:'';position:absolute;width:14px;height:14px;
+  border-radius:50%;background:#3a5268;top:2px;left:2px;transition:all .25s;
+}
+.tog.on{background:var(--green2)}
+.tog.on::after{left:18px;background:var(--green)}
+.tog.disabled{opacity:.3;cursor:not-allowed}
 
-/* Mode buttons */
-.mrow { display: flex; gap: 6px; margin-bottom: 6px; }
-.mbtn {
-  flex: 1; padding: 7px 4px;
-  border-radius: 7px; border: 1px solid #1e2d42;
-  font-size: 11px; font-weight: 700; cursor: pointer;
-  background: #0d1320; color: #4a6080;
-  transition: all .2s;
-}
-.mbtn.active.abtn { background: #1e3a5f; color: #93c5fd; border-color: #2563eb; }
-.mbtn.active.mbtn2{ background: #7c2d12; color: #fdba74; border-color: #c2410c; }
+/* SLIDER */
+.srow{margin-bottom:5px}
+.srow label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px}
+.srow label span:last-child{color:var(--text);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
 
-/* Device rows */
-.drow {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid #1a2535;
-}
-.drow:last-child { border-bottom: none; }
-.dname { font-size: 12px; color: #8aaac8; display: flex; align-items: center; gap: 5px; }
-.dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #2a3a4a; flex-shrink: 0; transition: all .3s;
-}
-.dot.on  { background: #4ade80; box-shadow: 0 0 5px #4ade8066; }
-.dot.warn{ background: #fb923c; box-shadow: 0 0 5px #fb923c66; }
+/* AI BOX */
+#aiBox{font-size:11px;color:#7a9ab8;line-height:1.6;min-height:36px}
+#aiBox .ait{font-size:9px;color:var(--text3);margin-top:3px}
+#alertBox{font-size:11px;color:var(--amber);line-height:1.5;min-height:24px}
 
-/* Toggle */
-.tog {
-  width: 36px; height: 19px; border-radius: 10px;
-  background: #1e2d42; border: none; position: relative;
-  cursor: pointer; transition: background .3s; flex-shrink: 0;
+/* OFFLINE */
+#offlineOv{
+  position:fixed;inset:0;z-index:999;background:#060b10ee;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
 }
-.tog::after {
-  content:''; position: absolute; width: 15px; height: 15px;
-  border-radius: 50%; background: #4a6080;
-  top: 2px; left: 2px; transition: all .3s;
+#offlineOv h2{color:#f87171;font-size:1.1rem}
+#offlineOv p{color:var(--text3);font-size:12px;text-align:center;max-width:280px}
+.spin{
+  width:32px;height:32px;border:3px solid var(--border2);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .8s linear infinite;
 }
-.tog.on { background: #166534; }
-.tog.on::after { left: 19px; background: #4ade80; }
-.tog.disabled { opacity: .35; cursor: not-allowed; }
-
-/* Threshold sliders */
-.srow { margin-bottom: 6px; }
-.srow label {
-  display: flex; justify-content: space-between;
-  font-size: 11px; color: #4a6080; margin-bottom: 3px;
-}
-.srow label span:last-child { color: #8aaac8; font-weight: 600; }
-input[type=range] {
-  width: 100%; accent-color: #2563eb; height: 3px; cursor: pointer;
-}
-
-/* AI box */
-#aiBox {
-  font-size: 11px; color: #7a9ab8; line-height: 1.6;
-  min-height: 44px;
-}
-#aiBox .ait { font-size: 9px; color: #2a4060; margin-top: 4px; }
-
-/* Alert box */
-#alertBox {
-  font-size: 11px; color: #fb923c; line-height: 1.5; min-height: 30px;
-}
-
-/* Offline overlay */
-#offlineOverlay {
-  position: fixed; inset: 0; z-index: 999;
-  background: #0a0f1aee;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 12px;
-}
-#offlineOverlay h2 { color: #f87171; font-size: 1.2rem; }
-#offlineOverlay p  { color: #4a6080; font-size: 13px; text-align: center; max-width: 320px; }
-.spinner {
-  width: 36px; height: 36px;
-  border: 3px solid #1e2d42;
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🌱 S.P.R.O.U.T</h1>
-  <div class="badges">
-    <span class="badge offline" id="bdgOnline">⚫ Offline</span>
-    <span class="badge auto"    id="bdgMode">AUTO</span>
-    <span class="badge warn"    id="bdgWarn" style="display:none">⚠ Cảnh báo</span>
+  <div class="logo">
+    <div class="logo-icon">🌱</div>
+    <div>
+      <h1>S.P.R.O.U.T</h1>
+      <p>SMART PLANT ROOM OMNI-UTILITY TERMINAL</p>
+    </div>
   </div>
-  <span id="ts">--</span>
+  <div class="header-right">
+    <span class="pill offline" id="bdgOnline">⚫ Offline</span>
+    <span class="pill auto" id="bdgMode">⚡ AUTO</span>
+    <span class="pill warn" id="bdgWarn" style="display:none">⚠ Cảnh báo</span>
+    <span id="ts">--:--</span>
+  </div>
 </header>
 
 <main>
-  <!-- 3D viewport -->
-  <div id="wrap3d">
-    <canvas id="c"></canvas>
-    <div id="hint">Kéo để xoay · Cuộn để zoom</div>
-    <!-- Overlay labels (vị trí tính bằng JS projection) -->
-    <div class="lbl3d off" id="lbl-fan"   style="display:none">Quạt</div>
-    <div class="lbl3d off" id="lbl-pump"  style="display:none">Bơm</div>
-    <div class="lbl3d off" id="lbl-heat"  style="display:none">Sưởi</div>
-    <div class="lbl3d off" id="lbl-light" style="display:none">Đèn</div>
-    <div class="lbl3d off" id="lbl-door"  style="display:none">Cửa</div>
+  <div id="vp">
+    <canvas id="c3"></canvas>
+    <div id="hint3d">Kéo để xoay · Cuộn để zoom</div>
+    <div class="l3 off" id="lFan"   style="display:none">Quạt làm mát</div>
+    <div class="l3 off" id="lLight" style="display:none">Đèn quang hợp</div>
+    <div class="l3 off" id="lHeat"  style="display:none">Đèn sưởi</div>
+    <div class="l3 off" id="lHumid" style="display:none">Tăng ẩm</div>
+    <div class="l3 off" id="lDehu"  style="display:none">Hút ẩm</div>
+    <div class="l3 off" id="lPump"  style="display:none">Bơm tưới</div>
+    <div class="l3 off" id="lDoor"  style="display:none">Cửa</div>
+    <div class="l3 off" id="lTank"  style="display:none">Bồn nước</div>
   </div>
 
-  <!-- Side panel -->
   <div id="panel">
 
     <div class="card">
-      <h4>Cảm biến thật — Arduino</h4>
+      <h4>Cảm biến</h4>
       <div class="sg">
-        <div class="si"><div class="sv" id="sv-t">--</div><div class="sl">Nhiệt độ °C</div></div>
-        <div class="si"><div class="sv" id="sv-h">--</div><div class="sl">Độ ẩm KK %</div></div>
-        <div class="si"><div class="sv" id="sv-s">--</div><div class="sl">Đất %</div></div>
-        <div class="si"><div class="sv" id="sv-w">--</div><div class="sl">Bồn nước %</div></div>
-        <div class="si"><div class="sv" id="sv-l">--</div><div class="sl">Ánh sáng %</div></div>
-        <div class="si"><div class="sv" id="sv-d" style="font-size:13px">--</div><div class="sl">Cửa buồng</div></div>
+        <div class="si">
+          <div class="sv" id="svT">--</div>
+          <div class="sl">Nhiệt °C</div>
+        </div>
+        <div class="si">
+          <div class="sv" id="svH">--</div>
+          <div class="sl">Ẩm KK %</div>
+        </div>
+        <div class="si">
+          <div class="sv" id="svL">--</div>
+          <div class="sl">Sáng %</div>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="sbar-wrap">
+          <div class="sbar-label"><span>Độ ẩm đất</span><span id="vS">--%</span></div>
+          <div class="sbar"><div class="sbar-fill" id="bS" style="width:0%;background:var(--green)"></div></div>
+        </div>
+        <div class="sbar-wrap">
+          <div class="sbar-label"><span>Bồn nước</span><span id="vW">--%</span></div>
+          <div class="sbar"><div class="sbar-fill" id="bW" style="width:0%;background:var(--blue)"></div></div>
+        </div>
+        <div class="sbar-wrap">
+          <div class="sbar-label"><span>Cửa buồng</span><span id="vD">--</span></div>
+          <div class="sbar" style="height:6px;background:var(--border);border-radius:3px">
+            <div id="bD" style="height:100%;border-radius:3px;width:0%;transition:width .5s;background:var(--amber)"></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="card">
-      <h4>Chế độ điều khiển</h4>
+      <h4>Điều khiển</h4>
       <div class="mrow">
-        <button class="mbtn abtn  active" id="btn-auto"   onclick="setMode('AUTO')">⚡ AUTO</button>
-        <button class="mbtn mbtn2"        id="btn-manual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
+        <button class="mbtn a active" id="btnAuto"   onclick="setMode('AUTO')">⚡ AUTO</button>
+        <button class="mbtn m"        id="btnManual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
       </div>
-      <div class="drow">
-        <div class="dname"><div class="dot" id="d-fan"></div>Quạt nhiệt</div>
-        <button class="tog" id="t-fan" onclick="cmdDev('CMD_QUAT',this)"></button>
-      </div>
-      <div class="drow">
-        <div class="dname"><div class="dot" id="d-pump"></div>Bơm tưới</div>
-        <button class="tog" id="t-pump" onclick="cmdDev('CMD_BOM',this)"></button>
-      </div>
-      <div class="drow">
-        <div class="dname"><div class="dot" id="d-heat"></div>Lò sưởi</div>
-        <button class="tog" id="t-heat" onclick="cmdDev('CMD_SUOI',this)"></button>
-      </div>
-      <div class="drow">
-        <div class="dname"><div class="dot" id="d-light"></div>Đèn</div>
-        <button class="tog" id="t-light" onclick="cmdDev('CMD_DEN',this)"></button>
-      </div>
-      <div class="drow">
-        <div class="dname"><div class="dot" id="d-humid"></div>Tăng ẩm</div>
-        <button class="tog" id="t-humid" onclick="cmdDev('CMD_TANGAM',this)"></button>
-      </div>
-      <div class="drow">
-        <div class="dname"><div class="dot" id="d-dehu"></div>Hút ẩm</div>
-        <button class="tog" id="t-dehu" onclick="cmdDev('CMD_HUTAM',this)"></button>
-      </div>
+      <div class="drow"><div class="dname"><div class="dot" id="dFan"></div>Quạt làm mát</div><button class="tog" id="tFan"   onclick="cmdDev('CMD_QUAT',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dLight"></div>Đèn quang hợp</div><button class="tog" id="tLight" onclick="cmdDev('CMD_DEN',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dHeat"></div>Đèn sưởi</div><button class="tog" id="tHeat"  onclick="cmdDev('CMD_SUOI',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dHumid"></div>Tăng ẩm</div><button class="tog" id="tHumid" onclick="cmdDev('CMD_TANGAM',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dDehu"></div>Hút ẩm</div><button class="tog" id="tDehu"  onclick="cmdDev('CMD_HUTAM',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dPump"></div>Bơm tưới</div><button class="tog" id="tPump"  onclick="cmdDev('CMD_BOM',this)"></button></div>
     </div>
 
     <div class="card">
-      <h4>Ngưỡng nhiệt độ</h4>
+      <h4>Ngưỡng</h4>
       <div class="srow">
-        <label><span>Min</span><span id="sv-tmin">18°C</span></label>
-        <input type="range" min="10" max="25" value="18" step="1" id="sl-tmin" oninput="onSlider()">
+        <label><span>Nhiệt Min</span><span id="vTmin">18°C</span></label>
+        <input type="range" min="10" max="25" value="18" step="1" id="slTmin" oninput="onSl()">
       </div>
       <div class="srow">
-        <label><span>Max</span><span id="sv-tmax">30°C</span></label>
-        <input type="range" min="25" max="40" value="30" step="1" id="sl-tmax" oninput="onSlider()">
+        <label><span>Nhiệt Max</span><span id="vTmax">30°C</span></label>
+        <input type="range" min="25" max="40" value="30" step="1" id="slTmax" oninput="onSl()">
       </div>
-      <div class="srow" style="margin-top:8px">
-        <label><span>Độ ẩm đất Min</span><span id="sv-smin">30%</span></label>
-        <input type="range" min="10" max="60" value="30" step="1" id="sl-smin" oninput="onSlider()">
+      <div class="srow" style="margin-top:6px">
+        <label><span>Đất Min</span><span id="vSmin">30%</span></label>
+        <input type="range" min="10" max="60" value="30" step="1" id="slSmin" oninput="onSl()">
       </div>
       <div class="srow">
-        <label><span>Độ ẩm đất Max</span><span id="sv-smax">70%</span></label>
-        <input type="range" min="50" max="90" value="70" step="1" id="sl-smax" oninput="onSlider()">
+        <label><span>Đất Max</span><span id="vSmax">70%</span></label>
+        <input type="range" min="50" max="90" value="70" step="1" id="slSmax" oninput="onSl()">
       </div>
       <button onclick="applyThresh()"
-        style="width:100%;margin-top:6px;padding:6px;background:#1e3a5f;
-               color:#93c5fd;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
-        Áp dụng → Arduino
+        style="width:100%;margin-top:7px;padding:6px;background:#0a1e3a;
+        color:#60a5fa;border:1px solid #1d4ed8;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700">
+        ▶ Áp dụng → Arduino
       </button>
     </div>
 
@@ -302,454 +283,539 @@ input[type=range] {
 
     <div class="card">
       <h4>🚨 Cảnh báo</h4>
-      <div id="alertBox">Không có cảnh báo</div>
+      <div id="alertBox" style="color:var(--text2)">Không có cảnh báo</div>
     </div>
 
-  </div><!-- #panel -->
+  </div>
 </main>
 
-<!-- Offline overlay -->
-<div id="offlineOverlay">
-  <div class="spinner"></div>
+<div id="offlineOv">
+  <div class="spin"></div>
   <h2>Đang kết nối Firebase...</h2>
   <p>Đảm bảo <code>bridge.py</code> đang chạy và Proteus đang mô phỏng.</p>
 </div>
 
-<!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-<!-- Firebase SDK -->
 <script type="module">
-import { initializeApp }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// ================================================================
-// FIREBASE CONFIG — đổi theo project của bạn
-// ================================================================
 const firebaseConfig = {
-  apiKey:            "AIzaSyAEVGBzSqFDXMQuUrIMX4NFzz5Zq6pRthQ",
-  authDomain:        "sprout-3609f.firebaseapp.com",
-  databaseURL:       "https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:         "sprout-3609f",
-  storageBucket:     "sprout-3609f.firebasestorage.app",
-  messagingSenderId: "1026541317812",
-  appId:             "1:1026541317812:web:82c07bd9999cebe01171e1"
+  apiKey:"AIzaSyAEVGBzSqFDXMQuUrIMX4NFzz5Zq6pRthQ",
+  authDomain:"sprout-3609f.firebaseapp.com",
+  databaseURL:"https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"sprout-3609f",
+  storageBucket:"sprout-3609f.firebasestorage.app",
+  messagingSenderId:"1026541317812",
+  appId:"1:1026541317812:web:82c07bd9999cebe01171e1"
 };
 
 const app = initializeApp(firebaseConfig);
 const fdb = getDatabase(app);
 
-// Trạng thái local (phản ánh Firebase, dùng cho 3D)
 const S = {
-  mode: "AUTO",
-  dev: { quat:0, bom:0, suoi:0, den:0, hutAm:0, tangAm:0 },
-  cb:  { nhietDo:0, doAmKK:0, doAmDat:0, mucNuoc:0, anhSang:0, cuaMo:false },
-  ng:  { nhietMin:18, nhietMax:30, datMin:30, datMax:70 },
-  online: false
+  mode:"AUTO",
+  dev:{quat:0,bom:0,suoi:0,den:0,hutAm:0,tangAm:0},
+  cb:{nhietDo:0,doAmKK:0,doAmDat:0,mucNuoc:0,anhSang:0,cuaMo:false},
+  ng:{nhietMin:18,nhietMax:30,datMin:30,datMax:70},
+  online:false
 };
-
-// ── Firebase listeners ──────────────────────────────────────────
-
-onValue(ref(fdb, "/sprout/trangThai"), snap => {
-  const d = snap.val(); if (!d) return;
-
-  S.online = !!d.online;
-  S.mode   = d.mode || "AUTO";
-
-  // overlay
-  document.getElementById("offlineOverlay").style.display = S.online ? "none" : "flex";
-
-  // badges
-  setb("bdgOnline", S.online ? "🟢 Online" : "⚫ Offline", S.online ? "online" : "offline");
-  setb("bdgMode", S.mode, S.mode === "AUTO" ? "auto" : "manual");
-
-  // mode buttons
-  el("btn-auto").classList.toggle("active", S.mode === "AUTO");
-  el("btn-manual").classList.toggle("active", S.mode === "MANUAL");
-  lockToggles(S.mode === "AUTO");
-
-  if (d.capNhatLuc) el("ts").textContent = d.capNhatLuc;
-
-  if (d.aiMoiNhat) {
-    el("aiBox").innerHTML =
-      `${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc||""}</div>`;
-  }
-
-  if (d.canhBaoMoi) {
-    el("bdgWarn").style.display = "";
-    el("alertBox").textContent = `${d.canhBaoMoi}  ${d.canhBaoLuc||""}`;
-  }
-});
-
-onValue(ref(fdb, "/sprout/camBien"), snap => {
-  const d = snap.val(); if (!d) return;
-  Object.assign(S.cb, d);
-
-  sval("sv-t", d.nhietDo?.toFixed(1), d.nhietDo, S.ng.nhietMin, S.ng.nhietMax);
-  sval("sv-h", d.doAmKK?.toFixed(1),  d.doAmKK,  50, 85);
-  sval("sv-s", d.doAmDat,             d.doAmDat, S.ng.datMin, S.ng.datMax);
-  sval("sv-w", d.mucNuoc,             d.mucNuoc, 10, 100);
-  el("sv-l").textContent = d.anhSang ?? "--";
-  const cu = !!d.cuaMo;
-  el("sv-d").textContent = cu ? "🔓 MỞ" : "🔒 Đóng";
-  el("sv-d").className   = "sv" + (cu ? " warn" : "");
-});
-
-onValue(ref(fdb, "/sprout/thietBi"), snap => {
-  const d = snap.val(); if (!d) return;
-  Object.assign(S.dev, d);
-  updDev("fan",   d.quat,   "t-fan",   "d-fan");
-  updDev("pump",  d.bom,    "t-pump",  "d-pump");
-  updDev("heat",  d.suoi,   "t-heat",  "d-heat");
-  updDev("light", d.den,    "t-light", "d-light");
-  updDev("humid", d.tangAm, "t-humid", "d-humid");
-  updDev("dehu",  d.hutAm,  "t-dehu",  "d-dehu");
-});
-
-onValue(ref(fdb, "/sprout/nguong"), snap => {
-  const d = snap.val(); if (!d) return;
-  Object.assign(S.ng, { nhietMin: d.nhietMin, nhietMax: d.nhietMax,
-                         datMin: d.datMin, datMax: d.datMax });
-  if(d.nhietMin){ el("sl-tmin").value=d.nhietMin; el("sv-tmin").textContent=d.nhietMin+"°C"; }
-  if(d.nhietMax){ el("sl-tmax").value=d.nhietMax; el("sv-tmax").textContent=d.nhietMax+"°C"; }
-  if(d.datMin)  { el("sl-smin").value=d.datMin;   el("sv-smin").textContent=d.datMin+"%"; }
-  if(d.datMax)  { el("sl-smax").value=d.datMax;   el("sv-smax").textContent=d.datMax+"%"; }
-});
-
-// ── Ghi lệnh xuống Firebase (/sprout/lenh) ─────────────────────
-
-function writeCmd(obj) {
-  set(ref(fdb, "/sprout/lenh"), {
-    ...obj,
-    thoiGian: new Date().toLocaleString("vi-VN")
-  });
-}
-
-window.setMode = m => writeCmd({ loai: "SET_MODE", giaTri: m });
-
-window.cmdDev = (cmd, btn) => {
-  if (S.mode !== "MANUAL") {
-    alert("Chuyển sang MANUAL trước!"); return;
-  }
-  const on = btn.classList.toggle("on");
-  writeCmd({ loai: cmd, giaTri: on ? "1" : "0" });
-};
-
-window.onSlider = () => {
-  el("sv-tmin").textContent = el("sl-tmin").value + "°C";
-  el("sv-tmax").textContent = el("sl-tmax").value + "°C";
-  el("sv-smin").textContent = el("sl-smin").value + "%";
-  el("sv-smax").textContent = el("sl-smax").value + "%";
-};
-
-window.applyThresh = () => {
-  writeCmd({ loai:"SET_TEMP", min:+el("sl-tmin").value, max:+el("sl-tmax").value });
-  setTimeout(()=>
-    writeCmd({ loai:"SET_SOIL", min:+el("sl-smin").value, max:+el("sl-smax").value }), 300);
-};
-
-// ── Helper UI ──────────────────────────────────────────────────
-
-function el(id) { return document.getElementById(id); }
-
-function setb(id, txt, cls) {
-  const e = el(id);
-  e.textContent = txt;
-  e.className = "badge " + cls;
-}
-
-function sval(id, display, val, mn, mx) {
-  const e = el(id);
-  e.textContent = display ?? "--";
-  e.className = "sv" + (val < mn || val > mx ? " warn" : "");
-}
-
-function updDev(key, on, tid, did) {
-  const t = el(tid), d = el(did);
-  if (t) { t.classList.toggle("on", !!on); }
-  if (d) { d.className = "dot" + (on ? " on" : ""); }
-}
-
-function lockToggles(lock) {
-  document.querySelectorAll(".tog").forEach(t => {
-    t.classList.toggle("disabled", lock);
-    t.disabled = lock;
-  });
-}
-
-// expose S cho three.js
 window._S = S;
 
+const el = id => document.getElementById(id);
+
+onValue(ref(fdb,"/sprout/trangThai"), snap=>{
+  const d=snap.val(); if(!d) return;
+  S.online=!!d.online; S.mode=d.mode||"AUTO";
+  el("offlineOv").style.display=S.online?"none":"flex";
+  const ob=el("bdgOnline");
+  ob.textContent=S.online?"🟢 Online":"⚫ Offline";
+  ob.className="pill "+(S.online?"online":"offline");
+  const mb=el("bdgMode");
+  mb.textContent=S.mode==="AUTO"?"⚡ AUTO":"🖐 MANUAL";
+  mb.className="pill "+(S.mode==="AUTO"?"auto":"manual");
+  el("btnAuto").classList.toggle("active",S.mode==="AUTO");
+  el("btnManual").classList.toggle("active",S.mode==="MANUAL");
+  lockToggles(S.mode==="AUTO");
+  if(d.capNhatLuc) el("ts").textContent=d.capNhatLuc;
+  if(d.aiMoiNhat) el("aiBox").innerHTML=`${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc||""}</div>`;
+  if(d.canhBaoMoi){
+    el("bdgWarn").style.display="";
+    el("alertBox").style.color="var(--amber)";
+    el("alertBox").textContent=`${d.canhBaoMoi} ${d.canhBaoLuc||""}`;
+  }
+});
+
+onValue(ref(fdb,"/sprout/camBien"), snap=>{
+  const d=snap.val(); if(!d) return;
+  Object.assign(S.cb,d);
+  const ng=S.ng;
+  sval("svT",d.nhietDo?.toFixed(1),d.nhietDo,ng.nhietMin,ng.nhietMax);
+  sval("svH",d.doAmKK?.toFixed(1),d.doAmKK,50,85);
+  sval("svL",d.anhSang,d.anhSang,20,100);
+  bar("bS","vS",d.doAmDat,0,100,d.doAmDat<ng.datMin||d.doAmDat>ng.datMax);
+  bar("bW","vW",d.mucNuoc,0,100,d.mucNuoc<15);
+  const cu=!!d.cuaMo;
+  el("vD").textContent=cu?"🔓 Mở":"🔒 Đóng";
+  el("bD").style.width=(cu?"100":"0")+"%";
+  el("bD").style.background=cu?"var(--amber)":"var(--green)";
+});
+
+onValue(ref(fdb,"/sprout/thietBi"), snap=>{
+  const d=snap.val(); if(!d) return;
+  Object.assign(S.dev,d);
+  updDev("Fan",d.quat,"tFan","dFan");
+  updDev("Light",d.den,"tLight","dLight");
+  updDev("Heat",d.suoi,"tHeat","dHeat");
+  updDev("Humid",d.tangAm,"tHumid","dHumid");
+  updDev("Dehu",d.hutAm,"tDehu","dDehu");
+  updDev("Pump",d.bom,"tPump","dPump");
+});
+
+onValue(ref(fdb,"/sprout/nguong"), snap=>{
+  const d=snap.val(); if(!d) return;
+  Object.assign(S.ng,{nhietMin:d.nhietMin,nhietMax:d.nhietMax,datMin:d.datMin,datMax:d.datMax});
+  if(d.nhietMin){el("slTmin").value=d.nhietMin;el("vTmin").textContent=d.nhietMin+"°C"}
+  if(d.nhietMax){el("slTmax").value=d.nhietMax;el("vTmax").textContent=d.nhietMax+"°C"}
+  if(d.datMin){el("slSmin").value=d.datMin;el("vSmin").textContent=d.datMin+"%"}
+  if(d.datMax){el("slSmax").value=d.datMax;el("vSmax").textContent=d.datMax+"%"}
+});
+
+function writeCmd(obj){ set(ref(fdb,"/sprout/lenh"),{...obj,thoiGian:new Date().toLocaleString("vi-VN")}); }
+window.setMode=m=>writeCmd({loai:"SET_MODE",giaTri:m});
+window.cmdDev=(cmd,btn)=>{
+  if(S.mode!=="MANUAL"){alert("Chuyển sang MANUAL trước!");return;}
+  const on=btn.classList.toggle("on");
+  writeCmd({loai:cmd,giaTri:on?"1":"0"});
+};
+window.onSl=()=>{
+  el("vTmin").textContent=el("slTmin").value+"°C";
+  el("vTmax").textContent=el("slTmax").value+"°C";
+  el("vSmin").textContent=el("slSmin").value+"%";
+  el("vSmax").textContent=el("slSmax").value+"%";
+};
+window.applyThresh=()=>{
+  writeCmd({loai:"SET_TEMP",min:+el("slTmin").value,max:+el("slTmax").value});
+  setTimeout(()=>writeCmd({loai:"SET_SOIL",min:+el("slSmin").value,max:+el("slSmax").value}),300);
+};
+
+function sval(id,display,val,mn,mx){
+  const e=el(id);
+  e.textContent=display??"-";
+  e.className="sv"+(val<mn||val>mx?" warn":" ok");
+}
+function bar(bid,vid,val,mn,mx,warn){
+  const pct=Math.max(0,Math.min(100,((val-mn)/(mx-mn))*100));
+  el(bid).style.width=pct+"%";
+  el(bid).style.background=warn?"var(--red)":val>60?"var(--green)":"var(--blue)";
+  el(vid).textContent=(val??"-")+"%";
+}
+function updDev(key,on,tid,did){
+  const t=el(tid),d=el(did);
+  if(t) t.classList.toggle("on",!!on);
+  if(d) d.className="dot"+(on?" on":"");
+}
+function lockToggles(lock){
+  document.querySelectorAll(".tog").forEach(t=>{t.classList.toggle("disabled",lock);t.disabled=lock;});
+}
 </script>
 
-<!-- Three.js scene — đọc window._S real-time -->
 <script>
-(function() {
-  const wrap = document.getElementById("wrap3d");
-  let W = wrap.clientWidth, H = wrap.clientHeight;
+(function(){
+  const vp=document.getElementById("vp");
+  let W=vp.clientWidth, H=vp.clientHeight;
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x04080e);
+  scene.fog=new THREE.FogExp2(0x04080e,.025);
 
-  const scene    = new THREE.Scene();
-  scene.background = new THREE.Color(0x07090f);
-  scene.fog        = new THREE.Fog(0x07090f, 20, 35);
+  const cam=new THREE.PerspectiveCamera(40,W/H,.1,100);
+  cam.position.set(0,6,15);
+  cam.lookAt(0,2,0);
 
-  const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
-  camera.position.set(0, 5, 14);
-  camera.lookAt(0, 1.5, 0);
+  const ren=new THREE.WebGLRenderer({canvas:document.getElementById("c3"),antialias:true});
+  ren.setPixelRatio(Math.min(devicePixelRatio,2));
+  ren.shadowMap.enabled=true;
+  ren.shadowMap.type=THREE.PCFSoftShadowMap;
+  ren.setSize(W,H);
 
-  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.setSize(W, H);
-
-  // ── Materials ──────────────────────────────────────────────────
-  const MAT = {
-    glass:  new THREE.MeshPhysicalMaterial({ color:0x88bbdd, transparent:true, opacity:0.16, roughness:0, metalness:0.1, side:THREE.DoubleSide }),
-    frame:  new THREE.MeshStandardMaterial({ color:0x2a3a52, roughness:0.4, metalness:0.9 }),
-    floor:  new THREE.MeshStandardMaterial({ color:0x101a0a, roughness:0.95 }),
-    soil:   new THREE.MeshStandardMaterial({ color:0x2d1204, roughness:1 }),
-    stem:   new THREE.MeshStandardMaterial({ color:0x14532d, roughness:0.8 }),
-    leaf:   new THREE.MeshStandardMaterial({ color:0x16a34a, roughness:0.7 }),
-    device: new THREE.MeshStandardMaterial({ color:0x1e3a5f, roughness:0.5, metalness:0.6 }),
-    lamp:   new THREE.MeshStandardMaterial({ color:0xfefce8, emissive:0xffffaa, emissiveIntensity:0 }),
-    heater: new THREE.MeshStandardMaterial({ color:0x7f1d1d, emissive:0x7f1d1d, emissiveIntensity:0 }),
-    water:  new THREE.MeshStandardMaterial({ color:0x3b82f6, transparent:true, opacity:0.75 }),
+  /* ── MATERIALS ── */
+  const M={
+    glass:  new THREE.MeshPhysicalMaterial({color:0x7ab8d8,transparent:true,opacity:.14,roughness:.05,metalness:.15,side:THREE.DoubleSide,envMapIntensity:.5}),
+    glassDoor:new THREE.MeshPhysicalMaterial({color:0x9dd0f0,transparent:true,opacity:.22,roughness:.05,metalness:.1,side:THREE.DoubleSide}),
+    frame:  new THREE.MeshStandardMaterial({color:0x1a2e44,roughness:.35,metalness:.85}),
+    floor:  new THREE.MeshStandardMaterial({color:0x0a1208,roughness:.98}),
+    soil:   new THREE.MeshStandardMaterial({color:0x231205,roughness:1}),
+    stem:   new THREE.MeshStandardMaterial({color:0x0f4020,roughness:.8}),
+    leaf:   new THREE.MeshStandardMaterial({color:0x1a7a35,roughness:.65}),
+    device: new THREE.MeshStandardMaterial({color:0x1a2e44,roughness:.45,metalness:.7}),
+    device2:new THREE.MeshStandardMaterial({color:0x243850,roughness:.5,metalness:.6}),
+    lampCover:new THREE.MeshStandardMaterial({color:0xfef3c7,emissive:0xfef3c7,emissiveIntensity:0}),
+    heatLamp:new THREE.MeshStandardMaterial({color:0x7f1d1d,emissive:0xff2200,emissiveIntensity:0}),
+    waterTank:new THREE.MeshPhysicalMaterial({color:0x1e4fa8,transparent:true,opacity:.35,roughness:.1,metalness:.2,side:THREE.DoubleSide}),
+    waterFill:new THREE.MeshStandardMaterial({color:0x3b82f6,transparent:true,opacity:.7}),
+    pipe:   new THREE.MeshStandardMaterial({color:0x2a4060,roughness:.4,metalness:.8}),
+    fanBlade:new THREE.MeshStandardMaterial({color:0x1e3550,roughness:.3,metalness:.9}),
+    fanHub: new THREE.MeshStandardMaterial({color:0x0e2035,roughness:.3,metalness:.95}),
+    mistDev:new THREE.MeshStandardMaterial({color:0x1a3048,roughness:.5,metalness:.6}),
+    ceilPanel:new THREE.MeshStandardMaterial({color:0x10192a,roughness:.7}),
   };
 
-  // ── Build scene ────────────────────────────────────────────────
-  const add = (geo, mat, x,y,z, rx,ry,rz) => {
-    const m = new THREE.Mesh(geo, mat);
+  const mesh=(geo,mat,x,y,z,rx,ry,rz)=>{
+    const m=new THREE.Mesh(geo,mat);
     m.position.set(x,y,z);
-    if(rx) m.rotation.x=rx;
-    if(ry) m.rotation.y=ry;
-    if(rz) m.rotation.z=rz;
-    m.castShadow = m.receiveShadow = true;
-    scene.add(m); return m;
+    if(rx)m.rotation.x=rx;
+    if(ry)m.rotation.y=ry;
+    if(rz)m.rotation.z=rz;
+    m.castShadow=m.receiveShadow=true;
+    scene.add(m);return m;
   };
 
-  // Floor & soil
-  add(new THREE.BoxGeometry(8,0.14,6), MAT.floor, 0,-0.07,0);
-  add(new THREE.BoxGeometry(6,0.18,4), MAT.soil,  0, 0.14,0);
+  /* ── GREENHOUSE SHELL ─ 8w×6h×6d ── */
+  const GW=8,GH=6,GD=6;
 
-  // Glass walls
-  [[8,4,0.07,0,2,-3],[8,4,0.07,0,2,3],[0.07,4,6,-4,2,0],[0.07,4,6,4,2,0]].forEach(([w,h,d,x,y,z])=>
-    add(new THREE.BoxGeometry(w,h,d), MAT.glass, x,y,z));
+  /* Floor */
+  mesh(new THREE.BoxGeometry(GW,.15,GD),M.floor,0,-.075,0);
+  /* Soil bed */
+  mesh(new THREE.BoxGeometry(6,.2,4),M.soil,0,.18,0);
 
-  // Roof
-  const roof = add(new THREE.ConeGeometry(5.8,2.2,4), MAT.glass, 0,5.1,0);
-  roof.rotation.y = Math.PI/4;
+  /* Glass panels */
+  const panels=[
+    [GW,GH,.06,0,GH/2,-GD/2,0,0,0],
+    [GW,GH,.06,0,GH/2, GD/2,0,0,0],
+    [.06,GH,GD,-GW/2,GH/2,0,0,0,0],
+    [.06,GH,GD, GW/2,GH/2,0,0,0,0],
+  ];
+  panels.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.glass,x,y,z));
 
-  // Frame edges
-  [
-    [8.1,0.1,0.1,0,0,-3],[8.1,0.1,0.1,0,0,3],
-    [8.1,0.1,0.1,0,4,-3],[8.1,0.1,0.1,0,4,3],
-    [0.1,0.1,6.1,-4,0,0],[0.1,0.1,6.1,4,0,0],
-    [0.1,0.1,6.1,-4,4,0],[0.1,0.1,6.1,4,4,0],
-    [0.1,4,0.1,-4,2,-3],[0.1,4,0.1,4,2,-3],
-    [0.1,4,0.1,-4,2,3],[0.1,4,0.1,4,2,3],
-  ].forEach(([w,h,d,x,y,z])=>add(new THREE.BoxGeometry(w,h,d), MAT.frame, x,y,z));
+  /* Ceiling panel */
+  mesh(new THREE.BoxGeometry(GW,.08,GD),M.ceilPanel,0,GH,.0);
 
-  // Plants (5 vị trí)
-  const plants = [];
-  [[-2,0,1],[0,0,-1.2],[2,0,1],[-1,0,-0.3],[1,0,0.5]].forEach(([px,py,pz],i)=>{
-    const h = 0.5+Math.random()*0.9;
-    add(new THREE.CylinderGeometry(0.05,0.08,h,8), MAT.stem, px, 0.27+h/2, pz);
-    const lr = 0.22+Math.random()*0.18;
-    const leaf = add(new THREE.SphereGeometry(lr,10,8), MAT.leaf.clone(), px, 0.27+h+lr*0.8, pz);
-    plants.push(leaf);
+  /* Frame edges */
+  const frameE=[
+    [GW+.1,.1,.1,0,0,-GD/2],[GW+.1,.1,.1,0,0,GD/2],
+    [GW+.1,.1,.1,0,GH,-GD/2],[GW+.1,.1,.1,0,GH,GD/2],
+    [.1,GH+.1,.1,-GW/2,GH/2,-GD/2],[.1,GH+.1,.1,GW/2,GH/2,-GD/2],
+    [.1,GH+.1,.1,-GW/2,GH/2,GD/2],[.1,GH+.1,.1,GW/2,GH/2,GD/2],
+    [.1,.1,GD+.1,-GW/2,0,0],[.1,.1,GD+.1,GW/2,0,0],
+    [.1,.1,GD+.1,-GW/2,GH,0],[.1,.1,GD+.1,GW/2,GH,0],
+  ];
+  frameE.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.frame,x,y,z));
+
+  /* ── DOOR (right wall, front half) ── */
+  const doorPivot=new THREE.Group();
+  doorPivot.position.set(GW/2,GH/2,0);
+  scene.add(doorPivot);
+  const doorMesh=new THREE.Mesh(new THREE.BoxGeometry(.08,GH*.85,GD*.42),M.glassDoor);
+  doorMesh.position.set(0,0,GD*.21);
+  doorMesh.castShadow=true;
+  doorPivot.add(doorMesh);
+
+  /* ── CEILING TRACK & CONTROL BOX ── */
+  mesh(new THREE.BoxGeometry(1,.08,.8),M.device,.0,GH-.04,0);
+
+  /* ── CEILING FAN ─ 4 long blades ── */
+  const fanPivot=new THREE.Group();
+  fanPivot.position.set(0,GH-.14,0);
+  scene.add(fanPivot);
+
+  const fanHub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.2,.28,20),M.fanHub);
+  fanHub.castShadow=true;
+  fanPivot.add(fanHub);
+
+  const fanRod=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.35,10),M.frame);
+  fanRod.position.y=.3;
+  fanPivot.add(fanRod);
+
+  const bladeGroup=new THREE.Group();
+  fanPivot.add(bladeGroup);
+  const blades=[];
+  for(let i=0;i<4;i++){
+    const bg=new THREE.Group();
+    bg.rotation.y=(i/4)*Math.PI*2;
+    const blade=new THREE.Mesh(new THREE.BoxGeometry(2.6,.04,.42),M.fanBlade);
+    blade.position.set(1.3,0,0);
+    blade.rotation.z=.06;
+    bg.add(blade);
+    const mount=new THREE.Mesh(new THREE.BoxGeometry(.24,.1,.18),M.fanHub);
+    mount.position.set(.12,-.04,0);
+    bg.add(mount);
+    bladeGroup.add(bg);
+    blades.push(blade);
+  }
+
+  /* ── WALL-MOUNTED DEVICES ── */
+
+  /* Grow light bar (left wall) */
+  const growBar=mesh(new THREE.BoxGeometry(.12,3.2,.2),M.device,-GW/2+.1,GH*.55,0);
+  for(let i=0;i<8;i++){
+    const led=mesh(new THREE.BoxGeometry(.06,.05,.12),M.lampCover.clone(),-GW/2+.16,1.2+i*.32,0);
+    led.material=M.lampCover.clone();
+  }
+
+  /* Heat lamps (2x) */
+  const heatLamp1=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),M.heatLamp,-GW/2+.12,.7,-1.2,0,0,Math.PI/2);
+  const heatLamp2=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),M.heatLamp,-GW/2+.12,.7, 1.2,0,0,Math.PI/2);
+
+  /* Humidifier (back wall left) */
+  mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2,-1.2,.45,-GD/2+.26);
+  mesh(new THREE.BoxGeometry(.38,.08,.32),M.device,-1.2,.87,-GD/2+.26);
+  mesh(new THREE.CylinderGeometry(.04,.05,.2,10),M.device,-1.2,1.05,-GD/2+.26,Math.PI/2,0,0);
+
+  /* Dehumidifier (back wall right) */
+  mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2, 1.2,.45,-GD/2+.26);
+  mesh(new THREE.BoxGeometry(.38,.08,.32),M.device, 1.2,.87,-GD/2+.26);
+  for(let i=0;i<4;i++){
+    mesh(new THREE.BoxGeometry(.35,.02,.04),M.frame,1.2,.3+i*.1,-GD/2+.08);
+  }
+
+  /* ── WATER TANK (right of greenhouse) ── */
+  const tankX=GW/2+1.3;
+  mesh(new THREE.BoxGeometry(1.1,2.2,.9),M.waterTank,tankX,1.15,-.1);
+  [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz])=>{
+    mesh(new THREE.BoxGeometry(.06,2.3,.06),M.frame,tankX+sx*.52,1.2,-.1+sz*.45);
+  });
+  mesh(new THREE.BoxGeometry(1.2,.12,.95),M.frame,tankX,.07,-.1);
+  mesh(new THREE.BoxGeometry(1.2,.06,.95),M.frame,tankX,2.27,-.1);
+
+  const waterFillMesh=mesh(new THREE.BoxGeometry(1.0,1.0,.78),M.waterFill,tankX,.5+.5,-.1);
+  waterFillMesh.userData={baseY:.5};
+
+  const floatBall=mesh(new THREE.SphereGeometry(.07,10,8),
+    new THREE.MeshStandardMaterial({color:0xfbbf24,emissive:0xfbbf24,emissiveIntensity:.3}),
+    tankX,.6,-.1);
+
+  for(let i=0;i<5;i++){
+    mesh(new THREE.BoxGeometry(1.05,.015,.02),M.frame,tankX,.2+i*.4,-.1+.43);
+  }
+
+  /* ── PIPE SYSTEM ── */
+  mesh(new THREE.CylinderGeometry(.05,.05,1.4,10),M.pipe,tankX-.7,1.8,-.1,0,0,Math.PI/2);
+  mesh(new THREE.CylinderGeometry(.05,.05,.6,10),M.pipe,GW/2+.12,1.5,-.1);
+  mesh(new THREE.BoxGeometry(.22,.22,.16),M.device2,GW/2+.12,1.18,-.1);
+  mesh(new THREE.CylinderGeometry(.03,.03,5.5,8),M.pipe,0,4.8,-.5,0,0,Math.PI/2);
+
+  /* ── FIX: dropperX defined INSIDE the IIFE so animate() can access it ── */
+  const dropperX=[-2.2,-1.0,0,1.0,2.2];
+  dropperX.forEach(dx=>{
+    mesh(new THREE.CylinderGeometry(.015,.015,.9,6),M.pipe,dx,4.35,-.5);
+    mesh(new THREE.SphereGeometry(.03,6,6),M.pipe,dx,3.9,-.5);
   });
 
-  // Fan (blades xoay)
-  add(new THREE.CylinderGeometry(0.16,0.16,0.14,16), MAT.device, -2,3.82,-1.5);
-  const blades = [];
-  for(let i=0;i<3;i++){
-    const b = add(new THREE.BoxGeometry(0.85,0.05,0.2), MAT.device, -2,3.72,-1.5);
-    b.userData = {i};
-    blades.push(b);
-  }
+  /* ── PLANTS ── */
+  const plantData=[
+    [-2.2,.3,-1.2,.8],[-1,.3,.8,.65],[0,.3,-1,.9],
+    [1,.3,1.1,.75],[2.2,.3,-.8,.7]
+  ];
+  const leafMats=[];
+  const plantMeshes=[];
+  plantData.forEach(([px,py,pz,h])=>{
+    const stemH=h;
+    mesh(new THREE.CylinderGeometry(.04,.07,stemH,8),M.stem,px,py+stemH/2,pz);
+    const lr=.18+Math.random()*.15;
+    const lm=new THREE.MeshStandardMaterial({color:0x1a7a35,roughness:.65});
+    const lf=mesh(new THREE.SphereGeometry(lr,10,8),lm,px,py+stemH+lr*.7,pz);
+    leafMats.push(lm);
+    plantMeshes.push({mesh:lf,px,py,pz,h:stemH});
+    if(Math.random()>.4){
+      const lm2=lm.clone();
+      const lf2=mesh(new THREE.SphereGeometry(lr*.7,8,6),lm2,px+.18,py+stemH*.7+.1,pz+.12);
+      leafMats.push(lm2);
+      plantMeshes.push({mesh:lf2,px:px+.18,py:py+stemH*.7+.1,pz:pz+.12,h:0});
+    }
+  });
 
-  // Lamp
-  add(new THREE.CylinderGeometry(0.03,0.03,0.45,8), MAT.frame, 2,3.78,1);
-  const lampHead = add(new THREE.CylinderGeometry(0.32,0.22,0.11,16), MAT.lamp, 2,3.52,1);
-
-  // Heater
-  const heaterMesh = add(new THREE.BoxGeometry(0.55,0.28,0.28), MAT.heater, -3.5,0.5,2);
-
-  // Water tank
-  add(new THREE.BoxGeometry(0.75,0.55,0.45), MAT.water, 3.2,0.43,-2);
-
-  // Mist nozzle
-  add(new THREE.CylinderGeometry(0.04,0.06,0.18,8), MAT.device, 0,3.7,1.5, 0,0,Math.PI/2);
-
-  // Door panel
-  const doorMesh = add(new THREE.BoxGeometry(0.07,3,1.5), MAT.glass.clone(), 4,1.8,1.2);
-  doorMesh.material.color.set(0xaaddff); doorMesh.material.opacity=0.3;
-
-  // ── Lights ────────────────────────────────────────────────────
-  scene.add(new THREE.AmbientLight(0x0d1a2e, 3));
-  const sun = new THREE.DirectionalLight(0x6688bb, 1.2);
-  sun.position.set(6,10,6); sun.castShadow=true; scene.add(sun);
-
-  const growLight  = new THREE.PointLight(0xffffaa, 0, 6);
-  growLight.position.set(2,3.3,1); scene.add(growLight);
-
-  const heatLight  = new THREE.PointLight(0xff4400, 0, 4);
-  heatLight.position.set(-3.5,1,2); scene.add(heatLight);
-
-  const mistLight  = new THREE.PointLight(0x88ccff, 0, 4);
-  mistLight.position.set(0,3.5,1.5); scene.add(mistLight);
-
-  // ── Particles (mist) ──────────────────────────────────────────
-  const MIST_N = 150;
-  const mistPos = new Float32Array(MIST_N*3);
-  const mistVel = [];
-  for(let i=0;i<MIST_N;i++){
-    mistPos[i*3]   = (Math.random()-.5)*6.5;
-    mistPos[i*3+1] = Math.random()*3.8;
-    mistPos[i*3+2] = (Math.random()-.5)*4.5;
-    mistVel.push({ vx:(Math.random()-.5)*.003, vy:.003+Math.random()*.005 });
-  }
-  const mistGeo = new THREE.BufferGeometry();
-  mistGeo.setAttribute("position", new THREE.BufferAttribute(mistPos,3));
-  const mistMat = new THREE.PointsMaterial({ color:0x88ccff, size:0.06, transparent:true, opacity:0 });
-  scene.add(new THREE.Points(mistGeo, mistMat));
-
-  // ── Water drops ───────────────────────────────────────────────
-  const drops = [];
-  for(let i=0;i<25;i++){
-    const d = new THREE.Mesh(
-      new THREE.SphereGeometry(0.045,6,6),
-      new THREE.MeshStandardMaterial({ color:0x60a5fa, transparent:true, opacity:0 })
+  /* ── WATER DROPS ── */
+  const drops=[];
+  for(let i=0;i<40;i++){
+    const d=new THREE.Mesh(
+      new THREE.SphereGeometry(.03,5,5),
+      new THREE.MeshStandardMaterial({color:0x60a5fa,transparent:true,opacity:0})
     );
-    d.userData = { active:false, vy:0 };
-    d.position.y = -10; scene.add(d); drops.push(d);
+    d.userData={active:false,vy:0,sx:0,sz:0};
+    d.position.y=-10;
+    scene.add(d);drops.push(d);
   }
 
-  // ── Drag / zoom ───────────────────────────────────────────────
-  let drag=false, px=0, py=0, rotY=0.35, rotX=0.18, zoom=14;
-  const c = document.getElementById("c");
-  c.addEventListener("mousedown", e=>{ drag=true; px=e.clientX; py=e.clientY; });
-  window.addEventListener("mouseup", ()=>drag=false);
-  window.addEventListener("mousemove", e=>{
-    if(!drag)return;
-    rotY+=(e.clientX-px)*.008; rotX+=(e.clientY-py)*.004;
-    rotX=Math.max(-.45,Math.min(.55,rotX)); px=e.clientX; py=e.clientY;
-  });
-  c.addEventListener("wheel", e=>{ zoom=Math.max(6,Math.min(22,zoom+e.deltaY*.01)); });
-  c.addEventListener("touchstart", e=>{ drag=true; px=e.touches[0].clientX; py=e.touches[0].clientY; });
-  window.addEventListener("touchend", ()=>drag=false);
-  window.addEventListener("touchmove", e=>{
-    if(!drag)return;
-    rotY+=(e.touches[0].clientX-px)*.01; rotX+=(e.touches[0].clientY-py)*.005;
-    rotX=Math.max(-.45,Math.min(.55,rotX)); px=e.touches[0].clientX; py=e.touches[0].clientY;
-  });
+  /* ── MIST PARTICLES ── */
+  const MISTN=200;
+  const mistPos=new Float32Array(MISTN*3);
+  const mistV=[];
+  for(let i=0;i<MISTN;i++){
+    mistPos[i*3]=(Math.random()-.5)*7;
+    mistPos[i*3+1]=Math.random()*5.5;
+    mistPos[i*3+2]=(Math.random()-.5)*5.5;
+    mistV.push({vx:(Math.random()-.5)*.004,vy:.004+Math.random()*.006});
+  }
+  const mistGeo=new THREE.BufferGeometry();
+  mistGeo.setAttribute("position",new THREE.BufferAttribute(mistPos,3));
+  const mistMat=new THREE.PointsMaterial({color:0x88ccff,size:.055,transparent:true,opacity:0});
+  scene.add(new THREE.Points(mistGeo,mistMat));
 
-  // ── 2D label projection ───────────────────────────────────────
-  const tmpV = new THREE.Vector3();
-  function project3D(x,y,z,labelId,text,cls){
-    tmpV.set(x,y,z).project(camera);
-    const lx = (tmpV.x*.5+.5)*W, ly = (-.5*tmpV.y+.5)*H;
-    const lb = document.getElementById(labelId);
+  /* ── LIGHTS ── */
+  scene.add(new THREE.AmbientLight(0x0d1a2e,4));
+  const sun=new THREE.DirectionalLight(0x4a6a8a,1.5);
+  sun.position.set(8,12,8);sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024);
+  scene.add(sun);
+
+  const growPt=new THREE.PointLight(0x22ff77,0,7);
+  growPt.position.set(-GW/2+.3,2.5,0);
+  scene.add(growPt);
+
+  const heatPt1=new THREE.PointLight(0xff4400,0,4);
+  heatPt1.position.set(-GW/2+.3,.8,-1.2);
+  scene.add(heatPt1);
+  const heatPt2=new THREE.PointLight(0xff4400,0,4);
+  heatPt2.position.set(-GW/2+.3,.8, 1.2);
+  scene.add(heatPt2);
+
+  const mistPt=new THREE.PointLight(0x88ccff,0,4);
+  mistPt.position.set(-1.2,1.2,-GD/2+.5);
+  scene.add(mistPt);
+
+  const tankPt=new THREE.PointLight(0x3b82f6,0,3);
+  tankPt.position.set(tankX,2,-.1);
+  scene.add(tankPt);
+
+  /* ── ORBIT CONTROLS ── */
+  let drag=false,px=0,py=0,rotY=.55,rotX=.22,zoom=15;
+  const cv=document.getElementById("c3");
+  const onDown=(cx,cy)=>{drag=true;px=cx;py=cy;};
+  const onMove=(cx,cy)=>{
+    if(!drag)return;
+    rotY+=(cx-px)*.007; rotX+=(cy-py)*.004;
+    rotX=Math.max(-.4,Math.min(.5,rotX));
+    px=cx;py=cy;
+  };
+  cv.addEventListener("mousedown",e=>onDown(e.clientX,e.clientY));
+  window.addEventListener("mouseup",()=>drag=false);
+  window.addEventListener("mousemove",e=>onMove(e.clientX,e.clientY));
+  cv.addEventListener("wheel",e=>{zoom=Math.max(7,Math.min(22,zoom+e.deltaY*.012));});
+  cv.addEventListener("touchstart",e=>onDown(e.touches[0].clientX,e.touches[0].clientY));
+  window.addEventListener("touchend",()=>drag=false);
+  window.addEventListener("touchmove",e=>onMove(e.touches[0].clientX,e.touches[0].clientY));
+
+  /* ── 2D LABEL PROJECTION ── */
+  const tv=new THREE.Vector3();
+  function proj(x,y,z,id,txt,cls){
+    tv.set(x,y,z).project(cam);
+    const lx=(tv.x*.5+.5)*W, ly=(-.5*tv.y+.5)*H;
+    const lb=document.getElementById(id);
     if(!lb)return;
-    if(tmpV.z > 1){ lb.style.display="none"; return; }
-    lb.style.display  = "";
-    lb.style.left     = lx+"px";
-    lb.style.top      = ly+"px";
-    lb.textContent    = text;
-    lb.className      = "lbl3d "+cls;
+    if(tv.z>1||lx<0||lx>W||ly<0||ly>H){lb.style.display="none";return;}
+    lb.style.display="";
+    lb.style.left=lx+"px"; lb.style.top=ly+"px";
+    lb.textContent=txt; lb.className="l3 "+cls;
   }
 
-  // ── Clock ─────────────────────────────────────────────────────
-  const clock = new THREE.Clock();
-  let fanAngle = 0;
+  const clock=new THREE.Clock();
+  let fanAngle=0;
 
-  // ── Animate ───────────────────────────────────────────────────
+  /* ── ANIMATE ── */
   function animate(){
     requestAnimationFrame(animate);
-    const dt = clock.getDelta();
-    const t  = clock.elapsedTime;
-    const S  = window._S || {};
-    const dev = S.dev || {};
-    const cb  = S.cb  || {};
+    const dt=clock.getDelta(), t=clock.elapsedTime;
+    const Sv=window._S||{};
+    const dev=Sv.dev||{}, cb=Sv.cb||{}, ng=Sv.ng||{};
 
-    // Camera orbit
-    camera.position.x = Math.sin(rotY)*Math.cos(rotX)*zoom;
-    camera.position.y = Math.sin(rotX)*zoom*.7+3;
-    camera.position.z = Math.cos(rotY)*Math.cos(rotX)*zoom;
-    camera.lookAt(0,1.5,0);
+    cam.position.x=Math.sin(rotY)*Math.cos(rotX)*zoom;
+    cam.position.y=Math.sin(rotX)*zoom*.7+3;
+    cam.position.z=Math.cos(rotY)*Math.cos(rotX)*zoom;
+    cam.lookAt(0,2,0);
 
-    // Fan blades
-    if(dev.quat){ fanAngle += dt*7; }
-    blades.forEach((b,i)=>{
-      const a=(i/3)*Math.PI*2+fanAngle;
-      b.position.set(-2+Math.cos(a)*.43, 3.72, -1.5+Math.sin(a)*.43);
-      b.rotation.y=a;
-    });
+    /* Fan */
+    const fanOn=!!dev.quat;
+    if(fanOn) fanAngle+=dt*8;
+    bladeGroup.rotation.y=fanAngle;
 
-    // Grow light
-    growLight.intensity = dev.den ? 3+Math.sin(t*1.5)*.3 : 0;
-    lampHead.material.emissiveIntensity = dev.den ? 2 : 0;
+    /* Grow light */
+    const growOn=!!dev.den;
+    growPt.intensity=growOn?3+Math.sin(t*1.2)*.2:0;
+    M.lampCover.emissiveIntensity=growOn?2.5:0;
 
-    // Heat glow
-    heatLight.intensity = dev.suoi ? 2+Math.sin(t*5)*.5 : 0;
-    heaterMesh.material.emissiveIntensity = dev.suoi ? .8+Math.sin(t*5)*.2 : 0;
+    /* Heat lamps */
+    const heatOn=!!dev.suoi;
+    heatPt1.intensity=heatOn?2+Math.sin(t*6)*.6:0;
+    heatPt2.intensity=heatOn?2+Math.sin(t*6)*.6:0;
+    M.heatLamp.emissiveIntensity=heatOn?.9+Math.sin(t*5)*.25:0;
+    heatLamp1.material.emissiveIntensity=M.heatLamp.emissiveIntensity;
+    heatLamp2.material.emissiveIntensity=M.heatLamp.emissiveIntensity;
 
-    // Mist
-    const mistOn = !!dev.tangAm;
-    mistMat.opacity = mistOn ? .55 : Math.max(0, mistMat.opacity-.01);
-    mistLight.intensity = mistOn ? 1 : 0;
+    /* Mist */
+    const mistOn=!!dev.tangAm;
+    mistMat.opacity=mistOn?Math.min(.6,mistMat.opacity+.02):Math.max(0,mistMat.opacity-.015);
+    mistPt.intensity=mistOn?1.5:0;
     if(mistOn){
-      const pos = mistGeo.attributes.position.array;
-      for(let i=0;i<MIST_N;i++){
-        pos[i*3+1]+=mistVel[i].vy; pos[i*3]+=mistVel[i].vx;
-        if(pos[i*3+1]>3.9){ pos[i*3+1]=0.3; pos[i*3]=(Math.random()-.5)*6.5; }
+      const pos=mistGeo.attributes.position.array;
+      for(let i=0;i<MISTN;i++){
+        pos[i*3+1]+=mistV[i].vy; pos[i*3]+=mistV[i].vx;
+        if(pos[i*3+1]>5.6){pos[i*3+1]=.1;pos[i*3]=(Math.random()-.5)*7;}
       }
       mistGeo.attributes.position.needsUpdate=true;
     }
 
-    // Water drops (pump)
+    /* Water drops — now dropperX is in scope! */
+    const pumpOn=!!dev.bom;
     drops.forEach((d,i)=>{
-      if(dev.bom && !d.userData.active && Math.random()<.05){
+      if(pumpOn&&!d.userData.active&&Math.random()<.04){
         d.userData.active=true; d.userData.vy=0;
-        d.position.set((Math.random()-.5)*4.5, 2.4, (Math.random()-.5)*3);
-        d.material.opacity=.85;
+        const si=Math.floor(Math.random()*dropperX.length);
+        d.position.set(dropperX[si],3.85,-.5);
+        d.material.opacity=.8;
       }
       if(d.userData.active){
-        d.userData.vy-=.015; d.position.y+=d.userData.vy;
-        if(d.position.y<.3){ d.userData.active=false; d.material.opacity=0; d.position.y=-10; }
+        d.userData.vy-=.018;
+        d.position.y+=d.userData.vy;
+        d.material.opacity=Math.max(0,d.material.opacity-.01);
+        if(d.position.y<.3){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
       }
-      if(!dev.bom){ d.userData.active=false; d.material.opacity=0; d.position.y=-10; }
+      if(!pumpOn){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
     });
 
-    // Plant sway
-    plants.forEach((p,i)=>{
-      p.rotation.z = Math.sin(t*.6+i)*(dev.quat?.08:.02);
-      // Leaf color: healthy=green, warn if soil low
-      const soilLow = cb.doAmDat < (S.ng?.datMin||30);
-      p.material.color.set(soilLow ? 0x854d0e : 0x16a34a);
+    /* Water tank */
+    const wlevel=Math.max(0,Math.min(1,(cb.mucNuoc||0)/100));
+    waterFillMesh.scale.y=Math.max(.01,wlevel);
+    waterFillMesh.position.y=.2+wlevel*.95;
+    floatBall.position.y=.3+wlevel*1.75;
+    tankPt.intensity=wlevel>.1?1:0;
+
+    /* Plant health */
+    const soilLow=(cb.doAmDat||0)<(ng.datMin||30);
+    plantMeshes.forEach((p,i)=>{
+      p.mesh.rotation.z=Math.sin(t*.5+i)*(fanOn?.1:.025);
+      p.mesh.material.color.set(soilLow?0x7a5a10:0x1a7a35);
+      p.mesh.material.emissive=new THREE.Color(growOn?0x001a00:0x000000);
+      p.mesh.material.emissiveIntensity=growOn?.15:0;
     });
 
-    // Door
-    doorMesh.rotation.y = cb.cuaMo ? -Math.PI*.38 : 0;
+    /* Door */
+    const doorOpen=!!cb.cuaMo;
+    doorPivot.rotation.y=THREE.MathUtils.lerp(doorPivot.rotation.y,doorOpen?-Math.PI*.42:0,dt*3);
 
-    // 2D labels
-    project3D(-2,4,-1.5, "lbl-fan",   dev.quat  ? "🌀 Quạt BẬT":"Quạt TẮT",  dev.quat  ?"on":"off");
-    project3D(2,3.7,1,   "lbl-light", dev.den   ? "💡 Đèn BẬT" :"Đèn TẮT",   dev.den   ?"on":"off");
-    project3D(-3.5,1,2,  "lbl-heat",  dev.suoi  ? "🔥 Sưởi BẬT":"Sưởi TẮT",  dev.suoi  ?"on":"off");
-    project3D(0,.5,0,    "lbl-pump",  dev.bom   ? "💧 Bơm BẬT" :"Bơm TẮT",   dev.bom   ?"on":"off");
-    project3D(4,2,1.2,   "lbl-door",  cb.cuaMo  ? "🚪 Cửa MỞ!" :"Cửa đóng",  cb.cuaMo  ?"warn":"off");
+    /* Labels */
+    proj(0,GH-.2,0,     "lFan",   fanOn ?"🌀 Quạt BẬT":"Quạt TẮT", fanOn?"on":"off");
+    proj(-GW/2+.2,3,0,  "lLight", growOn?"💡 Đèn SÁNG":"Đèn quang hợp", growOn?"on":"off");
+    proj(-GW/2+.2,.7,0, "lHeat",  heatOn?"🔥 Sưởi BẬT":"Đèn sưởi", heatOn?"on":"off");
+    proj(-1.2,.8,-GD/2+.4,"lHumid",dev.tangAm?"💧 Tăng ẩm BẬT":"Tăng ẩm", dev.tangAm?"on":"off");
+    proj(1.2,.8,-GD/2+.4, "lDehu", dev.hutAm?"🌬 Hút ẩm BẬT":"Hút ẩm", dev.hutAm?"on":"off");
+    proj(0,4.5,-.5,       "lPump", pumpOn?"💧 Tưới BẬT":"Bơm tưới", pumpOn?"on":"off");
+    proj(GW/2+.15,GH*.6,-.1,"lDoor",doorOpen?"🚪 Cửa MỞ!":"Cửa đóng", doorOpen?"warn":"off");
+    proj(tankX,2.4,-.1, "lTank", `🪣 ${Math.round((cb.mucNuoc||0))}%`, (cb.mucNuoc||0)<20?"warn":"on");
 
-    renderer.render(scene, camera);
+    ren.render(scene,cam);
   }
 
   animate();
 
-  // Resize
-  window.addEventListener("resize", ()=>{
-    W=wrap.clientWidth; H=wrap.clientHeight;
-    camera.aspect=W/H; camera.updateProjectionMatrix();
-    renderer.setSize(W,H);
+  window.addEventListener("resize",()=>{
+    W=vp.clientWidth; H=vp.clientHeight;
+    cam.aspect=W/H; cam.updateProjectionMatrix();
+    ren.setSize(W,H);
   });
-})();
+
+})(); /* ── END IIFE ── dropperX is now safely inside ── */
 </script>
+
 </body>
 </html>
