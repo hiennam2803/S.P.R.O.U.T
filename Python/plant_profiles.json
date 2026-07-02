@@ -1,0 +1,35 @@
+{
+  "cay hanh": {
+    "nhietMin": 15.0,
+    "nhietMax": 25.0,
+    "amKKMin": 60.0,
+    "amKKMax": 75.0,
+    "datMin": 60.0,
+    "datMax": 85.0,
+    "luxMin": 10000.0,
+    "ghiChu": "Ưa mát, đất ẩm đều, nhiều ánh sáng.",
+    "tenHienThi": "cây hành"
+  },
+  "cay tao": {
+    "nhietMin": 15.0,
+    "nhietMax": 28.0,
+    "amKKMin": 60.0,
+    "amKKMax": 75.0,
+    "datMin": 50.0,
+    "datMax": 70.0,
+    "luxMin": 15000.0,
+    "ghiChu": "Đảm bảo đủ ánh sáng và độ ẩm đất ổn định.",
+    "tenHienThi": "cây táo"
+  },
+  "cay cho de": {
+    "nhietMin": 20.0,
+    "nhietMax": 32.0,
+    "amKKMin": 60.0,
+    "amKKMax": 85.0,
+    "datMin": 40.0,
+    "datMax": 70.0,
+    "luxMin": 5000.0,
+    "ghiChu": "Cây ưa ẩm, nhiệt độ ấm áp, ánh sáng vừa phải.",
+    "tenHienThi": "cây chó đẻ"
+  }
+}

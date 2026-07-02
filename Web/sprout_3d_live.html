@@ -216,7 +216,7 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
         </div>
         <div class="si">
           <div class="sv" id="svL">--</div>
-          <div class="sl">Sáng %</div>
+          <div class="sl">Sáng (lux)</div>
         </div>
       </div>
       <div style="margin-top:8px">
@@ -277,6 +277,24 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
     </div>
 
     <div class="card">
+      <h4>🌿 Loại cây</h4>
+      <div style="display:flex;gap:5px;margin-bottom:7px">
+        <input type="text" id="tenCay" placeholder="vd: cà chua"
+          style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);
+                 border-radius:6px;color:var(--text);padding:5px 7px;font-size:11px">
+        <button onclick="xacDinhCay()"
+          style="padding:5px 8px;background:#052e16;color:#4ade80;border:1px solid #14532d;
+                 border-radius:6px;cursor:pointer;font-size:11px;white-space:nowrap">Xác định</button>
+      </div>
+      <div id="cayBox" style="font-size:10px;color:var(--text2);line-height:1.6">
+        Chưa chọn — dùng ngưỡng mặc định.
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:6px">
+        Chỉ gọi Gemini cho cây mới, cây đã hỏi sẽ dùng lại cache.
+      </div>
+    </div>
+
+    <div class="card">
       <h4>🤖 AI tư vấn</h4>
       <div id="aiBox">Đang chờ kết nối Arduino...</div>
     </div>
@@ -318,7 +336,7 @@ const S = {
   mode:"AUTO",
   dev:{quat:0,bom:0,suoi:0,den:0,hutAm:0,tangAm:0},
   cb:{nhietDo:0,doAmKK:0,doAmDat:0,mucNuoc:0,anhSang:0,cuaMo:false},
-  ng:{nhietMin:18,nhietMax:30,datMin:30,datMax:70},
+  ng:{nhietMin:18,nhietMax:30,datMin:30,datMax:70,nguongDen:300},
   online:false
 };
 window._S = S;
@@ -353,7 +371,7 @@ onValue(ref(fdb,"/sprout/camBien"), snap=>{
   const ng=S.ng;
   sval("svT",d.nhietDo?.toFixed(1),d.nhietDo,ng.nhietMin,ng.nhietMax);
   sval("svH",d.doAmKK?.toFixed(1),d.doAmKK,50,85);
-  sval("svL",d.anhSang,d.anhSang,20,100);
+  sval("svL", (d.anhSang!==undefined&&d.anhSang!==null)?Math.round(d.anhSang):"--", d.anhSang, S.ng.nguongDen||300, 999999);
   bar("bS","vS",d.doAmDat,0,100,d.doAmDat<ng.datMin||d.doAmDat>ng.datMax);
   bar("bW","vW",d.mucNuoc,0,100,d.mucNuoc<15);
   const cu=!!d.cuaMo;
@@ -375,11 +393,25 @@ onValue(ref(fdb,"/sprout/thietBi"), snap=>{
 
 onValue(ref(fdb,"/sprout/nguong"), snap=>{
   const d=snap.val(); if(!d) return;
-  Object.assign(S.ng,{nhietMin:d.nhietMin,nhietMax:d.nhietMax,datMin:d.datMin,datMax:d.datMax});
+  Object.assign(S.ng,{nhietMin:d.nhietMin,nhietMax:d.nhietMax,datMin:d.datMin,datMax:d.datMax,nguongDen:d.nguongDen});
   if(d.nhietMin){el("slTmin").value=d.nhietMin;el("vTmin").textContent=d.nhietMin+"°C"}
   if(d.nhietMax){el("slTmax").value=d.nhietMax;el("vTmax").textContent=d.nhietMax+"°C"}
   if(d.datMin){el("slSmin").value=d.datMin;el("vSmin").textContent=d.datMin+"%"}
   if(d.datMax){el("slSmax").value=d.datMax;el("vSmax").textContent=d.datMax+"%"}
+});
+
+onValue(ref(fdb,"/sprout/thongTinCay"), snap=>{
+  const d=snap.val();
+  const box=el("cayBox");
+  if(!d){ box.textContent="Chưa chọn — dùng ngưỡng mặc định."; return; }
+  if(d.loi){ box.innerHTML=`⚠ ${d.loi}`; return; }
+  const nguon = d.nguon==="gemini" ? "✨ Gemini (mới)" : "💾 Cache";
+  const ng = d.nguong||{};
+  box.innerHTML =
+    `<b style="color:var(--text)">${d.ten}</b> — ${nguon}<br>`+
+    `🌡${ng.nhietMin}-${ng.nhietMax}°C 💧${ng.amKKMin}-${ng.amKKMax}%<br>`+
+    `🌱${ng.datMin}-${ng.datMax}% ☀&gt;${ng.luxMin}lux`+
+    (d.ghiChu?`<br><i>${d.ghiChu}</i>`:"");
 });
 
 function writeCmd(obj){ set(ref(fdb,"/sprout/lenh"),{...obj,thoiGian:new Date().toLocaleString("vi-VN")}); }
@@ -398,6 +430,12 @@ window.onSl=()=>{
 window.applyThresh=()=>{
   writeCmd({loai:"SET_TEMP",min:+el("slTmin").value,max:+el("slTmax").value});
   setTimeout(()=>writeCmd({loai:"SET_SOIL",min:+el("slSmin").value,max:+el("slSmax").value}),300);
+};
+window.xacDinhCay=()=>{
+  const ten=el("tenCay").value.trim();
+  if(!ten){alert("Nhập tên loại cây trước đã!");return;}
+  el("cayBox").textContent="⏳ Đang xử lý (tra cache trước, chỉ gọi Gemini nếu là cây mới)...";
+  writeCmd({loai:"SET_PLANT",giaTri:ten});
 };
 
 function sval(id,display,val,mn,mx){

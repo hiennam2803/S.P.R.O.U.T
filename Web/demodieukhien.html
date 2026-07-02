@@ -277,7 +277,7 @@
       <div class="sensor-item">
         <div class="label">Ánh sáng</div>
         <div class="value" id="vSang">--</div>
-        <div class="unit">%</div>
+        <div class="unit">lux</div>
       </div>
       <div class="sensor-item">
         <div class="label">Cửa buồng</div>
@@ -384,16 +384,34 @@
         <button class="btn-apply" onclick="datNguong('SET_SOIL','nMin_dat','nMax_dat')">Áp dụng</button>
       </div>
       <div class="nguong-row">
-        <label>☀ Ngưỡng đèn (%)</label>
-        <input type="number" id="nDen" placeholder="40" style="width:90px">
+        <label>☀ Ngưỡng đèn (lux)</label>
+        <input type="number" id="nDen" placeholder="300" style="width:90px">
         <button class="btn-apply" onclick="datNguongDon('SET_LIGHT','nDen')">Áp dụng</button>
       </div>
     </div>
   </div>
 
+  <!-- LOẠI CÂY (GEMINI AI) -->
+  <div class="card">
+    <h3>🌿 Loại cây đang trồng</h3>
+    <div class="nguong-row">
+      <input type="text" id="tenCay" placeholder="VD: cà chua, xà lách..."
+             style="flex:1;background:#0f1117;border:1px solid #333;border-radius:6px;
+                    color:#e0e0e0;padding:6px 8px;font-size:0.82rem">
+      <button class="btn-apply" onclick="xacDinhCay()">🔍 Xác định</button>
+    </div>
+    <div id="cayBox" style="margin-top:10px;font-size:0.8rem;color:#aaa;line-height:1.7">
+      Chưa chọn loại cây — hệ thống đang dùng ngưỡng mặc định.
+    </div>
+    <div style="font-size:0.68rem;color:#555;margin-top:8px">
+      * Chỉ gọi Gemini AI khi nhập một loại cây <b>chưa từng hỏi trước đó</b>;
+      các lần sau dùng lại kết quả đã lưu (cache) để không tốn thêm token.
+    </div>
+  </div>
+
   <!-- AI + CẢNH BÁO -->
   <div class="card">
-    <h3>🤖 AI phân tích</h3>
+    <h3>🤖 AI phân tích (mặc định)</h3>
     <div id="aiBox">Đang chờ dữ liệu...</div>
     <h3 style="margin-top:16px">🚨 Cảnh báo gần nhất</h3>
     <div id="canhBaoBox">Không có cảnh báo</div>
@@ -439,7 +457,8 @@
     capNhatSensor("vAmKK",  d.doAmKK?.toFixed(1),  d.doAmKK,  50, 85);
     capNhatSensor("vDat",   d.doAmDat,              d.doAmDat, 30, 70);
     capNhatSensor("vNuoc",  d.mucNuoc,              d.mucNuoc, 10, 100);
-    el("vSang").textContent = d.anhSang ?? "--";
+    el("vSang").textContent = (d.anhSang !== undefined && d.anhSang !== null)
+      ? Math.round(d.anhSang) : "--";
     el("vCua").textContent  = d.cuaMo ? "🔓 MỞ" : "🔒 Đóng";
     el("vCua").className    = "value" + (d.cuaMo ? " warn" : "");
   });
@@ -505,6 +524,25 @@
     setVal("nDen",       d.nguongDen);
   });
 
+  // --- Thông tin loại cây (do Gemini AI hoặc cache đề xuất) ---
+  onValue(ref(db, "/sprout/thongTinCay"), snap => {
+    const d = snap.val();
+    const box = el("cayBox");
+    if (!d) { box.textContent = "Chưa chọn loại cây — hệ thống đang dùng ngưỡng mặc định."; return; }
+
+    if (d.loi) {
+      box.innerHTML = `⚠ ${d.loi}`;
+      return;
+    }
+    const nguonHienThi = d.nguon === "gemini" ? "✨ Gemini AI (mới hỏi)" : "💾 Cache (đã lưu trước đó)";
+    const ng = d.nguong || {};
+    box.innerHTML =
+      `<b>${d.ten}</b> — nguồn: ${nguonHienThi}<br>` +
+      `🌡 ${ng.nhietMin}–${ng.nhietMax}°C &nbsp; 💧KK ${ng.amKKMin}–${ng.amKKMax}% &nbsp; ` +
+      `🌱Đất ${ng.datMin}–${ng.datMax}% &nbsp; ☀ &gt;${ng.luxMin} lux<br>` +
+      (d.ghiChu ? `<i>${d.ghiChu}</i>` : "");
+  });
+
   // ================================================================
   // HAM DIEU KHIEN — ghi vao /sprout/lenh, Python se xu ly
   // ================================================================
@@ -534,11 +572,18 @@
 
   window.datNguongDon = function(loai, idVal) {
     const v = parseFloat(el(idVal).value);
-    if (isNaN(v) || v <= 0 || v >= 100) {
-      alert("Giá trị không hợp lệ (1-99)!");
+    if (isNaN(v) || v <= 0 || v >= 20000) {
+      alert("Giá trị lux không hợp lệ!");
       return;
     }
     ghiLenh({ loai, giaTri: String(v) });
+  };
+
+  window.xacDinhCay = function() {
+    const ten = el("tenCay").value.trim();
+    if (!ten) { alert("Nhập tên loại cây trước đã!"); return; }
+    el("cayBox").textContent = "⏳ Đang xử lý (tra cache, chỉ gọi Gemini nếu là cây mới)...";
+    ghiLenh({ loai: "SET_PLANT", giaTri: ten });
   };
 
   function ghiLenh(lenh) {

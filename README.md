@@ -2,7 +2,7 @@
 
 **Smart Plant Responsive & Optimized Unified Tracker**
 
-> Hệ thống buồng nuôi cây thông minh — Đồ án môn IoT  
+> Hệ thống buồng nuôi cây thông minh — Đồ án môn IoT
 > Nền tảng: Arduino UNO · Proteus · Python · Firebase · AI API
 
 ---
@@ -14,7 +14,7 @@
 - [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
 - [Phần cứng](#phần-cứng)
 - [Giao thức Serial](#giao-thức-serial)
-- [Cài đặt & Chạy](#cài-đặt--chạy)
+- [Cài đặt &amp; Chạy](#cài-đặt--chạy)
 - [Chế độ hoạt động](#chế-độ-hoạt-động)
 - [Thuật toán điều khiển AUTO](#thuật-toán-điều-khiển-auto)
 - [Tích hợp AI](#tích-hợp-ai)
@@ -84,20 +84,20 @@ Dự án giao tiếp qua **cổng COM ảo** (tạo bằng VSPE), cho phép mô 
 
 ### Sơ đồ chân Arduino UNO
 
-| Chân | Linh kiện | Vai trò |
-|------|-----------|---------|
-| `D2` | Cảm biến cửa | `INPUT_PULLUP` — LOW = cửa mở |
-| `D4` | DHT11 | Đọc nhiệt độ & độ ẩm không khí |
-| `D5` | Relay → Quạt hút nhiệt | Bật khi `temp > TEMP_MAX` |
-| `D6` | Relay → Bơm tưới | Bật khi `soil < SOIL_MIN` |
-| `D7` | Relay → Lò sưởi | Bật khi `temp < TEMP_MIN` |
-| `D8` | Relay → Đèn quang hợp | Bật khi `light < LIGHT_THR` |
-| `D9` | Relay → Quạt tăng ẩm | Bật khi `humi < HUMI_MIN` |
-| `D10` | Relay → Quạt hút ẩm | Bật khi `humi > HUMI_MAX` |
-| `A0` | LDR | Đo cường độ ánh sáng |
-| `A1` | Cảm biến độ ẩm đất | Đo độ ẩm đất (0–100%) |
-| `A2` | Cảm biến mực nước | Đo mức nước bồn (0–100%) |
-| `SDA/SCL` | LCD I2C 20×4 (0x3F) | Hiển thị trạng thái |
+| Chân       | Linh kiện                 | Vai trò                                 |
+| ----------- | -------------------------- | ---------------------------------------- |
+| `D2`      | Cảm biến cửa            | `INPUT_PULLUP` — LOW = cửa mở       |
+| `D4`      | DHT11                      | Đọc nhiệt độ & độ ẩm không khí |
+| `D5`      | Relay → Quạt hút nhiệt | Bật khi`temp > TEMP_MAX`              |
+| `D6`      | Relay → Bơm tưới       | Bật khi`soil < SOIL_MIN`              |
+| `D7`      | Relay → Lò sưởi        | Bật khi`temp < TEMP_MIN`              |
+| `D8`      | Relay → Đèn quang hợp  | Bật khi`light < LIGHT_THR`            |
+| `D9`      | Relay → Quạt tăng ẩm   | Bật khi`humi < HUMI_MIN`              |
+| `D10`     | Relay → Quạt hút ẩm    | Bật khi`humi > HUMI_MAX`              |
+| `A0`      | LDR                        | Đo cường độ ánh sáng              |
+| `A1`      | Cảm biến độ ẩm đất  | Đo độ ẩm đất (0–100%)             |
+| `A2`      | Cảm biến mực nước     | Đo mức nước bồn (0–100%)           |
+| `SDA/SCL` | LCD I2C 20×4 (0x3F)       | Hiển thị trạng thái                  |
 
 ### Thư viện Arduino cần cài
 
@@ -116,6 +116,7 @@ Baudrate: **9600**. Mọi bản tin kết thúc bằng `\n`.
 ### Arduino → Python (mỗi 2 giây)
 
 **Bản tin DATA chính:**
+
 ```
 DATA,<temp>,<humi>,<soil>,<water>,<light>,<door>,
      <fan>,<pump>,<heat>,<light_dev>,<humiFan>,<cool>,
@@ -124,17 +125,20 @@ DATA,<temp>,<humi>,<soil>,<water>,<light>,<door>,
 ```
 
 Ví dụ:
+
 ```
 DATA,28.5,62.0,45,80,30,0,0,0,0,1,0,0,18.0,30.0,50.0,85.0,30,70,40,AUTO
 ```
 
 **Bản tin cảnh báo:**
+
 ```
 ALERT,WATER_EMPTY
 ALERT,DOOR_OPEN
 ```
 
 **Phản hồi lệnh:**
+
 ```
 ACK,SET_MODE,AUTO
 ACK,CMD_PUMP
@@ -144,20 +148,20 @@ ERR,CMD_IN_AUTO_MODE
 
 ### Python → Arduino (theo yêu cầu)
 
-| Lệnh | Mô tả | Ví dụ |
-|------|-------|-------|
-| `SET_MODE,<AUTO\|MANUAL>` | Chuyển chế độ | `SET_MODE,AUTO` |
-| `SET_TEMP,<min>,<max>` | Ngưỡng nhiệt độ (°C) | `SET_TEMP,18,30` |
-| `SET_SOIL,<min>,<max>` | Ngưỡng độ ẩm đất (%) | `SET_SOIL,30,70` |
-| `SET_HUMI,<min>,<max>` | Ngưỡng độ ẩm KK (%) | `SET_HUMI,50,85` |
-| `SET_LIGHT,<ngưỡng>` | Ngưỡng bật đèn (%) | `SET_LIGHT,40` |
-| `CMD_FAN,<0\|1>` | **(Manual)** Quạt nhiệt | `CMD_FAN,1` |
-| `CMD_PUMP,<0\|1>` | **(Manual)** Bơm tưới | `CMD_PUMP,1` |
-| `CMD_HEAT,<0\|1>` | **(Manual)** Lò sưởi | `CMD_HEAT,0` |
-| `CMD_LIGHT,<0\|1>` | **(Manual)** Đèn | `CMD_LIGHT,1` |
-| `CMD_HUMIFAN,<0\|1>` | **(Manual)** Quạt hút ẩm | `CMD_HUMIFAN,0` |
-| `CMD_COOL,<0\|1>` | **(Manual)** Quạt tăng ẩm | `CMD_COOL,1` |
-| `AI_ADVICE,<text>` | Gửi kết quả AI lên LCD | `AI_ADVICE,CAY KHOE T:28C` |
+| Lệnh                      | Mô tả                            | Ví dụ                      |
+| -------------------------- | ---------------------------------- | ---------------------------- |
+| `SET_MODE,<AUTO\|MANUAL>` | Chuyển chế độ                  | `SET_MODE,AUTO`            |
+| `SET_TEMP,<min>,<max>`   | Ngưỡng nhiệt độ (°C)         | `SET_TEMP,18,30`           |
+| `SET_SOIL,<min>,<max>`   | Ngưỡng độ ẩm đất (%)        | `SET_SOIL,30,70`           |
+| `SET_HUMI,<min>,<max>`   | Ngưỡng độ ẩm KK (%)           | `SET_HUMI,50,85`           |
+| `SET_LIGHT,<ngưỡng>`   | Ngưỡng bật đèn (%)            | `SET_LIGHT,40`             |
+| `CMD_FAN,<0\|1>`          | **(Manual)** Quạt nhiệt    | `CMD_FAN,1`                |
+| `CMD_PUMP,<0\|1>`         | **(Manual)** Bơm tưới     | `CMD_PUMP,1`               |
+| `CMD_HEAT,<0\|1>`         | **(Manual)** Lò sưởi      | `CMD_HEAT,0`               |
+| `CMD_LIGHT,<0\|1>`        | **(Manual)** Đèn           | `CMD_LIGHT,1`              |
+| `CMD_HUMIFAN,<0\|1>`      | **(Manual)** Quạt hút ẩm  | `CMD_HUMIFAN,0`            |
+| `CMD_COOL,<0\|1>`         | **(Manual)** Quạt tăng ẩm | `CMD_COOL,1`               |
+| `AI_ADVICE,<text>`       | Gửi kết quả AI lên LCD         | `AI_ADVICE,CAY KHOE T:28C` |
 
 > **Lưu ý:** Lệnh `CMD_*` chỉ có hiệu lực khi đang ở chế độ MANUAL. Gửi trong AUTO mode sẽ nhận `ERR,CMD_IN_AUTO_MODE`.
 
@@ -246,13 +250,13 @@ Bảo vệ bơm (`waterEmpty`) vẫn hoạt động ở cả hai chế độ.
 
 ### Ngưỡng mặc định
 
-| Thông số | Min | Max | Đơn vị |
-|----------|-----|-----|--------|
-| Nhiệt độ | 18 | 30 | °C |
-| Độ ẩm KK | 50 | 85 | % |
-| Độ ẩm đất | 30 | 70 | % |
-| Ngưỡng đèn | — | 40 | % (bật khi < ngưỡng) |
-| Ngưỡng nước cạn | — | 10 | % (khóa bơm) |
+| Thông số           | Min | Max | Đơn vị               |
+| -------------------- | --- | --- | ----------------------- |
+| Nhiệt độ          | 18  | 30  | °C                     |
+| Độ ẩm KK          | 50  | 85  | %                       |
+| Độ ẩm đất       | 30  | 70  | %                       |
+| Ngưỡng đèn       | —  | 40  | % (bật khi < ngưỡng) |
+| Ngưỡng nước cạn | —  | 10  | % (khóa bơm)          |
 
 ### Vùng an toàn (Dead Band)
 
@@ -335,7 +339,7 @@ S.P.R.O.U.T/
 
 ## Thành viên & Môn học
 
-> Đồ án môn: **Internet of Things (IoT)**  
+> Đồ án môn: **Internet of Things (IoT)**
 > Nền tảng mô phỏng: **Proteus 8** + **VSPE**
 
 ---
