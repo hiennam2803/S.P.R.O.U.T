@@ -1,6 +1,6 @@
 # 🌱 S.P.R.O.U.T
 
-**Smart Plant Responsive & Optimized Unified Tracker**
+**Smart Plant Regulation & Optimization Using Technology**
 
 > Hệ thống buồng nuôi cây thông minh — Đồ án môn IoT
 > Nền tảng: Arduino UNO · Proteus · Python · Firebase · AI API
