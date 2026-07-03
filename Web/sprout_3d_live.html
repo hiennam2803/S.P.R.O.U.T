@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S.P.R.O.U.T — Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060b10;--bg2:#0c1520;--bg3:#111d2a;
+  --border:#1a2d42;--border2:#243d58;
+  --green:#22c55e;--green2:#166534;--green3:#14532d;
+  --blue:#3b82f6;--blue2:#1d4ed8;
+  --amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
+  --text:#c8dae8;--text2:#6a8aaa;--text3:#3a5268;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 20px;
+  background:linear-gradient(90deg,#060e18,#0a1520);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;gap:10px;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:32px;height:32px;background:var(--green3);
+  border-radius:8px;border:1px solid var(--green2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.logo h1{font-size:.95rem;font-weight:700;color:var(--green);letter-spacing:4px;white-space:nowrap}
+.logo p{font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{
+  padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.pill.online{background:#052e16;color:#4ade80;border:1px solid #14532d}
+.pill.offline{background:#1c0a0a;color:#f87171;border:1px solid #450a0a}
+.pill.auto{background:#0a1e3a;color:#60a5fa;border:1px solid #1e3a6a}
+.pill.manual{background:#2c1000;color:#fb923c;border:1px solid #7c2d12}
+.pill.warn{background:#271800;color:#fbbf24;border:1px solid #78350f;animation:blink 1.5s infinite}
+#ts{font-size:10px;color:var(--text3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* MAIN */
+main{display:flex;flex:1;min-height:0;overflow:hidden}
+
+/* VIEWPORT 3D */
+#vp{flex:1 1 0;position:relative;min-width:0;cursor:grab;overflow:hidden}
+#vp:active{cursor:grabbing}
+canvas{display:block;width:100%!important;height:100%!important}
+#hint3d{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--text3);background:#0c1520cc;
+  padding:3px 12px;border-radius:12px;border:1px solid var(--border);
+  pointer-events:none;white-space:nowrap;
+}
+
+/* 3D LABELS */
+.l3{
+  position:absolute;font-size:10px;font-weight:700;
+  border-radius:5px;padding:2px 7px;pointer-events:none;white-space:nowrap;
+  border:1px solid;line-height:1.4;
+}
+.l3.on{color:#4ade80;border-color:#166534;background:#0516100e}
+.l3.off{color:#3a5268;border-color:#1a2d42;background:#0c1520aa}
+.l3.warn{color:#f59e0b;border-color:#78350f;background:#1c0e00aa}
+
+/* SIDE PANEL */
+#panel{
+  width:248px;flex-shrink:0;background:var(--bg2);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+  padding:10px;gap:8px;scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+
+/* CARD */
+.card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;
+}
+.card h4{
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  color:var(--text3);text-transform:uppercase;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.card h4::before{content:'';flex:1;height:1px;background:var(--border)}
+
+/* SENSOR GRID */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.si{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:7px;padding:7px 5px;text-align:center;
+}
+.sv{font-size:16px;font-weight:700;color:var(--green);line-height:1}
+.sv.warn{color:var(--red)}
+.sv.ok{color:var(--green)}
+.sl{font-size:8px;color:var(--text3);margin-top:3px}
+
+/* SENSOR BAR */
+.sbar-wrap{margin-bottom:5px}
+.sbar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px}
+.sbar-label span:last-child{color:var(--text);font-weight:600}
+.sbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
+
+/* MODE */
+.mrow{display:flex;gap:5px;margin-bottom:7px}
+.mbtn{
+  flex:1;padding:7px 4px;border-radius:7px;border:1px solid var(--border);
+  font-size:11px;font-weight:700;cursor:pointer;
+  background:var(--bg);color:var(--text3);transition:all .2s;
+}
+.mbtn.a.active{background:#0a1e3a;color:#60a5fa;border-color:#1d4ed8}
+.mbtn.m.active{background:#2c1000;color:#fb923c;border-color:#c2410c}
+
+/* DEVICES */
+.drow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;border-bottom:1px solid #0f1e2d;
+}
+.drow:last-child{border-bottom:none}
+.dname{font-size:11px;color:#8aaac8;display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:#1a2d42;flex-shrink:0;transition:all .3s}
+.dot.on{background:var(--green);box-shadow:0 0 6px #22c55e55}
+.dot.warn{background:var(--amber);box-shadow:0 0 6px #f59e0b55}
+
+/* TOGGLE */
+.tog{
+  width:34px;height:18px;border-radius:9px;background:#1a2d42;
+  border:none;position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;
+}
+.tog::after{
+  content:'';position:absolute;width:14px;height:14px;
+  border-radius:50%;background:#3a5268;top:2px;left:2px;transition:all .25s;
+}
+.tog.on{background:var(--green2)}
+.tog.on::after{left:18px;background:var(--green)}
+.tog.disabled{opacity:.3;cursor:not-allowed}
+
+/* SLIDER */
+.srow{margin-bottom:5px}
+.srow label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px}
+.srow label span:last-child{color:var(--text);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
+
+/* AI BOX */
+#aiBox{font-size:11px;color:#7a9ab8;line-height:1.6;min-height:36px}
+#aiBox .ait{font-size:9px;color:var(--text3);margin-top:3px}
+#alertBox{font-size:11px;color:var(--amber);line-height:1.5;min-height:24px}
+
+/* OFFLINE */
+#offlineOv{
+  position:fixed;inset:0;z-index:999;background:#060b10ee;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+}
+#offlineOv h2{color:#f87171;font-size:1.1rem}
+#offlineOv p{color:var(--text3);font-size:12px;text-align:center;max-width:280px}
+.spin{
+  width:32px;height:32px;border:3px solid var(--border2);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌱</div>
+    <div>
+      <h1>S.P.R.O.U.T</h1>
+      <p>SMART PLANT ROOM OMNI-UTILITY TERMINAL</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="pill offline" id="bdgOnline">⚫ Offline</span>
+    <span class="pill auto" id="bdgMode">⚡ AUTO</span>
+    <span class="pill warn" id="bdgWarn" style="display:none">⚠ Cảnh báo</span>
+    <span id="ts">--:--</span>
+  </div>
+</header>
+
+<main>
+  <div id="vp">
+    <canvas id="c3"></canvas>
+    <div id="hint3d">Kéo để xoay · Cuộn để zoom</div>
+    <div class="l3 off" id="lFan"   style="display:none">Quạt làm mát</div>
+    <div class="l3 off" id="lLight" style="display:none">Đèn quang hợp</div>
+    <div class="l3 off" id="lHeat"  style="display:none">Đèn sưởi</div>
+    <div class="l3 off" id="lHumid" style="display:none">Tăng ẩm</div>
+    <div class="l3 off" id="lDehu"  style="display:none">Hút ẩm</div>
+    <div class="l3 off" id="lPump"  style="display:none">Bơm tưới</div>
+    <div class="l3 off" id="lDoor"  style="display:none">Cửa</div>
+    <div class="l3 off" id="lTank"  style="display:none">Bồn nước</div>
+  </div>
+
+  <div id="panel">
+
+    <div class="card">
+      <h4>Cảm biến</h4>
+      <div class="sg">
+        <div class="si">
+          <div class="sv" id="svT">--</div>
+          <div class="sl">Nhiệt °C</div>
+        </div>
+        <div class="si">
+          <div class="sv" id="svH">--</div>
+          <div class="sl">Ẩm KK %</div>
+        </div>
+        <div class="si">
+          <div class="sv" id="svL">--</div>
+          <div class="sl">Sáng (lux)</div>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="sbar-wrap">
+          <div class="sbar-label"><span>Độ ẩm đất</span><span id="vS">--%</span></div>
+          <div class="sbar"><div class="sbar-fill" id="bS" style="width:0%;background:var(--green)"></div></div>
+        </div>
+        <div class="sbar-wrap">
+          <div class="sbar-label"><span>Bồn nước</span><span id="vW">--%</span></div>
+          <div class="sbar"><div class="sbar-fill" id="bW" style="width:0%;background:var(--blue)"></div></div>
+        </div>
+        <div class="sbar-wrap">
+          <div class="sbar-label"><span>Cửa buồng</span><span id="vD">--</span></div>
+          <div class="sbar" style="height:6px;background:var(--border);border-radius:3px">
+            <div id="bD" style="height:100%;border-radius:3px;width:0%;transition:width .5s;background:var(--amber)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Điều khiển</h4>
+      <div class="mrow">
+        <button class="mbtn a active" id="btnAuto"   onclick="setMode('AUTO')">⚡ AUTO</button>
+        <button class="mbtn m"        id="btnManual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
+      </div>
+      <div class="drow"><div class="dname"><div class="dot" id="dFan"></div>Quạt làm mát</div><button class="tog" id="tFan"   onclick="cmdDev('CMD_QUAT',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dLight"></div>Đèn quang hợp</div><button class="tog" id="tLight" onclick="cmdDev('CMD_DEN',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dHeat"></div>Đèn sưởi</div><button class="tog" id="tHeat"  onclick="cmdDev('CMD_SUOI',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dHumid"></div>Tăng ẩm</div><button class="tog" id="tHumid" onclick="cmdDev('CMD_TANGAM',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dDehu"></div>Hút ẩm</div><button class="tog" id="tDehu"  onclick="cmdDev('CMD_HUTAM',this)"></button></div>
+      <div class="drow"><div class="dname"><div class="dot" id="dPump"></div>Bơm tưới</div><button class="tog" id="tPump"  onclick="cmdDev('CMD_BOM',this)"></button></div>
+    </div>
+
+    <div class="card">
+      <h4>Ngưỡng</h4>
+      <div class="srow">
+        <label><span>Nhiệt Min</span><span id="vTmin">18°C</span></label>
+        <input type="range" min="10" max="25" value="18" step="1" id="slTmin" oninput="onSl()">
+      </div>
+      <div class="srow">
+        <label><span>Nhiệt Max</span><span id="vTmax">30°C</span></label>
+        <input type="range" min="25" max="40" value="30" step="1" id="slTmax" oninput="onSl()">
+      </div>
+      <div class="srow" style="margin-top:6px">
+        <label><span>Đất Min</span><span id="vSmin">30%</span></label>
+        <input type="range" min="10" max="60" value="30" step="1" id="slSmin" oninput="onSl()">
+      </div>
+      <div class="srow">
+        <label><span>Đất Max</span><span id="vSmax">70%</span></label>
+        <input type="range" min="50" max="90" value="70" step="1" id="slSmax" oninput="onSl()">
+      </div>
+      <button onclick="applyThresh()"
+        style="width:100%;margin-top:7px;padding:6px;background:#0a1e3a;
+        color:#60a5fa;border:1px solid #1d4ed8;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700">
+        ▶ Áp dụng → Arduino
+      </button>
+    </div>
+
+    <div class="card">
+      <h4>🌿 Loại cây</h4>
+      <div style="display:flex;gap:5px;margin-bottom:7px">
+        <input type="text" id="tenCay" placeholder="vd: cà chua"
+          style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);
+                 border-radius:6px;color:var(--text);padding:5px 7px;font-size:11px">
+        <button onclick="xacDinhCay()"
+          style="padding:5px 8px;background:#052e16;color:#4ade80;border:1px solid #14532d;
+                 border-radius:6px;cursor:pointer;font-size:11px;white-space:nowrap">Xác định</button>
+      </div>
+      <div id="cayBox" style="font-size:10px;color:var(--text2);line-height:1.6">
+        Chưa chọn — dùng ngưỡng mặc định.
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:6px">
+        Chỉ gọi Gemini cho cây mới, cây đã hỏi sẽ dùng lại cache.
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>🤖 AI tư vấn</h4>
+      <div id="aiBox">Đang chờ kết nối Arduino...</div>
+    </div>
+
+    <div class="card">
+      <h4>🚨 Cảnh báo</h4>
+      <div id="alertBox" style="color:var(--text2)">Không có cảnh báo</div>
+    </div>
+
+  </div>
+</main>
+
+<div id="offlineOv">
+  <div class="spin"></div>
+  <h2>Đang kết nối Firebase...</h2>
+  <p>Đảm bảo <code>bridge.py</code> đang chạy và Proteus đang mô phỏng.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyAEVGBzSqFDXMQuUrIMX4NFzz5Zq6pRthQ",
+  authDomain:"sprout-3609f.firebaseapp.com",
+  databaseURL:"https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"sprout-3609f",
+  storageBucket:"sprout-3609f.firebasestorage.app",
+  messagingSenderId:"1026541317812",
+  appId:"1:1026541317812:web:82c07bd9999cebe01171e1"
+};
+
+const app = initializeApp(firebaseConfig);
+const fdb = getDatabase(app);
+
+const S = {
+  mode:"AUTO",
+  dev:{quat:0,bom:0,suoi:0,den:0,hutAm:0,tangAm:0},
+  cb:{nhietDo:0,doAmKK:0,doAmDat:0,mucNuoc:0,anhSang:0,cuaMo:false},
+  ng:{nhietMin:18,nhietMax:30,datMin:30,datMax:70,nguongDen:300},
+  online:false
+};
+window._S = S;
+
+const el = id => document.getElementById(id);
+
+onValue(ref(fdb,"/sprout/trangThai"), snap=>{
+  const d=snap.val(); if(!d) return;
+  S.online=!!d.online; S.mode=d.mode||"AUTO";
+  el("offlineOv").style.display=S.online?"none":"flex";
+  const ob=el("bdgOnline");
+  ob.textContent=S.online?"🟢 Online":"⚫ Offline";
+  ob.className="pill "+(S.online?"online":"offline");
+  const mb=el("bdgMode");
+  mb.textContent=S.mode==="AUTO"?"⚡ AUTO":"🖐 MANUAL";
+  mb.className="pill "+(S.mode==="AUTO"?"auto":"manual");
+  el("btnAuto").classList.toggle("active",S.mode==="AUTO");
+  el("btnManual").classList.toggle("active",S.mode==="MANUAL");
+  lockToggles(S.mode==="AUTO");
+  if(d.capNhatLuc) el("ts").textContent=d.capNhatLuc;
+  if(d.aiMoiNhat) el("aiBox").innerHTML=`${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc||""}</div>`;
+  if(d.canhBaoMoi){
+    el("bdgWarn").style.display="";
+    el("alertBox").style.color="var(--amber)";
+    el("alertBox").textContent=`${d.canhBaoMoi} ${d.canhBaoLuc||""}`;
+  }
+});
+
+onValue(ref(fdb,"/sprout/camBien"), snap=>{
+  const d=snap.val(); if(!d) return;
+  Object.assign(S.cb,d);
+  const ng=S.ng;
+  sval("svT",d.nhietDo?.toFixed(1),d.nhietDo,ng.nhietMin,ng.nhietMax);
+  sval("svH",d.doAmKK?.toFixed(1),d.doAmKK,50,85);
+  sval("svL", (d.anhSang!==undefined&&d.anhSang!==null)?Math.round(d.anhSang):"--", d.anhSang, S.ng.nguongDen||300, 999999);
+  bar("bS","vS",d.doAmDat,0,100,d.doAmDat<ng.datMin||d.doAmDat>ng.datMax);
+  bar("bW","vW",d.mucNuoc,0,100,d.mucNuoc<15);
+  const cu=!!d.cuaMo;
+  el("vD").textContent=cu?"🔓 Mở":"🔒 Đóng";
+  el("bD").style.width=(cu?"100":"0")+"%";
+  el("bD").style.background=cu?"var(--amber)":"var(--green)";
+});
+
+onValue(ref(fdb,"/sprout/thietBi"), snap=>{
+  const d=snap.val(); if(!d) return;
+  Object.assign(S.dev,d);
+  updDev("Fan",d.quat,"tFan","dFan");
+  updDev("Light",d.den,"tLight","dLight");
+  updDev("Heat",d.suoi,"tHeat","dHeat");
+  updDev("Humid",d.tangAm,"tHumid","dHumid");
+  updDev("Dehu",d.hutAm,"tDehu","dDehu");
+  updDev("Pump",d.bom,"tPump","dPump");
+});
+
+onValue(ref(fdb,"/sprout/nguong"), snap=>{
+  const d=snap.val(); if(!d) return;
+  Object.assign(S.ng,{nhietMin:d.nhietMin,nhietMax:d.nhietMax,datMin:d.datMin,datMax:d.datMax,nguongDen:d.nguongDen});
+  if(d.nhietMin){el("slTmin").value=d.nhietMin;el("vTmin").textContent=d.nhietMin+"°C"}
+  if(d.nhietMax){el("slTmax").value=d.nhietMax;el("vTmax").textContent=d.nhietMax+"°C"}
+  if(d.datMin){el("slSmin").value=d.datMin;el("vSmin").textContent=d.datMin+"%"}
+  if(d.datMax){el("slSmax").value=d.datMax;el("vSmax").textContent=d.datMax+"%"}
+});
+
+onValue(ref(fdb,"/sprout/thongTinCay"), snap=>{
+  const d=snap.val();
+  const box=el("cayBox");
+  if(!d){ box.textContent="Chưa chọn — dùng ngưỡng mặc định."; return; }
+  if(d.loi){ box.innerHTML=`⚠ ${d.loi}`; return; }
+  const nguon = d.nguon==="gemini" ? "✨ Gemini (mới)" : "💾 Cache";
+  const ng = d.nguong||{};
+  box.innerHTML =
+    `<b style="color:var(--text)">${d.ten}</b> — ${nguon}<br>`+
+    `🌡${ng.nhietMin}-${ng.nhietMax}°C 💧${ng.amKKMin}-${ng.amKKMax}%<br>`+
+    `🌱${ng.datMin}-${ng.datMax}% ☀&gt;${ng.luxMin}lux`+
+    (d.ghiChu?`<br><i>${d.ghiChu}</i>`:"");
+});
+
+function writeCmd(obj){ set(ref(fdb,"/sprout/lenh"),{...obj,thoiGian:new Date().toLocaleString("vi-VN")}); }
+window.setMode=m=>writeCmd({loai:"SET_MODE",giaTri:m});
+window.cmdDev=(cmd,btn)=>{
+  if(S.mode!=="MANUAL"){alert("Chuyển sang MANUAL trước!");return;}
+  const on=btn.classList.toggle("on");
+  writeCmd({loai:cmd,giaTri:on?"1":"0"});
+};
+window.onSl=()=>{
+  el("vTmin").textContent=el("slTmin").value+"°C";
+  el("vTmax").textContent=el("slTmax").value+"°C";
+  el("vSmin").textContent=el("slSmin").value+"%";
+  el("vSmax").textContent=el("slSmax").value+"%";
+};
+window.applyThresh=()=>{
+  writeCmd({loai:"SET_TEMP",min:+el("slTmin").value,max:+el("slTmax").value});
+  setTimeout(()=>writeCmd({loai:"SET_SOIL",min:+el("slSmin").value,max:+el("slSmax").value}),300);
+};
+window.xacDinhCay=()=>{
+  const ten=el("tenCay").value.trim();
+  if(!ten){alert("Nhập tên loại cây trước đã!");return;}
+  el("cayBox").textContent="⏳ Đang xử lý (tra cache trước, chỉ gọi Gemini nếu là cây mới)...";
+  writeCmd({loai:"SET_PLANT",giaTri:ten});
+};
+
+function sval(id,display,val,mn,mx){
+  const e=el(id);
+  e.textContent=display??"-";
+  e.className="sv"+(val<mn||val>mx?" warn":" ok");
+}
+function bar(bid,vid,val,mn,mx,warn){
+  const pct=Math.max(0,Math.min(100,((val-mn)/(mx-mn))*100));
+  el(bid).style.width=pct+"%";
+  el(bid).style.background=warn?"var(--red)":val>60?"var(--green)":"var(--blue)";
+  el(vid).textContent=(val??"-")+"%";
+}
+function updDev(key,on,tid,did){
+  const t=el(tid),d=el(did);
+  if(t) t.classList.toggle("on",!!on);
+  if(d) d.className="dot"+(on?" on":"");
+}
+function lockToggles(lock){
+  document.querySelectorAll(".tog").forEach(t=>{t.classList.toggle("disabled",lock);t.disabled=lock;});
+}
+</script>
+
+<script>
+(function(){
+  const vp=document.getElementById("vp");
+  let W=vp.clientWidth, H=vp.clientHeight;
+  const scene=new THREE.Scene();
+  // 🎨 Nền xanh nhạt để làm nổi bật lòng kính
+  scene.background=new THREE.Color(0x1a3a5a);
+  scene.fog=new THREE.Fog(0x1a3a5a, 25, 45);
+
+  const cam=new THREE.PerspectiveCamera(40,W/H,.1,100);
+  cam.position.set(0,6,15);
+  cam.lookAt(0,2,0);
+
+  const ren=new THREE.WebGLRenderer({canvas:document.getElementById("c3"),antialias:true});
+  ren.setPixelRatio(Math.min(devicePixelRatio,2));
+  ren.shadowMap.enabled=true;
+  ren.shadowMap.type=THREE.PCFSoftShadowMap;
+  ren.setSize(W,H);
+  ren.toneMapping=THREE.ACESFilmicToneMapping;
+  ren.toneMappingExposure=1.2;
+
+  /* ── MATERIALS ── */
+  const M={
+    // Kính trong suốt màu xanh nhạt, tăng opacity để thấy rõ bên trong
+    glass:  new THREE.MeshPhysicalMaterial({
+      color:0x8ecae6,
+      transparent:true,
+      opacity:.25,
+      roughness:.05,
+      metalness:.1,
+      side:THREE.DoubleSide,
+      envMapIntensity:.8
+    }),
+    glassDoor:new THREE.MeshPhysicalMaterial({
+      color:0xa8d8ea,
+      transparent:true,
+      opacity:.30,
+      roughness:.05,
+      metalness:.1,
+      side:THREE.DoubleSide,
+      envMapIntensity:.6
+    }),
+    frame:  new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.35,metalness:.85}),
+    floor:  new THREE.MeshStandardMaterial({color:0x0a1208,roughness:.98}),
+    soil:   new THREE.MeshStandardMaterial({color:0x3a2a1a,roughness:1}),
+    stem:   new THREE.MeshStandardMaterial({color:0x1a6a3a,roughness:.8}),
+    leaf:   new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65}),
+    device: new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.45,metalness:.7}),
+    device2:new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.5,metalness:.6}),
+    lampCover:new THREE.MeshStandardMaterial({color:0xfef3c7,emissive:0xfef3c7,emissiveIntensity:0}),
+    heatLamp:new THREE.MeshStandardMaterial({color:0x7f1d1d,emissive:0xff4400,emissiveIntensity:0}),
+    waterTank:new THREE.MeshPhysicalMaterial({color:0x2a6aaa,transparent:true,opacity:.35,roughness:.1,metalness:.2,side:THREE.DoubleSide}),
+    waterFill:new THREE.MeshStandardMaterial({color:0x4a9af6,transparent:true,opacity:.7}),
+    pipe:   new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.4,metalness:.8}),
+    fanBlade:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.3,metalness:.9}),
+    fanHub: new THREE.MeshStandardMaterial({color:0x1a3a5a,roughness:.3,metalness:.95}),
+    mistDev:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.5,metalness:.6}),
+    // Trần lồng kính: dùng vật liệu kính xanh trong suốt thay vì màu tối
+    ceilPanel:new THREE.MeshPhysicalMaterial({
+      color:0x8ecae6,
+      transparent:true,
+      opacity:.18,
+      roughness:.05,
+      metalness:.05,
+      side:THREE.DoubleSide,
+      envMapIntensity:.5
+    }),
+  };
+
+  const mesh=(geo,mat,x,y,z,rx,ry,rz)=>{
+    const m=new THREE.Mesh(geo,mat);
+    m.position.set(x,y,z);
+    if(rx)m.rotation.x=rx;
+    if(ry)m.rotation.y=ry;
+    if(rz)m.rotation.z=rz;
+    m.castShadow=m.receiveShadow=true;
+    scene.add(m);return m;
+  };
+
+  /* ── GREENHOUSE SHELL ─ 8w×6h×6d ── */
+  const GW=8,GH=6,GD=6;
+
+  /* Floor */
+  mesh(new THREE.BoxGeometry(GW,.15,GD),M.floor,0,-.075,0);
+  /* Soil bed */
+  mesh(new THREE.BoxGeometry(6,.2,4),M.soil,0,.18,0);
+
+  /* Glass panels */
+  const panels=[
+    [GW,GH,.06,0,GH/2,-GD/2,0,0,0],
+    [GW,GH,.06,0,GH/2, GD/2,0,0,0],
+    [.06,GH,GD,-GW/2,GH/2,0,0,0,0],
+    [.06,GH,GD, GW/2,GH/2,0,0,0,0],
+  ];
+  panels.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.glass,x,y,z));
+
+  /* Ceiling panel — now made of glass (transparent) */
+  mesh(new THREE.BoxGeometry(GW,.06,GD),M.ceilPanel,0,GH,0);
+
+  /* Frame edges (slightly brighter) */
+  const frameE=[
+    [GW+.1,.1,.1,0,0,-GD/2],[GW+.1,.1,.1,0,0,GD/2],
+    [GW+.1,.1,.1,0,GH,-GD/2],[GW+.1,.1,.1,0,GH,GD/2],
+    [.1,GH+.1,.1,-GW/2,GH/2,-GD/2],[.1,GH+.1,.1,GW/2,GH/2,-GD/2],
+    [.1,GH+.1,.1,-GW/2,GH/2,GD/2],[.1,GH+.1,.1,GW/2,GH/2,GD/2],
+    [.1,.1,GD+.1,-GW/2,0,0],[.1,.1,GD+.1,GW/2,0,0],
+    [.1,.1,GD+.1,-GW/2,GH,0],[.1,.1,GD+.1,GW/2,GH,0],
+  ];
+  frameE.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.frame,x,y,z));
+
+  /* ── DOOR (right wall, front half) ── */
+  const doorPivot=new THREE.Group();
+  doorPivot.position.set(GW/2,GH/2,0);
+  scene.add(doorPivot);
+  const doorMesh=new THREE.Mesh(new THREE.BoxGeometry(.08,GH*.85,GD*.42),M.glassDoor);
+  doorMesh.position.set(0,0,GD*.21);
+  doorMesh.castShadow=true;
+  doorPivot.add(doorMesh);
+
+  /* ── CEILING TRACK & CONTROL BOX ── */
+  mesh(new THREE.BoxGeometry(1,.08,.8),M.device,.0,GH-.04,0);
+
+  /* ── CEILING FAN ─ 4 long blades ── */
+  const fanPivot=new THREE.Group();
+  fanPivot.position.set(0,GH-.14,0);
+  scene.add(fanPivot);
+
+  const fanHub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.2,.28,20),M.fanHub);
+  fanHub.castShadow=true;
+  fanPivot.add(fanHub);
+
+  const fanRod=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.35,10),M.frame);
+  fanRod.position.y=.3;
+  fanPivot.add(fanRod);
+
+  const bladeGroup=new THREE.Group();
+  fanPivot.add(bladeGroup);
+  const blades=[];
+  for(let i=0;i<4;i++){
+    const bg=new THREE.Group();
+    bg.rotation.y=(i/4)*Math.PI*2;
+    const blade=new THREE.Mesh(new THREE.BoxGeometry(2.6,.04,.42),M.fanBlade);
+    blade.position.set(1.3,0,0);
+    blade.rotation.z=.06;
+    bg.add(blade);
+    const mount=new THREE.Mesh(new THREE.BoxGeometry(.24,.1,.18),M.fanHub);
+    mount.position.set(.12,-.04,0);
+    bg.add(mount);
+    bladeGroup.add(bg);
+    blades.push(blade);
+  }
+
+  /* ── WALL-MOUNTED DEVICES ── */
+
+  /* Grow light bar (left wall) */
+  const growBar=mesh(new THREE.BoxGeometry(.12,3.2,.2),M.device,-GW/2+.1,GH*.55,0);
+  for(let i=0;i<8;i++){
+    const led=mesh(new THREE.BoxGeometry(.06,.05,.12),M.lampCover.clone(),-GW/2+.16,1.2+i*.32,0);
+    led.material=M.lampCover.clone();
+  }
+
+  /* Heat lamps (2x) */
+  const heatLamp1=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),M.heatLamp,-GW/2+.12,.7,-1.2,0,0,Math.PI/2);
+  const heatLamp2=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),M.heatLamp,-GW/2+.12,.7, 1.2,0,0,Math.PI/2);
+
+  /* Humidifier (back wall left) */
+  mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2,-1.2,.45,-GD/2+.26);
+  mesh(new THREE.BoxGeometry(.38,.08,.32),M.device,-1.2,.87,-GD/2+.26);
+  mesh(new THREE.CylinderGeometry(.04,.05,.2,10),M.device,-1.2,1.05,-GD/2+.26,Math.PI/2,0,0);
+
+  /* Dehumidifier (back wall right) */
+  mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2, 1.2,.45,-GD/2+.26);
+  mesh(new THREE.BoxGeometry(.38,.08,.32),M.device, 1.2,.87,-GD/2+.26);
+  for(let i=0;i<4;i++){
+    mesh(new THREE.BoxGeometry(.35,.02,.04),M.frame,1.2,.3+i*.1,-GD/2+.08);
+  }
+
+  /* ── WATER TANK (right of greenhouse) ── */
+  const tankX=GW/2+1.3;
+  mesh(new THREE.BoxGeometry(1.1,2.2,.9),M.waterTank,tankX,1.15,-.1);
+  [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz])=>{
+    mesh(new THREE.BoxGeometry(.06,2.3,.06),M.frame,tankX+sx*.52,1.2,-.1+sz*.45);
+  });
+  mesh(new THREE.BoxGeometry(1.2,.12,.95),M.frame,tankX,.07,-.1);
+  mesh(new THREE.BoxGeometry(1.2,.06,.95),M.frame,tankX,2.27,-.1);
+
+  const waterFillMesh=mesh(new THREE.BoxGeometry(1.0,1.0,.78),M.waterFill,tankX,.5+.5,-.1);
+  waterFillMesh.userData={baseY:.5};
+
+  const floatBall=mesh(new THREE.SphereGeometry(.07,10,8),
+    new THREE.MeshStandardMaterial({color:0xfbbf24,emissive:0xfbbf24,emissiveIntensity:.3}),
+    tankX,.6,-.1);
+
+  for(let i=0;i<5;i++){
+    mesh(new THREE.BoxGeometry(1.05,.015,.02),M.frame,tankX,.2+i*.4,-.1+.43);
+  }
+
+  /* ── PIPE SYSTEM ── */
+  mesh(new THREE.CylinderGeometry(.05,.05,1.4,10),M.pipe,tankX-.7,1.8,-.1,0,0,Math.PI/2);
+  mesh(new THREE.CylinderGeometry(.05,.05,.6,10),M.pipe,GW/2+.12,1.5,-.1);
+  mesh(new THREE.BoxGeometry(.22,.22,.16),M.device2,GW/2+.12,1.18,-.1);
+  mesh(new THREE.CylinderGeometry(.03,.03,5.5,8),M.pipe,0,4.8,-.5,0,0,Math.PI/2);
+
+  const dropperX=[-2.2,-1.0,0,1.0,2.2];
+  dropperX.forEach(dx=>{
+    mesh(new THREE.CylinderGeometry(.015,.015,.9,6),M.pipe,dx,4.35,-.5);
+    mesh(new THREE.SphereGeometry(.03,6,6),M.pipe,dx,3.9,-.5);
+  });
+
+  /* ── PLANTS ── */
+  const plantData=[
+    [-2.2,.3,-1.2,.8],[-1,.3,.8,.65],[0,.3,-1,.9],
+    [1,.3,1.1,.75],[2.2,.3,-.8,.7]
+  ];
+  const leafMats=[];
+  const plantMeshes=[];
+  plantData.forEach(([px,py,pz,h])=>{
+    const stemH=h;
+    mesh(new THREE.CylinderGeometry(.04,.07,stemH,8),M.stem,px,py+stemH/2,pz);
+    const lr=.18+Math.random()*.15;
+    const lm=new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65});
+    const lf=mesh(new THREE.SphereGeometry(lr,10,8),lm,px,py+stemH+lr*.7,pz);
+    leafMats.push(lm);
+    plantMeshes.push({mesh:lf,px,py,pz,h:stemH});
+    if(Math.random()>.4){
+      const lm2=lm.clone();
+      const lf2=mesh(new THREE.SphereGeometry(lr*.7,8,6),lm2,px+.18,py+stemH*.7+.1,pz+.12);
+      leafMats.push(lm2);
+      plantMeshes.push({mesh:lf2,px:px+.18,py:py+stemH*.7+.1,pz:pz+.12,h:0});
+    }
+  });
+
+  /* ── WATER DROPS ── */
+  const drops=[];
+  for(let i=0;i<40;i++){
+    const d=new THREE.Mesh(
+      new THREE.SphereGeometry(.03,5,5),
+      new THREE.MeshStandardMaterial({color:0x60a5fa,transparent:true,opacity:0})
+    );
+    d.userData={active:false,vy:0,sx:0,sz:0};
+    d.position.y=-10;
+    scene.add(d);drops.push(d);
+  }
+
+  /* ── MIST PARTICLES ── */
+  const MISTN=200;
+  const mistPos=new Float32Array(MISTN*3);
+  const mistV=[];
+  for(let i=0;i<MISTN;i++){
+    mistPos[i*3]=(Math.random()-.5)*7;
+    mistPos[i*3+1]=Math.random()*5.5;
+    mistPos[i*3+2]=(Math.random()-.5)*5.5;
+    mistV.push({vx:(Math.random()-.5)*.004,vy:.004+Math.random()*.006});
+  }
+  const mistGeo=new THREE.BufferGeometry();
+  mistGeo.setAttribute("position",new THREE.BufferAttribute(mistPos,3));
+  const mistMat=new THREE.PointsMaterial({color:0x88ccff,size:.055,transparent:true,opacity:0});
+  scene.add(new THREE.Points(mistGeo,mistMat));
+
+  /* ── LIGHTS ── */
+  scene.add(new THREE.AmbientLight(0x3a5a7a,2.5));
+  const sun=new THREE.DirectionalLight(0x8ac4e8,2.0);
+  sun.position.set(8,12,8);sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024);
+  scene.add(sun);
+
+  const growPt=new THREE.PointLight(0x22ff77,0,7);
+  growPt.position.set(-GW/2+.3,2.5,0);
+  scene.add(growPt);
+
+  const heatPt1=new THREE.PointLight(0xff4400,0,4);
+  heatPt1.position.set(-GW/2+.3,.8,-1.2);
+  scene.add(heatPt1);
+  const heatPt2=new THREE.PointLight(0xff4400,0,4);
+  heatPt2.position.set(-GW/2+.3,.8, 1.2);
+  scene.add(heatPt2);
+
+  const mistPt=new THREE.PointLight(0x88ccff,0,4);
+  mistPt.position.set(-1.2,1.2,-GD/2+.5);
+  scene.add(mistPt);
+
+  const tankPt=new THREE.PointLight(0x3b82f6,0,3);
+  tankPt.position.set(tankX,2,-.1);
+  scene.add(tankPt);
+
+  /* ── ORBIT CONTROLS ── */
+  let drag=false,px=0,py=0,rotY=.55,rotX=.22,zoom=15;
+  const cv=document.getElementById("c3");
+  const onDown=(cx,cy)=>{drag=true;px=cx;py=cy;};
+  const onMove=(cx,cy)=>{
+    if(!drag)return;
+    rotY+=(cx-px)*.007; rotX+=(cy-py)*.004;
+    rotX=Math.max(-.4,Math.min(.5,rotX));
+    px=cx;py=cy;
+  };
+  cv.addEventListener("mousedown",e=>onDown(e.clientX,e.clientY));
+  window.addEventListener("mouseup",()=>drag=false);
+  window.addEventListener("mousemove",e=>onMove(e.clientX,e.clientY));
+  cv.addEventListener("wheel",e=>{zoom=Math.max(7,Math.min(22,zoom+e.deltaY*.012));});
+  cv.addEventListener("touchstart",e=>onDown(e.touches[0].clientX,e.touches[0].clientY));
+  window.addEventListener("touchend",()=>drag=false);
+  window.addEventListener("touchmove",e=>onMove(e.touches[0].clientX,e.touches[0].clientY));
+
+  /* ── 2D LABEL PROJECTION ── */
+  const tv=new THREE.Vector3();
+  function proj(x,y,z,id,txt,cls){
+    tv.set(x,y,z).project(cam);
+    const lx=(tv.x*.5+.5)*W, ly=(-.5*tv.y+.5)*H;
+    const lb=document.getElementById(id);
+    if(!lb)return;
+    if(tv.z>1||lx<0||lx>W||ly<0||ly>H){lb.style.display="none";return;}
+    lb.style.display="";
+    lb.style.left=lx+"px"; lb.style.top=ly+"px";
+    lb.textContent=txt; lb.className="l3 "+cls;
+  }
+
+  const clock=new THREE.Clock();
+  let fanAngle=0;
+
+  /* ── ANIMATE ── */
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt=clock.getDelta(), t=clock.elapsedTime;
+    const Sv=window._S||{};
+    const dev=Sv.dev||{}, cb=Sv.cb||{}, ng=Sv.ng||{};
+
+    cam.position.x=Math.sin(rotY)*Math.cos(rotX)*zoom;
+    cam.position.y=Math.sin(rotX)*zoom*.7+3;
+    cam.position.z=Math.cos(rotY)*Math.cos(rotX)*zoom;
+    cam.lookAt(0,2,0);
+
+    /* Fan */
+    const fanOn=!!dev.quat;
+    if(fanOn) fanAngle+=dt*8;
+    bladeGroup.rotation.y=fanAngle;
+
+    /* Grow light */
+    const growOn=!!dev.den;
+    growPt.intensity=growOn?3+Math.sin(t*1.2)*.2:0;
+    M.lampCover.emissiveIntensity=growOn?2.5:0;
+
+    /* Heat lamps */
+    const heatOn=!!dev.suoi;
+    heatPt1.intensity=heatOn?2+Math.sin(t*6)*.6:0;
+    heatPt2.intensity=heatOn?2+Math.sin(t*6)*.6:0;
+    M.heatLamp.emissiveIntensity=heatOn?.9+Math.sin(t*5)*.25:0;
+    heatLamp1.material.emissiveIntensity=M.heatLamp.emissiveIntensity;
+    heatLamp2.material.emissiveIntensity=M.heatLamp.emissiveIntensity;
+
+    /* Mist */
+    const mistOn=!!dev.tangAm;
+    mistMat.opacity=mistOn?Math.min(.6,mistMat.opacity+.02):Math.max(0,mistMat.opacity-.015);
+    mistPt.intensity=mistOn?1.5:0;
+    if(mistOn){
+      const pos=mistGeo.attributes.position.array;
+      for(let i=0;i<MISTN;i++){
+        pos[i*3+1]+=mistV[i].vy; pos[i*3]+=mistV[i].vx;
+        if(pos[i*3+1]>5.6){pos[i*3+1]=.1;pos[i*3]=(Math.random()-.5)*7;}
+      }
+      mistGeo.attributes.position.needsUpdate=true;
+    }
+
+    /* Water drops */
+    const pumpOn=!!dev.bom;
+    drops.forEach((d,i)=>{
+      if(pumpOn&&!d.userData.active&&Math.random()<.04){
+        d.userData.active=true; d.userData.vy=0;
+        const si=Math.floor(Math.random()*dropperX.length);
+        d.position.set(dropperX[si],3.85,-.5);
+        d.material.opacity=.8;
+      }
+      if(d.userData.active){
+        d.userData.vy-=.018;
+        d.position.y+=d.userData.vy;
+        d.material.opacity=Math.max(0,d.material.opacity-.01);
+        if(d.position.y<.3){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
+      }
+      if(!pumpOn){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
+    });
+
+    /* Water tank */
+    const wlevel=Math.max(0,Math.min(1,(cb.mucNuoc||0)/100));
+    waterFillMesh.scale.y=Math.max(.01,wlevel);
+    waterFillMesh.position.y=.2+wlevel*.95;
+    floatBall.position.y=.3+wlevel*1.75;
+    tankPt.intensity=wlevel>.1?1:0;
+
+    /* Plant health */
+    const soilLow=(cb.doAmDat||0)<(ng.datMin||30);
+    plantMeshes.forEach((p,i)=>{
+      p.mesh.rotation.z=Math.sin(t*.5+i)*(fanOn?.1:.025);
+      p.mesh.material.color.set(soilLow?0x7a5a10:0x2a9a4a);
+      p.mesh.material.emissive=new THREE.Color(growOn?0x001a00:0x000000);
+      p.mesh.material.emissiveIntensity=growOn?.15:0;
+    });
+
+    /* Door */
+    const doorOpen=!!cb.cuaMo;
+    doorPivot.rotation.y=THREE.MathUtils.lerp(doorPivot.rotation.y,doorOpen?-Math.PI*.42:0,dt*3);
+
+    /* Labels */
+    proj(0,GH-.2,0,     "lFan",   fanOn ?"🌀 Quạt BẬT":"Quạt TẮT", fanOn?"on":"off");
+    proj(-GW/2+.2,3,0,  "lLight", growOn?"💡 Đèn SÁNG":"Đèn quang hợp", growOn?"on":"off");
+    proj(-GW/2+.2,.7,0, "lHeat",  heatOn?"🔥 Sưởi BẬT":"Đèn sưởi", heatOn?"on":"off");
+    proj(-1.2,.8,-GD/2+.4,"lHumid",dev.tangAm?"💧 Tăng ẩm BẬT":"Tăng ẩm", dev.tangAm?"on":"off");
+    proj(1.2,.8,-GD/2+.4, "lDehu", dev.hutAm?"🌬 Hút ẩm BẬT":"Hút ẩm", dev.hutAm?"on":"off");
+    proj(0,4.5,-.5,       "lPump", pumpOn?"💧 Tưới BẬT":"Bơm tưới", pumpOn?"on":"off");
+    proj(GW/2+.15,GH*.6,-.1,"lDoor",doorOpen?"🚪 Cửa MỞ!":"Cửa đóng", doorOpen?"warn":"off");
+    proj(tankX,2.4,-.1, "lTank", `🪣 ${Math.round((cb.mucNuoc||0))}%`, (cb.mucNuoc||0)<20?"warn":"on");
+
+    ren.render(scene,cam);
+  }
+
+  animate();
+
+  window.addEventListener("resize",()=>{
+    W=vp.clientWidth; H=vp.clientHeight;
+    cam.aspect=W/H; cam.updateProjectionMatrix();
+    ren.setSize(W,H);
+  });
+
+})();
+</script>
+
+</body>
+</html>
