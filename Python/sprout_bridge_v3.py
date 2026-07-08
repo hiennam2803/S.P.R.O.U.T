@@ -1,6 +1,47 @@
 """
-S.P.R.O.U.T — Python Bridge v3.1
-Nâng cấp từ v3.0: tích hợp Gemini AI để tự động đề xuất ngưỡng theo loại cây
+S.P.R.O.U.T — Python Bridge v3.4
+Nâng cấp từ v3.3: SỬA LỖI LẪN LỘN ĐƠN VỊ ÁNH SÁNG (% <-> LUX)
+
+  THAY ĐỔI SO VỚI v3.3:
+    - FIX LỖI NGHIÊM TRỌNG: Arduino tính PA_anhSang và nguong_den theo
+      LUX THỰC TẾ (0-100000, xem docAnhSangLux() bên .ino), nhưng toàn bộ
+      phần Python + prompt Gemini trước đây lại giả định đơn vị là %
+      (0-100). Hệ quả: khi Gemini trả về "sangMin" (nghĩ là %, ví dụ 70),
+      giá trị đó được gửi thẳng xuống Arduino qua lệnh SET_LIGHT,70 —
+      nhưng Arduino hiểu đó là 70 LUX (rất khác ý nghĩa ban đầu). Điều
+      này khiến ngưỡng "thiếu sáng" bị lệch hoàn toàn so với thực tế,
+      gây cảnh báo sai (báo thiếu sáng dù ánh sáng đo được vẫn ổn, hoặc
+      ngược lại). Đã đổi toàn bộ pipeline (Python + web) sang dùng LUX
+      thống nhất với Arduino — không còn quy đổi % ở đâu cả.
+    - Prompt Gemini giờ yêu cầu "sangMin" theo LUX (có gợi ý khoảng giá
+      trị tham khảo) thay vì %.
+    - nguongDen mặc định đổi từ 40.0 (%) -> 300.0 (lux) cho khớp với
+      giá trị mặc định nguong_den = 300 bên .ino.
+
+  (Các ghi chú của v3.3 vẫn giữ nguyên bên dưới)
+  ------------------------------------------------------------
+  THAY ĐỔI SO VỚI v3.2:
+    - FIX LỖI NGHIÊM TRỌNG: xu_ly_loai_cay() trước đây khi lấy hồ sơ cây
+      từ cache KHÔNG kiểm tra xem cache có đủ field hay không. Nếu 1 cây
+      trong plant_profiles.json bị thiếu field (do lưu từ phiên bản cũ,
+      hoặc do lỗi ghi file) thì dòng self.send(f"SET_LIGHT,{ho_so['sangMin']}")
+      sẽ crash với KeyError -> làm chết thread giữa chừng -> các lệnh
+      sau đó (SET_TENCAY, ghi Firebase thongTinCay) KHÔNG BAO GIỜ chạy
+      -> LCD và web không cập nhật tên cây/ngưỡng dù log báo "đã áp dụng".
+      Đã thêm kiểm tra: nếu cache thiếu field bắt buộc thì tự động xóa
+      cache lỗi đó và gọi lại Gemini để lấy hồ sơ mới, đầy đủ.
+    - Bọc toàn bộ phần áp ngưỡng xuống Arduino + ghi Firebase trong
+      try/except để nếu có lỗi bất ngờ khác cũng không làm chết thread
+      một cách âm thầm — sẽ log rõ ràng và ghi lỗi lên Firebase để web
+      hiển thị cho người dùng biết thay vì im lặng "treo".
+
+  (Các ghi chú của v3.2 vẫn giữ nguyên bên dưới)
+  ------------------------------------------------------------
+  THAY ĐỔI SO VỚI v3.1:
+    - GHI NHỚ cây đang trồng: lưu vào current_plant.json, mỗi lần bridge
+      khởi động lại sẽ tự áp lại đúng cây/ngưỡng cũ (không cần nhập lại)
+    - Gửi tên cây (đã bỏ dấu) xuống Arduino bằng lệnh SET_TENCAY để LCD
+      vật lý cũng hiển thị đúng cây đang trồng
 
 Pipeline: Proteus → VSPE (COM ảo) → Serial → Firebase RTDB → Web 3D
 
@@ -20,8 +61,9 @@ Cấu trúc Firebase (web 3D đọc từ đây):
     - Phân tích/tư vấn định kỳ mỗi AI_INTERVAL giây: RULE-BASED, chạy offline,
       KHÔNG gọi API ngoài. Đây là hành vi MẶC ĐỊNH của hệ thống.
     - Gemini CHỈ được gọi khi người dùng nhập một LOẠI CÂY MỚI (chưa có trong
-      file cache plant_profiles.json). Nếu cây đã có trong cache, hệ thống
-      dùng lại kết quả cũ, KHÔNG gọi API -> tiết kiệm token tối đa.
+      file cache plant_profiles.json, hoặc cache của cây đó bị lỗi/thiếu
+      field). Nếu cây đã có trong cache và hợp lệ, hệ thống dùng lại kết
+      quả cũ, KHÔNG gọi API -> tiết kiệm token tối đa.
 """
 
 import serial
@@ -65,6 +107,15 @@ GEMINI_ENDPOINT = (
 # File cache local — lưu ngưỡng đã hỏi Gemini để KHÔNG hỏi lại (tiết kiệm token)
 PLANT_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plant_profiles.json")
 
+# File lưu "cây đang trồng hiện tại" — để bridge khởi động lại vẫn nhớ,
+# không cần người dùng nhập lại tên cây mỗi lần bật hệ thống
+CURRENT_PLANT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "current_plant.json")
+
+# Các field BẮT BUỘC phải có trong 1 hồ sơ cây hợp lệ (dùng để validate
+# cả kết quả mới từ Gemini LẪN dữ liệu đọc từ cache cũ trên đĩa)
+PLANT_REQUIRED_FIELDS = ["nhietMin", "nhietMax", "amKKMin", "amKKMax",
+                          "datMin", "datMax", "sangMin"]
+
 
 # ================================================================
 # TIỆN ÍCH
@@ -84,6 +135,16 @@ def list_com_ports():
             log("COM", f"  {p.device} — {p.description}")
     else:
         log("COM", "Không tìm thấy cổng COM nào!")
+
+
+def ho_so_hop_le(ho_so: dict) -> bool:
+    """Kiểm tra 1 hồ sơ cây (dù lấy từ cache hay từ Gemini) có đủ toàn bộ
+    field bắt buộc hay không. Dùng chung cho cả 2 nguồn để tránh lặp code
+    và tránh sót trường hợp — đây chính là chỗ đã thiếu ở bản v3.2 khiến
+    cache lỗi lọt qua và làm crash thread."""
+    if not isinstance(ho_so, dict):
+        return False
+    return all(k in ho_so for k in PLANT_REQUIRED_FIELDS)
 
 
 # ================================================================
@@ -119,6 +180,39 @@ def save_plant_cache(cache: dict):
         log("Cache", f"Lỗi ghi {PLANT_CACHE_FILE}: {e}")
 
 
+def load_current_plant():
+    """Đọc cây đang trồng đã lưu từ lần chạy trước (nếu có)."""
+    if os.path.exists(CURRENT_PLANT_FILE):
+        try:
+            with open(CURRENT_PLANT_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            log("Cache", f"Lỗi đọc {CURRENT_PLANT_FILE}: {e}")
+    return None
+
+
+def save_current_plant(ten_cay_goc: str):
+    """Ghi lại tên cây gốc (chưa chuẩn hóa) đang được chọn, để lần khởi
+    động sau bridge tự áp lại đúng cây này mà không cần nhập lại."""
+    try:
+        with open(CURRENT_PLANT_FILE, "w", encoding="utf-8") as f:
+            json.dump({"tenGoc": ten_cay_goc, "capNhatLuc": now()}, f, ensure_ascii=False, indent=2)
+    except OSError as e:
+        log("Cache", f"Lỗi ghi {CURRENT_PLANT_FILE}: {e}")
+
+
+def bo_dau_lcd(ten: str, gioi_han: int = 16) -> str:
+    """Bỏ dấu tiếng Việt (giữ nguyên hoa/thường) để hiển thị lên màn hình
+    LCD (LCD HD44780 không hiển thị được ký tự có dấu). Cũng bỏ dấu phẩy
+    vì đó là ký tự phân tách trong giao thức Serial."""
+    ten = unicodedata.normalize("NFD", ten)
+    ten = "".join(c for c in ten if unicodedata.category(c) != "Mn")
+    ten = ten.replace("đ", "d").replace("Đ", "D")
+    ten = ten.replace(",", " ")
+    ten = re.sub(r"\s+", " ", ten).strip()
+    return ten[:gioi_han]
+
+
 # ================================================================
 # KHỞI TẠO FIREBASE
 # ================================================================
@@ -148,7 +242,7 @@ class SproutBridge:
         # --- Trạng thái hiện tại (đồng bộ với Arduino) ---
         self.camBien = {
             "nhietDo": 0.0, "doAmKK": 0.0, "doAmDat": 0,
-            "mucNuoc": 0,   "anhSang": 0.0, "cuaMo": False   # anhSang: LUX
+            "mucNuoc": 0,   "anhSang": 0.0, "cuaMo": False   # anhSang: LUX (khong phai %)
         }
         self.thietBi = {
             "quat": 0, "bom": 0, "suoi": 0,
@@ -158,16 +252,18 @@ class SproutBridge:
             "nhietMin": 18.0, "nhietMax": 30.0,
             "amKKMin":  50.0, "amKKMax":  85.0,
             "datMin":   30,   "datMax":   70,
-            "nguongDen": 300.0     # LUX
+            "nguongDen": 300.0     # LUX (khop voi mac dinh nguong_den ben .ino)
         }
         self.mode        = "AUTO"
         self.nuocHet     = False
         self.lastAiTime  = 0
         self.lastHistory = 0
+        self.ai_running  = False   # Cờ để không chạy AI chồng chéo
 
         # --- Cache hồ sơ cây (tránh gọi Gemini lặp lại) ---
         self.plant_cache = load_plant_cache()
         self.currentPlant = None
+        self.plant_lock = threading.Lock()   # Khóa xử lý cây
         log("Cache", f"Đã nạp {len(self.plant_cache)} hồ sơ cây từ {PLANT_CACHE_FILE}")
 
     # ----------------------------------------------------------------
@@ -255,7 +351,7 @@ class SproutBridge:
                         "doAmKK":  round(float(parts[2]), 1),
                         "doAmDat": int(parts[3]),
                         "mucNuoc": int(parts[4]),
-                        "anhSang": round(float(parts[5]), 1),   # LUX
+                        "anhSang": round(float(parts[5]), 1),   # LUX (khong phai %)
                         "cuaMo":   parts[6] == "1"
                     }
                     self.thietBi = {
@@ -273,7 +369,7 @@ class SproutBridge:
                         "amKKMax":   round(float(parts[16]), 1),
                         "datMin":    int(parts[17]),
                         "datMax":    int(parts[18]),
-                        "nguongDen": round(float(parts[19]), 1)   # LUX
+                        "nguongDen": round(float(parts[19]), 1)   # LUX (khong phai %)
                     }
                     self.mode    = parts[20].strip().upper()
                     self.nuocHet = self.camBien["mucNuoc"] < 10
@@ -374,41 +470,56 @@ class SproutBridge:
             try:
                 cmd  = event.data
                 loai = cmd.get("loai", "").upper()
+                if not loai:
+                    log("CMD", "Lệnh thiếu trường 'loai'")
+                    db.reference("/sprout/lenh").delete()
+                    return
                 log("CMD", f"Nhận lệnh từ Firebase: {cmd}")
 
                 if loai == "SET_MODE":
-                    self.send("SET_MODE," + cmd["giaTri"])
+                    gia_tri = cmd.get("giaTri", "AUTO")
+                    self.send("SET_MODE," + gia_tri)
 
                 elif loai == "SET_TEMP":
-                    self.send(f"SET_TEMP,{cmd['min']},{cmd['max']}")
+                    min_val = cmd.get("min", 18)
+                    max_val = cmd.get("max", 30)
+                    self.send(f"SET_TEMP,{min_val},{max_val}")
 
                 elif loai == "SET_SOIL":
-                    self.send(f"SET_SOIL,{cmd['min']},{cmd['max']}")
+                    min_val = cmd.get("min", 30)
+                    max_val = cmd.get("max", 70)
+                    self.send(f"SET_SOIL,{min_val},{max_val}")
 
                 elif loai == "SET_HUMI":
-                    self.send(f"SET_HUMI,{cmd['min']},{cmd['max']}")
+                    min_val = cmd.get("min", 50)
+                    max_val = cmd.get("max", 85)
+                    self.send(f"SET_HUMI,{min_val},{max_val}")
 
                 elif loai == "SET_LIGHT":
-                    self.send(f"SET_LIGHT,{cmd['giaTri']}")
+                    # gia_tri o day la LUX, khop truc tiep voi Arduino
+                    # (KHONG con quy doi % nua — xem ghi chu dau file v3.4)
+                    gia_tri = cmd.get("giaTri", 300)
+                    self.send(f"SET_LIGHT,{gia_tri}")
 
                 elif loai in ("CMD_QUAT", "CMD_BOM", "CMD_SUOI",
                               "CMD_DEN",  "CMD_HUTAM", "CMD_TANGAM"):
-                    self.send(f"{loai},{cmd['giaTri']}")
+                    gia_tri = cmd.get("giaTri", "0")
+                    self.send(f"{loai},{gia_tri}")
 
                 elif loai == "SET_PLANT":
-                    # Xử lý trong thread riêng vì có thể phải gọi Gemini (mạng chậm)
                     ten_cay = str(cmd.get("giaTri", "")).strip()
                     if ten_cay:
                         threading.Thread(
                             target=self.xu_ly_loai_cay, args=(ten_cay,), daemon=True
                         ).start()
-                    # Không gửi lệnh Serial ở đây — xu_ly_loai_cay() tự gửi
-                    # sau khi có ngưỡng (từ cache hoặc từ Gemini)
+                    else:
+                        log("CMD", "SET_PLANT thiếu tên cây")
                     db.reference("/sprout/lenh").delete()
                     return
 
                 else:
                     log("CMD", f"Lệnh không nhận dạng được: {loai}")
+                    db.reference("/sprout/lenh").delete()
                     return
 
                 # Xóa node lệnh sau khi gửi xong
@@ -416,6 +527,10 @@ class SproutBridge:
 
             except Exception as e:
                 log("Firebase", f"Lỗi xử lý lệnh: {e}")
+                try:
+                    db.reference("/sprout/lenh").delete()
+                except Exception:
+                    pass
 
         db.reference("/sprout/lenh").listen(on_cmd)
 
@@ -432,43 +547,50 @@ class SproutBridge:
             log("Serial", "Chưa kết nối, không gửi được!")
 
     # ----------------------------------------------------------------
-    # AI PHÂN TÍCH (rule-based, thay bằng Claude API nếu muốn)
+    # AI PHÂN TÍCH (rule-based)
     # ----------------------------------------------------------------
 
     def maybe_ai(self):
         if time.time() - self.lastAiTime < AI_INTERVAL:
             return
+        if self.ai_running:
+            log("AI", "Đang có AI thread chạy, bỏ qua lần này")
+            return
         self.lastAiTime = time.time()
+        self.ai_running = True
         threading.Thread(target=self.run_ai, daemon=True).start()
 
     def run_ai(self):
-        with self.lock:
-            cb = dict(self.camBien)
-            ng = dict(self.nguong)
-            mode = self.mode
-
-        result = self.analyze(cb, ng)
-
-        # Gửi tin nhắn ngắn lên LCD Arduino
-        self.send(f"AI_TUVAN,{result['lcdMsg'][:40]}")
-
-        ts = now()
         try:
-            db.reference("/sprout/aiLog").push({
-                "thoiGian":   ts,
-                "tomTat":     result["tomTat"],
-                "khuyenNghi": result["khuyenNghi"],
-                "camBien":    cb,
-                "mode":       mode
-            })
-            db.reference("/sprout/trangThai").update({
-                "aiMoiNhat":    result["tomTat"],
-                "aiCapNhatLuc": ts
-            })
-        except Exception as e:
-            log("Firebase", f"Lỗi ghi AI log: {e}")
+            with self.lock:
+                cb = dict(self.camBien)
+                ng = dict(self.nguong)
+                mode = self.mode
 
-        log("AI", result["tomTat"])
+            result = self.analyze(cb, ng)
+
+            # Gửi tin nhắn ngắn lên LCD Arduino
+            self.send(f"AI_TUVAN,{result['lcdMsg'][:40]}")
+
+            ts = now()
+            try:
+                db.reference("/sprout/aiLog").push({
+                    "thoiGian":   ts,
+                    "tomTat":     result["tomTat"],
+                    "khuyenNghi": result["khuyenNghi"],
+                    "camBien":    cb,
+                    "mode":       mode
+                })
+                db.reference("/sprout/trangThai").update({
+                    "aiMoiNhat":    result["tomTat"],
+                    "aiCapNhatLuc": ts
+                })
+            except Exception as e:
+                log("Firebase", f"Lỗi ghi AI log: {e}")
+
+            log("AI", result["tomTat"])
+        finally:
+            self.ai_running = False
 
     def analyze(self, cb: dict, ng: dict) -> dict:
         issues = []
@@ -522,7 +644,7 @@ class SproutBridge:
     def goi_gemini_lay_chi_so(self, ten_cay_hienthi: str):
         """
         Gọi Gemini đúng 1 lần cho 1 loại cây mới, yêu cầu trả về JSON thuần
-        chứa ngưỡng nhiệt độ/độ ẩm KK/độ ẩm đất/ánh sáng (lux) phù hợp.
+        chứa ngưỡng nhiệt độ/độ ẩm KK/độ ẩm đất/ánh sáng (0-100%) phù hợp.
         Trả về dict hoặc None nếu lỗi.
         """
         if not GEMINI_API_KEY or "DAN_API_KEY" in GEMINI_API_KEY:
@@ -542,7 +664,10 @@ class SproutBridge:
             '  "amKKMax": độ ẩm không khí cao nhất (%),\n'
             '  "datMin": độ ẩm đất thấp nhất (%),\n'
             '  "datMax": độ ẩm đất cao nhất (%),\n'
-            '  "luxMin": ngưỡng ánh sáng tối thiểu (lux) trước khi cần bật đèn quang hợp,\n'
+            '  "sangMin": ngưỡng CƯỜNG ĐỘ ÁNH SÁNG tối thiểu tính theo LUX '
+            '(KHÔNG phải %) trước khi cần bật đèn quang hợp bổ sung — tham khảo: '
+            'cây ưa bóng/trong nhà khoảng 100-500 lux, cây ưa sáng bán phần '
+            'khoảng 500-2000 lux, cây ưa nắng trực tiếp khoảng 2000-10000 lux,\n'
             '  "ghiChu": ghi chú ngắn gọn (dưới 60 ký tự) bằng tiếng Việt\n'
             "}"
         )
@@ -571,12 +696,14 @@ class SproutBridge:
             ket_qua = json.loads(text)
 
             # Kiểm tra hợp lệ tối thiểu trước khi tin dùng
-            can_co = ["nhietMin", "nhietMax", "amKKMin", "amKKMax",
-                      "datMin", "datMax", "luxMin"]
-            if not all(k in ket_qua for k in can_co):
+            if not ho_so_hop_le(ket_qua):
                 log("Gemini", f"Thiếu trường trong kết quả: {ket_qua}")
                 return None
             if ket_qua["nhietMin"] >= ket_qua["nhietMax"]:
+                return None
+            if not (0 < ket_qua["sangMin"] <= 100000):
+                log("Gemini", f"sangMin ngoài khoảng lux hợp lệ (0-100000): "
+                              f"{ket_qua['sangMin']} — bỏ ngưỡng đèn")
                 return None
 
             ket_qua.setdefault("ghiChu", "")
@@ -590,65 +717,125 @@ class SproutBridge:
     def xu_ly_loai_cay(self, ten_cay_goc: str):
         """
         Nhận tên cây từ webapp -> tra cache trước -> chỉ gọi Gemini nếu là
-        cây MỚI (chưa có trong plant_profiles.json) -> áp ngưỡng xuống
-        Arduino -> ghi thông tin lên Firebase cho web hiển thị.
-        """
-        key = chuan_hoa_ten_cay(ten_cay_goc)
-        if not key:
-            return
+        cây MỚI (chưa có trong plant_profiles.json) HOẶC nếu hồ sơ cache
+        của cây đó bị lỗi/thiếu field -> áp ngưỡng xuống Arduino -> ghi
+        thông tin lên Firebase cho web hiển thị.
 
-        if key in self.plant_cache:
-            ho_so = self.plant_cache[key]
-            nguon = "cache"
-            log("Cây", f"'{ten_cay_goc}' đã có trong cache — dùng lại, KHÔNG gọi Gemini")
-        else:
-            log("Cây", f"'{ten_cay_goc}' là loại cây MỚI — gọi Gemini 1 lần để lấy chỉ số...")
-            ho_so = self.goi_gemini_lay_chi_so(ten_cay_goc)
-            if ho_so is None:
-                log("Cây", f"Không lấy được chỉ số cho '{ten_cay_goc}' — giữ nguyên ngưỡng hiện tại")
+        FIX v3.3: trước đây nếu cache có sẵn nhưng thiếu field (ví dụ do
+        lưu từ bản cũ hơn) thì code sẽ dùng thẳng và crash KeyError ở
+        bước gửi SET_LIGHT, làm chết thread giữa chừng -> SET_TENCAY và
+        ghi Firebase không bao giờ chạy. Giờ đã validate cache TRƯỚC khi
+        dùng, nếu lỗi thì tự xóa và gọi lại Gemini.
+        """
+        with self.plant_lock:
+            key = chuan_hoa_ten_cay(ten_cay_goc)
+            if not key:
+                return
+
+            ho_so = self.plant_cache.get(key)
+
+            # --- Validate cache: nếu thiếu field thì coi như cache-miss ---
+            if ho_so is not None and not ho_so_hop_le(ho_so):
+                log("Cây", f"Cache của '{ten_cay_goc}' bị THIẾU FIELD (hỏng) "
+                           f"— xóa cache lỗi và gọi lại Gemini")
+                del self.plant_cache[key]
+                save_plant_cache(self.plant_cache)
+                ho_so = None
+
+            if ho_so is not None:
+                nguon = "cache"
+                log("Cây", f"'{ten_cay_goc}' đã có trong cache — dùng lại, KHÔNG gọi Gemini")
+            else:
+                log("Cây", f"'{ten_cay_goc}' là loại cây MỚI (hoặc cache vừa bị xóa do lỗi) "
+                           f"— gọi Gemini để lấy chỉ số...")
+                ho_so = self.goi_gemini_lay_chi_so(ten_cay_goc)
+                if ho_so is None:
+                    log("Cây", f"Không lấy được chỉ số cho '{ten_cay_goc}' — giữ nguyên ngưỡng hiện tại")
+                    try:
+                        db.reference("/sprout/thongTinCay").update({
+                            "ten": ten_cay_goc,
+                            "loi": "Không lấy được dữ liệu từ Gemini, kiểm tra API key/mạng",
+                            "capNhatLuc": now()
+                        })
+                    except Exception:
+                        pass
+                    return
+                ho_so["tenHienThi"] = ten_cay_goc
+                self.plant_cache[key] = ho_so
+                save_plant_cache(self.plant_cache)   # ghi file NGAY để lần sau không gọi lại
+                nguon = "gemini"
+
+            # --- Từ đây trở đi ho_so CHẮC CHẮN hợp lệ (đã validate ở trên) ---
+            # Vẫn bọc try/except để nếu có lỗi bất ngờ khác (serial mất kết
+            # nối, Firebase lỗi mạng...) thì báo rõ thay vì làm chết thread
+            # một cách âm thầm không dấu vết.
+            try:
+                self.currentPlant = key
+
+                # --- Áp ngưỡng xuống Arduino (mỗi lệnh cách nhau 1 chút cho chắc) ---
+                self.send(f"SET_TEMP,{ho_so['nhietMin']},{ho_so['nhietMax']}")
+                time.sleep(0.15)
+                self.send(f"SET_HUMI,{ho_so['amKKMin']},{ho_so['amKKMax']}")
+                time.sleep(0.15)
+                self.send(f"SET_SOIL,{ho_so['datMin']},{ho_so['datMax']}")
+                time.sleep(0.15)
+                self.send(f"SET_LIGHT,{ho_so['sangMin']}")
+                time.sleep(0.15)
+
+                # --- Gửi tên cây (đã bỏ dấu) để LCD vật lý hiển thị đúng cây ---
+                ten_lcd = bo_dau_lcd(ho_so.get("tenHienThi", ten_cay_goc))
+                self.send(f"SET_TENCAY,{ten_lcd}")
+
+                # --- Ghi nhớ cây đang chọn để lần khởi động sau tự áp lại ---
+                save_current_plant(ten_cay_goc)
+
+                # --- Ghi lên Firebase để web hiển thị ---
+                try:
+                    db.reference("/sprout/thongTinCay").set({
+                        "ten": ho_so.get("tenHienThi", ten_cay_goc),
+                        "nguon": nguon,
+                        "nguong": {
+                            "nhietMin": ho_so["nhietMin"], "nhietMax": ho_so["nhietMax"],
+                            "amKKMin":  ho_so["amKKMin"],  "amKKMax":  ho_so["amKKMax"],
+                            "datMin":   ho_so["datMin"],   "datMax":   ho_so["datMax"],
+                            "sangMin":  ho_so["sangMin"]
+                        },
+                        "ghiChu": ho_so.get("ghiChu", ""),
+                        "capNhatLuc": now()
+                    })
+                except Exception as e:
+                    log("Firebase", f"Lỗi ghi thongTinCay: {e}")
+
+                log("Cây", f"Đã áp ngưỡng cho '{ten_cay_goc}' (nguồn: {nguon})")
+
+            except Exception as e:
+                log("Cây", f"LỖI khi áp ngưỡng cho '{ten_cay_goc}': {e}")
                 try:
                     db.reference("/sprout/thongTinCay").update({
                         "ten": ten_cay_goc,
-                        "loi": "Không lấy được dữ liệu từ Gemini, kiểm tra API key/mạng",
+                        "loi": f"Lỗi khi áp ngưỡng xuống Arduino: {e}",
                         "capNhatLuc": now()
                     })
                 except Exception:
                     pass
-                return
-            ho_so["tenHienThi"] = ten_cay_goc
-            self.plant_cache[key] = ho_so
-            save_plant_cache(self.plant_cache)   # ghi file NGAY để lần sau không gọi lại
-            nguon = "gemini"
 
-        self.currentPlant = key
+    # ----------------------------------------------------------------
+    # GHI NHỚ CÂY: khôi phục cây đã chọn ở lần chạy trước
+    # ----------------------------------------------------------------
 
-        # --- Áp ngưỡng xuống Arduino (mỗi lệnh cách nhau 1 chút cho chắc) ---
-        self.send(f"SET_TEMP,{ho_so['nhietMin']},{ho_so['nhietMax']}")
-        time.sleep(0.15)
-        self.send(f"SET_HUMI,{ho_so['amKKMin']},{ho_so['amKKMax']}")
-        time.sleep(0.15)
-        self.send(f"SET_SOIL,{ho_so['datMin']},{ho_so['datMax']}")
-        time.sleep(0.15)
-        self.send(f"SET_LIGHT,{ho_so['luxMin']}")
-
-        # --- Ghi lên Firebase để web hiển thị ---
-        try:
-            db.reference("/sprout/thongTinCay").set({
-                "ten": ho_so.get("tenHienThi", ten_cay_goc),
-                "nguon": nguon,          # "cache" hoặc "gemini"
-                "nguong": {
-                    "nhietMin": ho_so["nhietMin"], "nhietMax": ho_so["nhietMax"],
-                    "amKKMin":  ho_so["amKKMin"],  "amKKMax":  ho_so["amKKMax"],
-                    "datMin":   ho_so["datMin"],   "datMax":   ho_so["datMax"],
-                    "luxMin":   ho_so["luxMin"]
-                },
-                "ghiChu": ho_so.get("ghiChu", ""),
-                "capNhatLuc": now()
-            })
-        except Exception as e:
-            log("Firebase", f"Lỗi ghi thongTinCay: {e}")
-
-        log("Cây", f"Đã áp ngưỡng cho '{ten_cay_goc}' (nguồn: {nguon})")
+    def khoi_phuc_cay_da_chon(self):
+        """Chạy 1 lần khi bridge vừa khởi động: nếu trước đó người dùng đã
+        chọn một loại cây, tự động áp lại đúng cây đó (và ngưỡng của nó)
+        xuống Arduino + LCD mà KHÔNG cần người dùng nhập lại. Nếu cache
+        của cây này bị lỗi, xu_ly_loai_cay() sẽ tự phát hiện và gọi lại
+        Gemini (chỉ tốn thêm đúng 1 lần cho lần khởi động này)."""
+        saved = load_current_plant()
+        if not saved or not saved.get("tenGoc"):
+            log("Cây", "Chưa có cây nào được lưu từ trước — dùng ngưỡng mặc định")
+            return
+        ten_goc = saved["tenGoc"]
+        log("Cây", f"Khôi phục cây đã chọn trước đó: '{ten_goc}'")
+        self.xu_ly_loai_cay(ten_goc)
 
     # ----------------------------------------------------------------
     # CHẠY
@@ -666,6 +853,13 @@ class SproutBridge:
         # Thread lắng nghe lệnh Firebase
         threading.Thread(target=self.listen_commands, daemon=True).start()
 
+        # Chờ Arduino ổn định rồi mới áp lại cây đã lưu (nếu có), chạy
+        # trong thread riêng để không chặn vòng lặp chính
+        def cho_roi_khoi_phuc():
+            time.sleep(3)
+            self.khoi_phuc_cay_da_chon()
+        threading.Thread(target=cho_roi_khoi_phuc, daemon=True).start()
+
         log("SPROUT", "Bridge đang chạy — nhấn Ctrl+C để dừng")
         try:
             while self.running:
@@ -682,7 +876,7 @@ class SproutBridge:
 
 if __name__ == "__main__":
     print("=" * 55)
-    print("  S.P.R.O.U.T Bridge v3.0 — Serial (VSPE) <-> Firebase")
+    print("  S.P.R.O.U.T Bridge v3.3 — Serial (VSPE) <-> Firebase")
     print("=" * 55)
 
     if not init_firebase():

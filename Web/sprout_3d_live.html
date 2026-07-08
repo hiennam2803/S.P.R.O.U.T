@@ -3,167 +3,245 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>S.P.R.O.U.T — Dashboard</title>
+<title>S.P.R.O.U.T — Buồng trồng cây thông minh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#060b10;--bg2:#0c1520;--bg3:#111d2a;
-  --border:#1a2d42;--border2:#243d58;
-  --green:#22c55e;--green2:#166534;--green3:#14532d;
-  --blue:#3b82f6;--blue2:#1d4ed8;
-  --amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
-  --text:#c8dae8;--text2:#6a8aaa;--text3:#3a5268;
+  --bg:#070c12;--bg2:#0b141d;--bg3:#101c28;--bg4:#16283a;
+  --border:#1c2e40;--border2:#28405a;
+  --green:#34d399;--green2:#0f5132;--green3:#0a3324;
+  --blue:#5aa9e6;--blue2:#2f6fa8;
+  --amber:#f2b705;--red:#ef4444;
+  --gold:#e8b84b;--gold-dim:#8a6f2e;
+  --coral:#f5734c;--coral-deep:#5c2415;
+  --text:#dce8f0;--text2:#7f97ac;--text3:#44607a;
+  --sans:'Inter',system-ui,sans-serif;
+  --serif:'Fraunces',serif;
+  --mono:'JetBrains Mono',monospace;
 }
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--text);
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;
+}
 
-/* HEADER */
+/* ============ HERO HEADER (nameplate) ============ */
 header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 20px;
-  background:linear-gradient(90deg,#060e18,#0a1520);
+  display:flex;align-items:center;gap:18px;
+  padding:12px 24px;
+  background:
+    radial-gradient(ellipse 700px 200px at 15% 0%, #0f2a2088 0%, transparent 70%),
+    linear-gradient(180deg,#0a1219,#0b141d);
   border-bottom:1px solid var(--border);
-  flex-shrink:0;gap:10px;flex-wrap:wrap;
+  flex-shrink:0;flex-wrap:wrap;position:relative;
 }
-.logo{display:flex;align-items:center;gap:10px}
-.logo-icon{
-  width:32px;height:32px;background:var(--green3);
-  border-radius:8px;border:1px solid var(--green2);
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;flex-shrink:0;
+header::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim) 20%,var(--gold-dim) 80%,transparent);
+  opacity:.5;
 }
-.logo h1{font-size:.95rem;font-weight:700;color:var(--green);letter-spacing:4px;white-space:nowrap}
-.logo p{font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:1px}
-.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.pill{
-  padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
-  display:flex;align-items:center;gap:4px;white-space:nowrap;
+.brand{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding-right:16px;border-right:1px solid var(--border);flex-shrink:0;
 }
-.pill.online{background:#052e16;color:#4ade80;border:1px solid #14532d}
-.pill.offline{background:#1c0a0a;color:#f87171;border:1px solid #450a0a}
-.pill.auto{background:#0a1e3a;color:#60a5fa;border:1px solid #1e3a6a}
-.pill.manual{background:#2c1000;color:#fb923c;border:1px solid #7c2d12}
-.pill.warn{background:#271800;color:#fbbf24;border:1px solid #78350f;animation:blink 1.5s infinite}
-#ts{font-size:10px;color:var(--text3)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.brand-mark{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(155deg,var(--green3),#08201a);
+  border:1px solid var(--green2);
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  box-shadow:inset 0 1px 0 #ffffff0d;
+}
+.brand-code{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--text3)}
 
-/* MAIN */
+.nameplate{flex:1;min-width:220px}
+.eyebrow{
+  font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:3px;
+  color:var(--gold);text-transform:uppercase;margin-bottom:3px;
+  display:flex;align-items:center;gap:7px;
+}
+.eyebrow::before{content:'';width:14px;height:1px;background:var(--gold-dim)}
+h1#plantName{
+  font-family:var(--serif);font-style:italic;font-weight:600;
+  font-size:clamp(1.3rem,2.6vw,2rem);color:#f2f7fa;line-height:1.05;
+  letter-spacing:.2px;
+}
+.plantSub{font-size:10.5px;color:var(--text3);margin-top:3px}
+#quickStats{
+  display:flex;gap:16px;margin-top:7px;flex-wrap:wrap;
+}
+#quickStats span{
+  font-family:var(--mono);font-size:11px;color:var(--text2);
+  display:flex;align-items:center;gap:5px;
+}
+#quickStats b{color:var(--text);font-weight:600}
+
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.pill{
+  padding:4px 11px;border-radius:20px;font-size:10px;font-weight:700;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.3px;
+}
+.pill.online{background:#082616;color:#4ade80;border:1px solid #14532d}
+.pill.offline{background:#210a0a;color:#f87171;border:1px solid #4c1010}
+.pill.auto{background:#0a1e30;color:#67b8f0;border:1px solid #1e4566}
+.pill.manual{background:#2c1600;color:#fb923c;border:1px solid #7c3d12}
+.pill.warn{background:#2a1a00;color:#fbbf24;border:1px solid #78500f;animation:blink 1.6s infinite}
+#ts{font-family:var(--mono);font-size:10px;color:var(--text3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ============ MAIN ============ */
 main{display:flex;flex:1;min-height:0;overflow:hidden}
 
-/* VIEWPORT 3D */
-#vp{flex:1 1 0;position:relative;min-width:0;cursor:grab;overflow:hidden}
+#vp{flex:1 1 0;position:relative;min-width:0;cursor:grab;overflow:hidden;background:var(--bg)}
 #vp:active{cursor:grabbing}
 canvas{display:block;width:100%!important;height:100%!important}
 #hint3d{
-  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-  font-size:10px;color:var(--text3);background:#0c1520cc;
-  padding:3px 12px;border-radius:12px;border:1px solid var(--border);
-  pointer-events:none;white-space:nowrap;
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:9.5px;color:var(--text3);background:#0b141dcc;
+  padding:4px 13px;border-radius:20px;border:1px solid var(--border);
+  pointer-events:none;white-space:nowrap;backdrop-filter:blur(4px);
 }
 
-/* 3D LABELS */
 .l3{
-  position:absolute;font-size:10px;font-weight:700;
-  border-radius:5px;padding:2px 7px;pointer-events:none;white-space:nowrap;
-  border:1px solid;line-height:1.4;
+  position:absolute;font-size:10px;font-weight:600;font-family:var(--mono);
+  border-radius:6px;padding:3px 8px;pointer-events:none;white-space:nowrap;
+  border:1px solid;line-height:1.4;backdrop-filter:blur(3px);
 }
-.l3.on{color:#4ade80;border-color:#166534;background:#0516100e}
+.l3.on{color:#4ade80;border-color:#166534;background:#05191080}
 .l3.off{color:#3a5268;border-color:#1a2d42;background:#0c1520aa}
 .l3.warn{color:#f59e0b;border-color:#78350f;background:#1c0e00aa}
+.l3.lighton{color:#4ade80;border-color:#166534;background:#04180caa}
+.l3.heaton{color:#ff8a70;border-color:#7f1d1d;background:#1c0505aa}
 
-/* SIDE PANEL */
+/* ============ SIDE PANEL ============ */
 #panel{
-  width:248px;flex-shrink:0;background:var(--bg2);
+  width:264px;flex-shrink:0;background:var(--bg2);
   border-left:1px solid var(--border);
   display:flex;flex-direction:column;overflow-y:auto;
-  padding:10px;gap:8px;scrollbar-width:thin;
-  scrollbar-color:var(--border) transparent;
+  padding:12px;gap:10px;scrollbar-width:thin;
+  scrollbar-color:var(--border2) transparent;
 }
+#panel::-webkit-scrollbar{width:6px}
+#panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* CARD */
 .card{
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:10px;padding:10px 12px;
+  background:linear-gradient(180deg,var(--bg4)44,var(--bg3));
+  background-color:var(--bg3);
+  border:1px solid var(--border);border-radius:13px;padding:12px 13px;
+  position:relative;
 }
 .card h4{
-  font-size:9px;font-weight:700;letter-spacing:2px;
-  color:var(--text3);text-transform:uppercase;margin-bottom:8px;
-  display:flex;align-items:center;gap:6px;
+  font-size:9.5px;font-weight:700;letter-spacing:2px;
+  color:var(--text3);text-transform:uppercase;margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;font-family:var(--mono);
 }
-.card h4::before{content:'';flex:1;height:1px;background:var(--border)}
+.card h4 .ic{font-size:11px;filter:grayscale(0) saturate(1.3)}
+.card h4::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* SENSOR GRID */
-.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .si{
   background:var(--bg);border:1px solid var(--border);
-  border-radius:7px;padding:7px 5px;text-align:center;
+  border-radius:9px;padding:9px 5px;text-align:center;
+  transition:border-color .3s;
 }
-.sv{font-size:16px;font-weight:700;color:var(--green);line-height:1}
+.sv{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);line-height:1}
 .sv.warn{color:var(--red)}
 .sv.ok{color:var(--green)}
-.sl{font-size:8px;color:var(--text3);margin-top:3px}
+.sl{font-size:8px;color:var(--text3);margin-top:4px;letter-spacing:.5px}
 
-/* SENSOR BAR */
-.sbar-wrap{margin-bottom:5px}
-.sbar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px}
-.sbar-label span:last-child{color:var(--text);font-weight:600}
-.sbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sbar-wrap{margin-bottom:7px}
+.sbar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px}
+.sbar-label span:last-child{color:var(--text);font-weight:600;font-family:var(--mono)}
+.sbar{height:5px;background:var(--bg);border:1px solid var(--border);border-radius:3px;overflow:hidden}
 .sbar-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
 
 /* MODE */
-.mrow{display:flex;gap:5px;margin-bottom:7px}
+.mrow{display:flex;gap:6px;margin-bottom:9px}
 .mbtn{
-  flex:1;padding:7px 4px;border-radius:7px;border:1px solid var(--border);
-  font-size:11px;font-weight:700;cursor:pointer;
-  background:var(--bg);color:var(--text3);transition:all .2s;
+  flex:1;padding:8px 4px;border-radius:9px;border:1px solid var(--border);
+  font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.4px;
+  background:var(--bg);color:var(--text3);transition:all .2s;font-family:var(--sans);
 }
-.mbtn.a.active{background:#0a1e3a;color:#60a5fa;border-color:#1d4ed8}
-.mbtn.m.active{background:#2c1000;color:#fb923c;border-color:#c2410c}
+.mbtn.a.active{background:#0a1e30;color:#67b8f0;border-color:#1e4566}
+.mbtn.m.active{background:#2c1600;color:#fb923c;border-color:#7c3d12}
 
 /* DEVICES */
 .drow{
   display:flex;align-items:center;justify-content:space-between;
-  padding:5px 0;border-bottom:1px solid #0f1e2d;
+  padding:6px 0;border-bottom:1px solid #0f1e2d;
 }
 .drow:last-child{border-bottom:none}
-.dname{font-size:11px;color:#8aaac8;display:flex;align-items:center;gap:6px}
+.dname{font-size:11.5px;color:#93aec4;display:flex;align-items:center;gap:7px}
 .dot{width:6px;height:6px;border-radius:50%;background:#1a2d42;flex-shrink:0;transition:all .3s}
-.dot.on{background:var(--green);box-shadow:0 0 6px #22c55e55}
-.dot.warn{background:var(--amber);box-shadow:0 0 6px #f59e0b55}
+.dot.on{background:var(--green);box-shadow:0 0 7px #34d39977}
+.dot.warn{background:var(--amber);box-shadow:0 0 7px #f2b70577}
+.dot.on-green{background:var(--green);box-shadow:0 0 7px #34d39988}
+.dot.on-red{background:var(--coral);box-shadow:0 0 7px #f5734c88}
 
 /* TOGGLE */
 .tog{
-  width:34px;height:18px;border-radius:9px;background:#1a2d42;
-  border:none;position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;
+  width:36px;height:19px;border-radius:10px;background:#16283a;
+  border:1px solid var(--border2);position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;
 }
 .tog::after{
   content:'';position:absolute;width:14px;height:14px;
   border-radius:50%;background:#3a5268;top:2px;left:2px;transition:all .25s;
 }
-.tog.on{background:var(--green2)}
-.tog.on::after{left:18px;background:var(--green)}
+.tog.on{background:var(--green2);border-color:var(--green)}
+.tog.on::after{left:19px;background:var(--green)}
+.tog.on-red{background:var(--coral-deep);border-color:var(--coral)}
+.tog.on-red::after{left:19px;background:var(--coral)}
 .tog.disabled{opacity:.3;cursor:not-allowed}
 
 /* SLIDER */
-.srow{margin-bottom:5px}
-.srow label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px}
-.srow label span:last-child{color:var(--text);font-weight:600}
+.srow{margin-bottom:7px}
+.srow label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px}
+.srow label span:last-child{color:var(--text);font-weight:600;font-family:var(--mono)}
 input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
 
-/* AI BOX */
-#aiBox{font-size:11px;color:#7a9ab8;line-height:1.6;min-height:36px}
-#aiBox .ait{font-size:9px;color:var(--text3);margin-top:3px}
-#alertBox{font-size:11px;color:var(--amber);line-height:1.5;min-height:24px}
+.applyBtn{
+  width:100%;margin-top:8px;padding:8px;background:#0a1e30;
+  color:#67b8f0;border:1px solid #1e4566;border-radius:9px;cursor:pointer;
+  font-size:11px;font-weight:700;font-family:var(--sans);letter-spacing:.3px;
+  transition:background .2s;
+}
+.applyBtn:hover{background:#0d2740}
+
+/* PLANT INPUT */
+.plantRow{display:flex;gap:6px;margin-bottom:8px}
+.plantRow input{
+  flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:6px 9px;font-size:11.5px;font-family:var(--sans);
+}
+.plantRow input:focus{outline:none;border-color:var(--gold-dim)}
+.plantRow button{
+  padding:6px 10px;background:var(--green3);color:var(--green);border:1px solid var(--green2);
+  border-radius:8px;cursor:pointer;font-size:11px;white-space:nowrap;font-weight:600;font-family:var(--sans);
+}
+#cayBox{font-size:10.5px;color:var(--text2);line-height:1.7}
+#cayBox b{font-family:var(--serif);font-style:italic;font-size:12.5px}
+.hint-sm{font-size:9px;color:var(--text3);margin-top:7px;line-height:1.5}
+
+/* AI / ALERTS */
+#aiBox{font-size:11.5px;color:#8fb0cc;line-height:1.65;min-height:34px}
+#aiBox .ait{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px}
+#alertBox{font-size:11.5px;line-height:1.7;color:var(--text2)}
+#alertBox .alertLine{display:flex;gap:7px;align-items:flex-start;margin-bottom:4px;color:var(--amber)}
+#alertBox .alertLine:last-child{margin-bottom:0}
+.okline{color:var(--green)!important;display:flex;gap:7px;align-items:center}
 
 /* OFFLINE */
 #offlineOv{
-  position:fixed;inset:0;z-index:999;background:#060b10ee;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  position:fixed;inset:0;z-index:999;background:#070c12f0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
 }
-#offlineOv h2{color:#f87171;font-size:1.1rem}
-#offlineOv p{color:var(--text3);font-size:12px;text-align:center;max-width:280px}
+#offlineOv h2{color:#f87171;font-size:1.1rem;font-family:var(--serif);font-style:italic;font-weight:500}
+#offlineOv p{color:var(--text3);font-size:12px;text-align:center;max-width:280px;font-family:var(--mono)}
 .spin{
   width:32px;height:32px;border:3px solid var(--border2);
-  border-top-color:var(--blue);border-radius:50%;
+  border-top-color:var(--gold);border-radius:50%;
   animation:spin .8s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -172,13 +250,22 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-icon">🌱</div>
-    <div>
-      <h1>S.P.R.O.U.T</h1>
-      <p>SMART PLANT ROOM OMNI-UTILITY TERMINAL</p>
+  <div class="brand">
+    <div class="brand-mark">🌿</div>
+    <div class="brand-code">SPROUT–01</div>
+  </div>
+
+  <div class="nameplate">
+    <div class="eyebrow" id="eyebrowStatus">ĐANG THEO DÕI</div>
+    <h1 id="plantName">S.P.R.O.U.T</h1>
+    <div class="plantSub" id="plantSub">Chưa chọn loại cây — dùng ngưỡng mặc định</div>
+    <div id="quickStats">
+      <span>🌡 <b id="qsTemp">--°C</b></span>
+      <span>💧 <b id="qsHumi">--%</b></span>
+      <span>☀ <b id="qsLight">-- lux</b></span>
     </div>
   </div>
+
   <div class="header-right">
     <span class="pill offline" id="bdgOnline">⚫ Offline</span>
     <span class="pill auto" id="bdgMode">⚡ AUTO</span>
@@ -190,7 +277,7 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
 <main>
   <div id="vp">
     <canvas id="c3"></canvas>
-    <div id="hint3d">Kéo để xoay · Cuộn để zoom</div>
+    <div id="hint3d">kéo để xoay · cuộn để zoom</div>
     <div class="l3 off" id="lFan"   style="display:none">Quạt làm mát</div>
     <div class="l3 off" id="lLight" style="display:none">Đèn quang hợp</div>
     <div class="l3 off" id="lHeat"  style="display:none">Đèn sưởi</div>
@@ -204,22 +291,22 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
   <div id="panel">
 
     <div class="card">
-      <h4>Cảm biến</h4>
+      <h4><span class="ic">📡</span>Cảm biến</h4>
       <div class="sg">
         <div class="si">
           <div class="sv" id="svT">--</div>
-          <div class="sl">Nhiệt °C</div>
+          <div class="sl">NHIỆT °C</div>
         </div>
         <div class="si">
           <div class="sv" id="svH">--</div>
-          <div class="sl">Ẩm KK %</div>
+          <div class="sl">ẨM KK %</div>
         </div>
         <div class="si">
           <div class="sv" id="svL">--</div>
-          <div class="sl">Sáng (lux)</div>
+          <div class="sl">SÁNG (LUX)</div>
         </div>
       </div>
-      <div style="margin-top:8px">
+      <div style="margin-top:10px">
         <div class="sbar-wrap">
           <div class="sbar-label"><span>Độ ẩm đất</span><span id="vS">--%</span></div>
           <div class="sbar"><div class="sbar-fill" id="bS" style="width:0%;background:var(--green)"></div></div>
@@ -228,17 +315,15 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
           <div class="sbar-label"><span>Bồn nước</span><span id="vW">--%</span></div>
           <div class="sbar"><div class="sbar-fill" id="bW" style="width:0%;background:var(--blue)"></div></div>
         </div>
-        <div class="sbar-wrap">
+        <div class="sbar-wrap" style="margin-bottom:0">
           <div class="sbar-label"><span>Cửa buồng</span><span id="vD">--</span></div>
-          <div class="sbar" style="height:6px;background:var(--border);border-radius:3px">
-            <div id="bD" style="height:100%;border-radius:3px;width:0%;transition:width .5s;background:var(--amber)"></div>
-          </div>
+          <div class="sbar"><div id="bD" style="height:100%;border-radius:2px;width:0%;transition:width .5s,background .5s;background:var(--amber)"></div></div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <h4>Điều khiển</h4>
+      <h4><span class="ic">🎛</span>Điều khiển</h4>
       <div class="mrow">
         <button class="mbtn a active" id="btnAuto"   onclick="setMode('AUTO')">⚡ AUTO</button>
         <button class="mbtn m"        id="btnManual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
@@ -252,7 +337,7 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
     </div>
 
     <div class="card">
-      <h4>Ngưỡng</h4>
+      <h4><span class="ic">🎚</span>Ngưỡng</h4>
       <div class="srow">
         <label><span>Nhiệt Min</span><span id="vTmin">18°C</span></label>
         <input type="range" min="10" max="25" value="18" step="1" id="slTmin" oninput="onSl()">
@@ -261,7 +346,7 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
         <label><span>Nhiệt Max</span><span id="vTmax">30°C</span></label>
         <input type="range" min="25" max="40" value="30" step="1" id="slTmax" oninput="onSl()">
       </div>
-      <div class="srow" style="margin-top:6px">
+      <div class="srow" style="margin-top:8px">
         <label><span>Đất Min</span><span id="vSmin">30%</span></label>
         <input type="range" min="10" max="60" value="30" step="1" id="slSmin" oninput="onSl()">
       </div>
@@ -269,39 +354,27 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
         <label><span>Đất Max</span><span id="vSmax">70%</span></label>
         <input type="range" min="50" max="90" value="70" step="1" id="slSmax" oninput="onSl()">
       </div>
-      <button onclick="applyThresh()"
-        style="width:100%;margin-top:7px;padding:6px;background:#0a1e3a;
-        color:#60a5fa;border:1px solid #1d4ed8;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700">
-        ▶ Áp dụng → Arduino
-      </button>
+      <button class="applyBtn" onclick="applyThresh()">▶ Áp dụng → Arduino</button>
     </div>
 
     <div class="card">
-      <h4>🌿 Loại cây</h4>
-      <div style="display:flex;gap:5px;margin-bottom:7px">
-        <input type="text" id="tenCay" placeholder="vd: cà chua"
-          style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);
-                 border-radius:6px;color:var(--text);padding:5px 7px;font-size:11px">
-        <button onclick="xacDinhCay()"
-          style="padding:5px 8px;background:#052e16;color:#4ade80;border:1px solid #14532d;
-                 border-radius:6px;cursor:pointer;font-size:11px;white-space:nowrap">Xác định</button>
+      <h4><span class="ic">🌿</span>Loại cây</h4>
+      <div class="plantRow">
+        <input type="text" id="tenCay" placeholder="vd: cà chua">
+        <button onclick="xacDinhCay()">Xác định</button>
       </div>
-      <div id="cayBox" style="font-size:10px;color:var(--text2);line-height:1.6">
-        Chưa chọn — dùng ngưỡng mặc định.
-      </div>
-      <div style="font-size:9px;color:var(--text3);margin-top:6px">
-        Chỉ gọi Gemini cho cây mới, cây đã hỏi sẽ dùng lại cache.
-      </div>
+      <div id="cayBox">Chưa chọn — dùng ngưỡng mặc định.</div>
+      <div class="hint-sm">Chỉ gọi Gemini cho cây mới, cây đã hỏi sẽ dùng lại cache.</div>
     </div>
 
     <div class="card">
-      <h4>🤖 AI tư vấn</h4>
+      <h4><span class="ic">🤖</span>AI tư vấn</h4>
       <div id="aiBox">Đang chờ kết nối Arduino...</div>
     </div>
 
     <div class="card">
-      <h4>🚨 Cảnh báo</h4>
-      <div id="alertBox" style="color:var(--text2)">Không có cảnh báo</div>
+      <h4><span class="ic">🚨</span>Cảnh báo</h4>
+      <div id="alertBox"><div class="okline">✓ Không có cảnh báo</div></div>
     </div>
 
   </div>
@@ -310,7 +383,7 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
 <div id="offlineOv">
   <div class="spin"></div>
   <h2>Đang kết nối Firebase...</h2>
-  <p>Đảm bảo <code>bridge.py</code> đang chạy và Proteus đang mô phỏng.</p>
+  <p>Đảm bảo bridge.py đang chạy và Proteus đang mô phỏng.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -332,16 +405,60 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const fdb = getDatabase(app);
 
+// anhSang / nguongDen tính theo LUX (0-100000), khớp với Arduino v2.5 + bridge v3.4
 const S = {
   mode:"AUTO",
   dev:{quat:0,bom:0,suoi:0,den:0,hutAm:0,tangAm:0},
   cb:{nhietDo:0,doAmKK:0,doAmDat:0,mucNuoc:0,anhSang:0,cuaMo:false},
-  ng:{nhietMin:18,nhietMax:30,datMin:30,datMax:70,nguongDen:300},
+  ng:{nhietMin:18,nhietMax:30,amKKMin:50,amKKMax:85,datMin:30,datMax:70,nguongDen:300},
   online:false
 };
 window._S = S;
 
 const el = id => document.getElementById(id);
+const LUX_MAX = 100000;
+
+// ------------------------------------------------------------------
+// FIX LỖI "CẢNH BÁO KẸT": trước đây badge cảnh báo lấy từ
+// /sprout/trangThai/canhBaoMoi — một chuỗi text được GHI MỘT LẦN khi có
+// sự cố (vd cửa mở) nhưng KHÔNG BAO GIỜ được xóa khi hết sự cố (Arduino
+// chỉ gửi ALERT khi đang có vấn đề, im lặng khi hết vấn đề). Kết quả:
+// cửa đã đóng từ lâu nhưng dashboard vẫn hiển thị "CUA_MO".
+// Sửa: tính danh sách cảnh báo TỪ TRẠNG THÁI CẢM BIẾN HIỆN TẠI mỗi khi
+// /sprout/camBien cập nhật (mỗi ~2s) — luôn phản ánh đúng thực tế.
+// ------------------------------------------------------------------
+function computeAlerts(cb, ng){
+  const list=[];
+  if (cb.cuaMo) list.push("🚪 Cửa buồng đang mở");
+  if (cb.mucNuoc!=null && cb.mucNuoc < 20) list.push(`🪣 Bồn nước sắp cạn (${cb.mucNuoc}%)`);
+  if (cb.anhSang!=null && ng.nguongDen!=null && cb.anhSang < ng.nguongDen)
+    list.push(`☀️ Ánh sáng yếu (${Math.round(cb.anhSang)} lux < ${ng.nguongDen})`);
+  if (cb.nhietDo!=null){
+    if (ng.nhietMax!=null && cb.nhietDo > ng.nhietMax) list.push(`🌡️ Quá nóng (${cb.nhietDo}°C > ${ng.nhietMax}°C)`);
+    else if (ng.nhietMin!=null && cb.nhietDo < ng.nhietMin) list.push(`🌡️ Quá lạnh (${cb.nhietDo}°C < ${ng.nhietMin}°C)`);
+  }
+  if (cb.doAmKK!=null){
+    if (ng.amKKMax!=null && cb.doAmKK > ng.amKKMax) list.push(`💧 Không khí quá ẩm (${cb.doAmKK}% > ${ng.amKKMax}%)`);
+    else if (ng.amKKMin!=null && cb.doAmKK < ng.amKKMin) list.push(`💧 Không khí quá khô (${cb.doAmKK}% < ${ng.amKKMin}%)`);
+  }
+  if (cb.doAmDat!=null){
+    if (ng.datMin!=null && cb.doAmDat < ng.datMin) list.push(`🌱 Đất khô (${cb.doAmDat}% < ${ng.datMin}%)`);
+    else if (ng.datMax!=null && cb.doAmDat > ng.datMax) list.push(`🌱 Đất ngập nước (${cb.doAmDat}% > ${ng.datMax}%)`);
+  }
+  return list;
+}
+
+function renderAlerts(list){
+  const badge=el("bdgWarn"), box=el("alertBox");
+  if (list.length===0){
+    badge.style.display="none";
+    box.innerHTML=`<div class="okline">✓ Không có cảnh báo</div>`;
+  } else {
+    badge.style.display="";
+    badge.textContent=`⚠ ${list.length} cảnh báo`;
+    box.innerHTML = list.map(t=>`<div class="alertLine">${t}</div>`).join("");
+  }
+}
 
 onValue(ref(fdb,"/sprout/trangThai"), snap=>{
   const d=snap.val(); if(!d) return;
@@ -356,13 +473,10 @@ onValue(ref(fdb,"/sprout/trangThai"), snap=>{
   el("btnAuto").classList.toggle("active",S.mode==="AUTO");
   el("btnManual").classList.toggle("active",S.mode==="MANUAL");
   lockToggles(S.mode==="AUTO");
+  el("eyebrowStatus").textContent = "ĐANG THEO DÕI · " + (S.mode==="AUTO"?"TỰ ĐỘNG":"THỦ CÔNG");
   if(d.capNhatLuc) el("ts").textContent=d.capNhatLuc;
   if(d.aiMoiNhat) el("aiBox").innerHTML=`${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc||""}</div>`;
-  if(d.canhBaoMoi){
-    el("bdgWarn").style.display="";
-    el("alertBox").style.color="var(--amber)";
-    el("alertBox").textContent=`${d.canhBaoMoi} ${d.canhBaoLuc||""}`;
-  }
+  // Lưu ý: KHÔNG dùng d.canhBaoMoi để bật badge cảnh báo nữa (xem computeAlerts)
 });
 
 onValue(ref(fdb,"/sprout/camBien"), snap=>{
@@ -370,22 +484,31 @@ onValue(ref(fdb,"/sprout/camBien"), snap=>{
   Object.assign(S.cb,d);
   const ng=S.ng;
   sval("svT",d.nhietDo?.toFixed(1),d.nhietDo,ng.nhietMin,ng.nhietMax);
-  sval("svH",d.doAmKK?.toFixed(1),d.doAmKK,50,85);
-  sval("svL", (d.anhSang!==undefined&&d.anhSang!==null)?Math.round(d.anhSang):"--", d.anhSang, S.ng.nguongDen||300, 999999);
+  sval("svH",d.doAmKK?.toFixed(1),d.doAmKK,ng.amKKMin,ng.amKKMax);
+  sval("svL", (d.anhSang!==undefined&&d.anhSang!==null)?Math.round(d.anhSang):"--",
+       d.anhSang, S.ng.nguongDen||300, LUX_MAX);
   bar("bS","vS",d.doAmDat,0,100,d.doAmDat<ng.datMin||d.doAmDat>ng.datMax);
   bar("bW","vW",d.mucNuoc,0,100,d.mucNuoc<15);
   const cu=!!d.cuaMo;
   el("vD").textContent=cu?"🔓 Mở":"🔒 Đóng";
   el("bD").style.width=(cu?"100":"0")+"%";
   el("bD").style.background=cu?"var(--amber)":"var(--green)";
+
+  // Quick stats trên header
+  if(d.nhietDo!=null) el("qsTemp").textContent=d.nhietDo.toFixed(1)+"°C";
+  if(d.doAmKK!=null)  el("qsHumi").textContent=d.doAmKK.toFixed(0)+"%";
+  if(d.anhSang!=null) el("qsLight").textContent=Math.round(d.anhSang)+" lux";
+
+  // Tính lại cảnh báo THEO TRẠNG THÁI HIỆN TẠI mỗi lần có dữ liệu mới
+  renderAlerts(computeAlerts(S.cb, S.ng));
 });
 
 onValue(ref(fdb,"/sprout/thietBi"), snap=>{
   const d=snap.val(); if(!d) return;
   Object.assign(S.dev,d);
   updDev("Fan",d.quat,"tFan","dFan");
-  updDev("Light",d.den,"tLight","dLight");
-  updDev("Heat",d.suoi,"tHeat","dHeat");
+  updDevColor("Light",d.den,"tLight","dLight","green");
+  updDevColor("Heat",d.suoi,"tHeat","dHeat","red");
   updDev("Humid",d.tangAm,"tHumid","dHumid");
   updDev("Dehu",d.hutAm,"tDehu","dDehu");
   updDev("Pump",d.bom,"tPump","dPump");
@@ -393,24 +516,38 @@ onValue(ref(fdb,"/sprout/thietBi"), snap=>{
 
 onValue(ref(fdb,"/sprout/nguong"), snap=>{
   const d=snap.val(); if(!d) return;
-  Object.assign(S.ng,{nhietMin:d.nhietMin,nhietMax:d.nhietMax,datMin:d.datMin,datMax:d.datMax,nguongDen:d.nguongDen});
-  if(d.nhietMin){el("slTmin").value=d.nhietMin;el("vTmin").textContent=d.nhietMin+"°C"}
-  if(d.nhietMax){el("slTmax").value=d.nhietMax;el("vTmax").textContent=d.nhietMax+"°C"}
-  if(d.datMin){el("slSmin").value=d.datMin;el("vSmin").textContent=d.datMin+"%"}
-  if(d.datMax){el("slSmax").value=d.datMax;el("vSmax").textContent=d.datMax+"%"}
+  Object.assign(S.ng, d);
+  if(d.nhietMin!=null){el("slTmin").value=d.nhietMin;el("vTmin").textContent=d.nhietMin+"°C"}
+  if(d.nhietMax!=null){el("slTmax").value=d.nhietMax;el("vTmax").textContent=d.nhietMax+"°C"}
+  if(d.datMin!=null){el("slSmin").value=d.datMin;el("vSmin").textContent=d.datMin+"%"}
+  if(d.datMax!=null){el("slSmax").value=d.datMax;el("vSmax").textContent=d.datMax+"%"}
+  // Ngưỡng đổi cũng có thể làm thay đổi tình trạng cảnh báo hiện tại
+  renderAlerts(computeAlerts(S.cb, S.ng));
 });
 
 onValue(ref(fdb,"/sprout/thongTinCay"), snap=>{
   const d=snap.val();
   const box=el("cayBox");
-  if(!d){ box.textContent="Chưa chọn — dùng ngưỡng mặc định."; return; }
-  if(d.loi){ box.innerHTML=`⚠ ${d.loi}`; return; }
+  const nameEl=el("plantName"), subEl=el("plantSub");
+  if(!d){
+    box.textContent="Chưa chọn — dùng ngưỡng mặc định.";
+    nameEl.textContent="S.P.R.O.U.T";
+    subEl.textContent="Chưa chọn loại cây — dùng ngưỡng mặc định";
+    return;
+  }
+  if(d.loi){
+    box.innerHTML=`⚠ ${d.loi}`;
+    subEl.textContent="Có lỗi khi lấy dữ liệu cây — xem chi tiết bên dưới";
+    return;
+  }
   const nguon = d.nguon==="gemini" ? "✨ Gemini (mới)" : "💾 Cache";
   const ng = d.nguong||{};
+  nameEl.textContent = d.ten || "S.P.R.O.U.T";
+  subEl.textContent = (d.ghiChu ? d.ghiChu+" · " : "") + nguon;
   box.innerHTML =
-    `<b style="color:var(--text)">${d.ten}</b> — ${nguon}<br>`+
+    `<b>${d.ten}</b> — ${nguon}<br>`+
     `🌡${ng.nhietMin}-${ng.nhietMax}°C 💧${ng.amKKMin}-${ng.amKKMax}%<br>`+
-    `🌱${ng.datMin}-${ng.datMax}% ☀&gt;${ng.luxMin}lux`+
+    `🌱${ng.datMin}-${ng.datMax}% ☀&gt;${ng.sangMin} lux`+
     (d.ghiChu?`<br><i>${d.ghiChu}</i>`:"");
 });
 
@@ -454,6 +591,16 @@ function updDev(key,on,tid,did){
   if(t) t.classList.toggle("on",!!on);
   if(d) d.className="dot"+(on?" on":"");
 }
+function updDevColor(key,on,tid,did,color){
+  const t=el(tid),d=el(did);
+  if(t){
+    t.classList.remove("on","on-red");
+    if(on) t.classList.add(color==="red" ? "on-red" : "on");
+  }
+  if(d){
+    d.className="dot"+(on?(color==="red"?" on-red":" on-green"):"");
+  }
+}
 function lockToggles(lock){
   document.querySelectorAll(".tog").forEach(t=>{t.classList.toggle("disabled",lock);t.disabled=lock;});
 }
@@ -464,9 +611,8 @@ function lockToggles(lock){
   const vp=document.getElementById("vp");
   let W=vp.clientWidth, H=vp.clientHeight;
   const scene=new THREE.Scene();
-  // 🎨 Nền xanh nhạt để làm nổi bật lòng kính
-  scene.background=new THREE.Color(0x1a3a5a);
-  scene.fog=new THREE.Fog(0x1a3a5a, 25, 45);
+  scene.background=new THREE.Color(0x0e1e2c);
+  scene.fog=new THREE.Fog(0x0e1e2c, 25, 45);
 
   const cam=new THREE.PerspectiveCamera(40,W/H,.1,100);
   cam.position.set(0,6,15);
@@ -480,26 +626,14 @@ function lockToggles(lock){
   ren.toneMapping=THREE.ACESFilmicToneMapping;
   ren.toneMappingExposure=1.2;
 
-  /* ── MATERIALS ── */
   const M={
-    // Kính trong suốt màu xanh nhạt, tăng opacity để thấy rõ bên trong
     glass:  new THREE.MeshPhysicalMaterial({
-      color:0x8ecae6,
-      transparent:true,
-      opacity:.25,
-      roughness:.05,
-      metalness:.1,
-      side:THREE.DoubleSide,
-      envMapIntensity:.8
+      color:0x8ecae6,transparent:true,opacity:.25,roughness:.05,metalness:.1,
+      side:THREE.DoubleSide,envMapIntensity:.8
     }),
     glassDoor:new THREE.MeshPhysicalMaterial({
-      color:0xa8d8ea,
-      transparent:true,
-      opacity:.30,
-      roughness:.05,
-      metalness:.1,
-      side:THREE.DoubleSide,
-      envMapIntensity:.6
+      color:0xa8d8ea,transparent:true,opacity:.30,roughness:.05,metalness:.1,
+      side:THREE.DoubleSide,envMapIntensity:.6
     }),
     frame:  new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.35,metalness:.85}),
     floor:  new THREE.MeshStandardMaterial({color:0x0a1208,roughness:.98}),
@@ -508,23 +642,17 @@ function lockToggles(lock){
     leaf:   new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65}),
     device: new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.45,metalness:.7}),
     device2:new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.5,metalness:.6}),
-    lampCover:new THREE.MeshStandardMaterial({color:0xfef3c7,emissive:0xfef3c7,emissiveIntensity:0}),
-    heatLamp:new THREE.MeshStandardMaterial({color:0x7f1d1d,emissive:0xff4400,emissiveIntensity:0}),
+    lampCover:new THREE.MeshStandardMaterial({color:0x9aa8a0,emissive:0x22c55e,emissiveIntensity:0}),
+    heatLamp:new THREE.MeshStandardMaterial({color:0x3a1a1a,emissive:0xff1a1a,emissiveIntensity:0}),
     waterTank:new THREE.MeshPhysicalMaterial({color:0x2a6aaa,transparent:true,opacity:.35,roughness:.1,metalness:.2,side:THREE.DoubleSide}),
     waterFill:new THREE.MeshStandardMaterial({color:0x4a9af6,transparent:true,opacity:.7}),
     pipe:   new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.4,metalness:.8}),
     fanBlade:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.3,metalness:.9}),
     fanHub: new THREE.MeshStandardMaterial({color:0x1a3a5a,roughness:.3,metalness:.95}),
     mistDev:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.5,metalness:.6}),
-    // Trần lồng kính: dùng vật liệu kính xanh trong suốt thay vì màu tối
     ceilPanel:new THREE.MeshPhysicalMaterial({
-      color:0x8ecae6,
-      transparent:true,
-      opacity:.18,
-      roughness:.05,
-      metalness:.05,
-      side:THREE.DoubleSide,
-      envMapIntensity:.5
+      color:0x8ecae6,transparent:true,opacity:.18,roughness:.05,metalness:.05,
+      side:THREE.DoubleSide,envMapIntensity:.5
     }),
   };
 
@@ -538,15 +666,11 @@ function lockToggles(lock){
     scene.add(m);return m;
   };
 
-  /* ── GREENHOUSE SHELL ─ 8w×6h×6d ── */
   const GW=8,GH=6,GD=6;
 
-  /* Floor */
   mesh(new THREE.BoxGeometry(GW,.15,GD),M.floor,0,-.075,0);
-  /* Soil bed */
   mesh(new THREE.BoxGeometry(6,.2,4),M.soil,0,.18,0);
 
-  /* Glass panels */
   const panels=[
     [GW,GH,.06,0,GH/2,-GD/2,0,0,0],
     [GW,GH,.06,0,GH/2, GD/2,0,0,0],
@@ -555,10 +679,8 @@ function lockToggles(lock){
   ];
   panels.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.glass,x,y,z));
 
-  /* Ceiling panel — now made of glass (transparent) */
   mesh(new THREE.BoxGeometry(GW,.06,GD),M.ceilPanel,0,GH,0);
 
-  /* Frame edges (slightly brighter) */
   const frameE=[
     [GW+.1,.1,.1,0,0,-GD/2],[GW+.1,.1,.1,0,0,GD/2],
     [GW+.1,.1,.1,0,GH,-GD/2],[GW+.1,.1,.1,0,GH,GD/2],
@@ -569,7 +691,6 @@ function lockToggles(lock){
   ];
   frameE.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.frame,x,y,z));
 
-  /* ── DOOR (right wall, front half) ── */
   const doorPivot=new THREE.Group();
   doorPivot.position.set(GW/2,GH/2,0);
   scene.add(doorPivot);
@@ -578,10 +699,8 @@ function lockToggles(lock){
   doorMesh.castShadow=true;
   doorPivot.add(doorMesh);
 
-  /* ── CEILING TRACK & CONTROL BOX ── */
   mesh(new THREE.BoxGeometry(1,.08,.8),M.device,.0,GH-.04,0);
 
-  /* ── CEILING FAN ─ 4 long blades ── */
   const fanPivot=new THREE.Group();
   fanPivot.position.set(0,GH-.14,0);
   scene.add(fanPivot);
@@ -611,32 +730,35 @@ function lockToggles(lock){
     blades.push(blade);
   }
 
-  /* ── WALL-MOUNTED DEVICES ── */
+  const growBarY=GH*.55, growBarH=3.2;
+  const growBar=mesh(new THREE.BoxGeometry(.12,growBarH,.2),M.device,-GW/2+.1,growBarY,0);
 
-  /* Grow light bar (left wall) */
-  const growBar=mesh(new THREE.BoxGeometry(.12,3.2,.2),M.device,-GW/2+.1,GH*.55,0);
-  for(let i=0;i<8;i++){
-    const led=mesh(new THREE.BoxGeometry(.06,.05,.12),M.lampCover.clone(),-GW/2+.16,1.2+i*.32,0);
-    led.material=M.lampCover.clone();
+  const ledCount=8, ledGap=.32;
+  const ledSpanH=(ledCount-1)*ledGap;
+  const ledStartY=growBarY-ledSpanH/2+.3;
+  const ledMeshes=[];
+  for(let i=0;i<ledCount;i++){
+    const ledMat=M.lampCover.clone();
+    const led=mesh(new THREE.BoxGeometry(.06,.05,.12),ledMat,-GW/2+.16,ledStartY+i*ledGap,0);
+    led.material=ledMat;
+    ledMeshes.push(led);
   }
 
-  /* Heat lamps (2x) */
-  const heatLamp1=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),M.heatLamp,-GW/2+.12,.7,-1.2,0,0,Math.PI/2);
-  const heatLamp2=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),M.heatLamp,-GW/2+.12,.7, 1.2,0,0,Math.PI/2);
+  const heatMat1=M.heatLamp.clone();
+  const heatMat2=M.heatLamp.clone();
+  const heatLamp1=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),heatMat1,-GW/2+.12,.7,-1.2,0,0,Math.PI/2);
+  const heatLamp2=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),heatMat2,-GW/2+.12,.7, 1.2,0,0,Math.PI/2);
 
-  /* Humidifier (back wall left) */
   mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2,-1.2,.45,-GD/2+.26);
   mesh(new THREE.BoxGeometry(.38,.08,.32),M.device,-1.2,.87,-GD/2+.26);
   mesh(new THREE.CylinderGeometry(.04,.05,.2,10),M.device,-1.2,1.05,-GD/2+.26,Math.PI/2,0,0);
 
-  /* Dehumidifier (back wall right) */
   mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2, 1.2,.45,-GD/2+.26);
   mesh(new THREE.BoxGeometry(.38,.08,.32),M.device, 1.2,.87,-GD/2+.26);
   for(let i=0;i<4;i++){
     mesh(new THREE.BoxGeometry(.35,.02,.04),M.frame,1.2,.3+i*.1,-GD/2+.08);
   }
 
-  /* ── WATER TANK (right of greenhouse) ── */
   const tankX=GW/2+1.3;
   mesh(new THREE.BoxGeometry(1.1,2.2,.9),M.waterTank,tankX,1.15,-.1);
   [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz])=>{
@@ -656,7 +778,6 @@ function lockToggles(lock){
     mesh(new THREE.BoxGeometry(1.05,.015,.02),M.frame,tankX,.2+i*.4,-.1+.43);
   }
 
-  /* ── PIPE SYSTEM ── */
   mesh(new THREE.CylinderGeometry(.05,.05,1.4,10),M.pipe,tankX-.7,1.8,-.1,0,0,Math.PI/2);
   mesh(new THREE.CylinderGeometry(.05,.05,.6,10),M.pipe,GW/2+.12,1.5,-.1);
   mesh(new THREE.BoxGeometry(.22,.22,.16),M.device2,GW/2+.12,1.18,-.1);
@@ -668,7 +789,6 @@ function lockToggles(lock){
     mesh(new THREE.SphereGeometry(.03,6,6),M.pipe,dx,3.9,-.5);
   });
 
-  /* ── PLANTS ── */
   const plantData=[
     [-2.2,.3,-1.2,.8],[-1,.3,.8,.65],[0,.3,-1,.9],
     [1,.3,1.1,.75],[2.2,.3,-.8,.7]
@@ -691,7 +811,6 @@ function lockToggles(lock){
     }
   });
 
-  /* ── WATER DROPS ── */
   const drops=[];
   for(let i=0;i<40;i++){
     const d=new THREE.Mesh(
@@ -703,7 +822,6 @@ function lockToggles(lock){
     scene.add(d);drops.push(d);
   }
 
-  /* ── MIST PARTICLES ── */
   const MISTN=200;
   const mistPos=new Float32Array(MISTN*3);
   const mistV=[];
@@ -718,21 +836,20 @@ function lockToggles(lock){
   const mistMat=new THREE.PointsMaterial({color:0x88ccff,size:.055,transparent:true,opacity:0});
   scene.add(new THREE.Points(mistGeo,mistMat));
 
-  /* ── LIGHTS ── */
   scene.add(new THREE.AmbientLight(0x3a5a7a,2.5));
   const sun=new THREE.DirectionalLight(0x8ac4e8,2.0);
   sun.position.set(8,12,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);
   scene.add(sun);
 
-  const growPt=new THREE.PointLight(0x22ff77,0,7);
-  growPt.position.set(-GW/2+.3,2.5,0);
+  const growPt=new THREE.PointLight(0x22c55e,0,7);
+  growPt.position.set(-GW/2+.3,growBarY,0);
   scene.add(growPt);
 
-  const heatPt1=new THREE.PointLight(0xff4400,0,4);
+  const heatPt1=new THREE.PointLight(0xff1a1a,0,4);
   heatPt1.position.set(-GW/2+.3,.8,-1.2);
   scene.add(heatPt1);
-  const heatPt2=new THREE.PointLight(0xff4400,0,4);
+  const heatPt2=new THREE.PointLight(0xff1a1a,0,4);
   heatPt2.position.set(-GW/2+.3,.8, 1.2);
   scene.add(heatPt2);
 
@@ -744,7 +861,6 @@ function lockToggles(lock){
   tankPt.position.set(tankX,2,-.1);
   scene.add(tankPt);
 
-  /* ── ORBIT CONTROLS ── */
   let drag=false,px=0,py=0,rotY=.55,rotX=.22,zoom=15;
   const cv=document.getElementById("c3");
   const onDown=(cx,cy)=>{drag=true;px=cx;py=cy;};
@@ -762,7 +878,6 @@ function lockToggles(lock){
   window.addEventListener("touchend",()=>drag=false);
   window.addEventListener("touchmove",e=>onMove(e.touches[0].clientX,e.touches[0].clientY));
 
-  /* ── 2D LABEL PROJECTION ── */
   const tv=new THREE.Vector3();
   function proj(x,y,z,id,txt,cls){
     tv.set(x,y,z).project(cam);
@@ -777,8 +892,11 @@ function lockToggles(lock){
 
   const clock=new THREE.Clock();
   let fanAngle=0;
+  const LED_OFF_COLOR=new THREE.Color(0x9aa8a0);
+  const LED_ON_COLOR =new THREE.Color(0x4ade80);
+  const HEAT_OFF_COLOR=new THREE.Color(0x3a1a1a);
+  const HEAT_ON_COLOR =new THREE.Color(0xff2222);
 
-  /* ── ANIMATE ── */
   function animate(){
     requestAnimationFrame(animate);
     const dt=clock.getDelta(), t=clock.elapsedTime;
@@ -790,25 +908,29 @@ function lockToggles(lock){
     cam.position.z=Math.cos(rotY)*Math.cos(rotX)*zoom;
     cam.lookAt(0,2,0);
 
-    /* Fan */
     const fanOn=!!dev.quat;
     if(fanOn) fanAngle+=dt*8;
     bladeGroup.rotation.y=fanAngle;
 
-    /* Grow light */
     const growOn=!!dev.den;
     growPt.intensity=growOn?3+Math.sin(t*1.2)*.2:0;
-    M.lampCover.emissiveIntensity=growOn?2.5:0;
+    const ledEmissive=growOn?2.6:0;
+    ledMeshes.forEach(led=>{
+      led.material.color.lerp(growOn?LED_ON_COLOR:LED_OFF_COLOR,.15);
+      led.material.emissive.set(0x22c55e);
+      led.material.emissiveIntensity=ledEmissive;
+    });
 
-    /* Heat lamps */
     const heatOn=!!dev.suoi;
     heatPt1.intensity=heatOn?2+Math.sin(t*6)*.6:0;
     heatPt2.intensity=heatOn?2+Math.sin(t*6)*.6:0;
-    M.heatLamp.emissiveIntensity=heatOn?.9+Math.sin(t*5)*.25:0;
-    heatLamp1.material.emissiveIntensity=M.heatLamp.emissiveIntensity;
-    heatLamp2.material.emissiveIntensity=M.heatLamp.emissiveIntensity;
+    const heatEmissive=heatOn?1.1+Math.sin(t*5)*.3:0;
+    [heatMat1,heatMat2].forEach(hm=>{
+      hm.color.lerp(heatOn?HEAT_ON_COLOR:HEAT_OFF_COLOR,.15);
+      hm.emissive.set(0xff1a1a);
+      hm.emissiveIntensity=heatEmissive;
+    });
 
-    /* Mist */
     const mistOn=!!dev.tangAm;
     mistMat.opacity=mistOn?Math.min(.6,mistMat.opacity+.02):Math.max(0,mistMat.opacity-.015);
     mistPt.intensity=mistOn?1.5:0;
@@ -821,7 +943,6 @@ function lockToggles(lock){
       mistGeo.attributes.position.needsUpdate=true;
     }
 
-    /* Water drops */
     const pumpOn=!!dev.bom;
     drops.forEach((d,i)=>{
       if(pumpOn&&!d.userData.active&&Math.random()<.04){
@@ -839,14 +960,12 @@ function lockToggles(lock){
       if(!pumpOn){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
     });
 
-    /* Water tank */
     const wlevel=Math.max(0,Math.min(1,(cb.mucNuoc||0)/100));
     waterFillMesh.scale.y=Math.max(.01,wlevel);
     waterFillMesh.position.y=.2+wlevel*.95;
     floatBall.position.y=.3+wlevel*1.75;
     tankPt.intensity=wlevel>.1?1:0;
 
-    /* Plant health */
     const soilLow=(cb.doAmDat||0)<(ng.datMin||30);
     plantMeshes.forEach((p,i)=>{
       p.mesh.rotation.z=Math.sin(t*.5+i)*(fanOn?.1:.025);
@@ -855,14 +974,12 @@ function lockToggles(lock){
       p.mesh.material.emissiveIntensity=growOn?.15:0;
     });
 
-    /* Door */
     const doorOpen=!!cb.cuaMo;
     doorPivot.rotation.y=THREE.MathUtils.lerp(doorPivot.rotation.y,doorOpen?-Math.PI*.42:0,dt*3);
 
-    /* Labels */
     proj(0,GH-.2,0,     "lFan",   fanOn ?"🌀 Quạt BẬT":"Quạt TẮT", fanOn?"on":"off");
-    proj(-GW/2+.2,3,0,  "lLight", growOn?"💡 Đèn SÁNG":"Đèn quang hợp", growOn?"on":"off");
-    proj(-GW/2+.2,.7,0, "lHeat",  heatOn?"🔥 Sưởi BẬT":"Đèn sưởi", heatOn?"on":"off");
+    proj(-GW/2+.2,3,0,  "lLight", growOn?"💡 Đèn quang hợp BẬT":"Đèn quang hợp", growOn?"lighton":"off");
+    proj(-GW/2+.2,.7,0, "lHeat",  heatOn?"🔥 Đèn sưởi BẬT":"Đèn sưởi", heatOn?"heaton":"off");
     proj(-1.2,.8,-GD/2+.4,"lHumid",dev.tangAm?"💧 Tăng ẩm BẬT":"Tăng ẩm", dev.tangAm?"on":"off");
     proj(1.2,.8,-GD/2+.4, "lDehu", dev.hutAm?"🌬 Hút ẩm BẬT":"Hút ẩm", dev.hutAm?"on":"off");
     proj(0,4.5,-.5,       "lPump", pumpOn?"💧 Tưới BẬT":"Bơm tưới", pumpOn?"on":"off");

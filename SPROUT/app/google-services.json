@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1026541317812",
+    "firebase_url": "https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "sprout-3609f",
+    "storage_bucket": "sprout-3609f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1026541317812:android:6f92dfcdfa96a4c61171e1",
+        "android_client_info": {
+          "package_name": "vhdt.sprout"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIUZpjwXXNmkpGHJR_n1xaAC2jHOx0QZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

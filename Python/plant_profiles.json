@@ -10,17 +10,6 @@
     "ghiChu": "Ưa mát, đất ẩm đều, nhiều ánh sáng.",
     "tenHienThi": "cây hành"
   },
-  "cay tao": {
-    "nhietMin": 15.0,
-    "nhietMax": 28.0,
-    "amKKMin": 60.0,
-    "amKKMax": 75.0,
-    "datMin": 50.0,
-    "datMax": 70.0,
-    "luxMin": 15000.0,
-    "ghiChu": "Đảm bảo đủ ánh sáng và độ ẩm đất ổn định.",
-    "tenHienThi": "cây táo"
-  },
   "cay cho de": {
     "nhietMin": 20.0,
     "nhietMax": 32.0,
@@ -42,5 +31,49 @@
     "luxMin": 10000.0,
     "ghiChu": "Ưa mát, đất ẩm đều, ánh sáng vừa đủ.",
     "tenHienThi": "rau bina"
+  },
+  "ca chua": {
+    "nhietMin": 18.0,
+    "nhietMax": 28.0,
+    "amKKMin": 55.0,
+    "amKKMax": 75.0,
+    "datMin": 60.0,
+    "datMax": 85.0,
+    "luxMin": 8000.0,
+    "ghiChu": "Cà chua ưa ấm, nhiều ánh sáng và độ ẩm đất ổn định.",
+    "tenHienThi": "cà chua"
+  },
+  "cay ca chua": {
+    "nhietMin": 18.0,
+    "nhietMax": 29.0,
+    "amKKMin": 55.0,
+    "amKKMax": 75.0,
+    "datMin": 60.0,
+    "datMax": 85.0,
+    "sangMin": 70.0,
+    "ghiChu": "Tối ưu cho sinh trưởng và ra quả cà chua.",
+    "tenHienThi": "cây cà chua"
+  },
+  "cay tao": {
+    "nhietMin": 15.0,
+    "nhietMax": 28.0,
+    "amKKMin": 55.0,
+    "amKKMax": 75.0,
+    "datMin": 40.0,
+    "datMax": 65.0,
+    "sangMin": 70.0,
+    "ghiChu": "Cần nhiều ánh sáng, độ ẩm đất ổn định.",
+    "tenHienThi": "cây táo"
+  },
+  "cay cai xoan": {
+    "nhietMin": 10.0,
+    "nhietMax": 24.0,
+    "amKKMin": 60.0,
+    "amKKMax": 80.0,
+    "datMin": 65.0,
+    "datMax": 85.0,
+    "sangMin": 3000.0,
+    "ghiChu": "Cây ưa mát, đất ẩm, đủ sáng. Tránh quá nóng.",
+    "tenHienThi": "cây cải xoăn"
   }
 }
