@@ -46,13 +46,14 @@ class SproutRepository(
 
     fun theoDoiNguong(): Flow<Nguong> = docNode(goc.child("nguong")) { snap ->
         Nguong(
-            nhietMin  = snap.child("nhietMin").getValue(Double::class.java) ?: 18.0,
-            nhietMax  = snap.child("nhietMax").getValue(Double::class.java) ?: 30.0,
-            amKKMin   = snap.child("amKKMin").getValue(Double::class.java) ?: 50.0,
-            amKKMax   = snap.child("amKKMax").getValue(Double::class.java) ?: 85.0,
-            datMin    = snap.child("datMin").getValue(Long::class.java)?.toInt() ?: 30,
-            datMax    = snap.child("datMax").getValue(Long::class.java)?.toInt() ?: 70,
-            nguongDen = snap.child("nguongDen").getValue(Double::class.java) ?: 300.0
+            nhietMin      = snap.child("nhietMin").getValue(Double::class.java) ?: 18.0,
+            nhietMax      = snap.child("nhietMax").getValue(Double::class.java) ?: 30.0,
+            amKKMin       = snap.child("amKKMin").getValue(Double::class.java) ?: 50.0,
+            amKKMax       = snap.child("amKKMax").getValue(Double::class.java) ?: 85.0,
+            datMin        = snap.child("datMin").getValue(Long::class.java)?.toInt() ?: 30,
+            datMax        = snap.child("datMax").getValue(Long::class.java)?.toInt() ?: 70,
+            nguongDen     = snap.child("nguongDen").getValue(Double::class.java) ?: 300.0,
+            nguongSangMax = snap.child("nguongSangMax").getValue(Double::class.java) ?: 900.0
         )
     }
 
@@ -78,7 +79,11 @@ class SproutRepository(
                 amKKMax  = snap.child("nguong/amKKMax").getValue(Double::class.java) ?: 0.0,
                 datMin   = snap.child("nguong/datMin").getValue(Double::class.java) ?: 0.0,
                 datMax   = snap.child("nguong/datMax").getValue(Double::class.java) ?: 0.0,
-                luxMin   = snap.child("nguong/luxMin").getValue(Double::class.java) ?: 0.0
+                // FIX: Python ghi key la "sangMin"/"sangMax", KHONG PHAI "luxMin".
+                // Ban cu doc "nguong/luxMin" nen luon ve mac dinh 0.0 vi key nay
+                // chua bao gio ton tai ben Firebase.
+                sangMin  = snap.child("nguong/sangMin").getValue(Double::class.java) ?: 0.0,
+                sangMax  = snap.child("nguong/sangMax").getValue(Double::class.java) ?: 0.0
             ),
             ghiChu     = snap.child("ghiChu").getValue(String::class.java) ?: "",
             loi        = snap.child("loi").getValue(String::class.java),
@@ -167,8 +172,14 @@ class SproutRepository(
         goc.child("lenh").setValue(mapOf("loai" to "SET_SOIL", "min" to min, "max" to max))
     }
 
-    fun datNguongAnhSang(luxMin: Double) {
-        goc.child("lenh").setValue(mapOf("loai" to "SET_LIGHT", "giaTri" to luxMin))
+    /**
+     * Ngưỡng ánh sáng (LUX). min = bật đèn khi anhSang < min.
+     * max = cảnh báo "quá sáng" khi anhSang > max (KHÔNG có thiết bị che nắng,
+     * chỉ cảnh báo). Bridge Python giờ yêu cầu CẢ HAI tham số — nếu chỉ gửi 1
+     * giá trị như bản cũ, bên Python sẽ tự lấy max mặc định 900 lux.
+     */
+    fun datNguongAnhSang(min: Double, max: Double) {
+        goc.child("lenh").setValue(mapOf("loai" to "SET_LIGHT", "min" to min, "max" to max))
     }
 
     /** Chế độ "AI" — nhập tên cây, bridge tự tra cache / gọi Gemini nếu là cây mới */

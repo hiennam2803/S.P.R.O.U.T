@@ -17,11 +17,6 @@ import vhdt.sprout.data.ThietBiId
 import vhdt.sprout.data.ThongTinCay
 import vhdt.sprout.data.TrangThai
 
-/**
- * ViewModel duy nhất dùng chung cho cả 4 màn hình (Tổng quan, Loại cây,
- * Tự động/Thủ công, Biểu đồ). Mọi màn hình chỉ đọc từ đây — không tự mở
- * kết nối Firebase riêng, tránh rò rỉ listener khi xoay màn hình / điều hướng.
- */
 class SproutViewModel @JvmOverloads constructor(
     private val repo: SproutRepository = SproutRepository()
 ) : ViewModel() {
@@ -50,7 +45,10 @@ class SproutViewModel @JvmOverloads constructor(
     private val _aiLog = MutableStateFlow<List<AiLogItem>>(emptyList())
     val aiLog: StateFlow<List<AiLogItem>> = _aiLog.asStateFlow()
 
-    /** Đang gửi lệnh xác định cây (đang chờ bridge trả lời qua thongTinCay) */
+    // --- TÊN CÂY (hiển thị ở Tổng quan) ---
+    private val _tenCay = MutableStateFlow("S.P.R.O.U.T")
+    val tenCay: StateFlow<String> = _tenCay
+
     private val _dangXuLyCay = MutableStateFlow(false)
     val dangXuLyCay: StateFlow<Boolean> = _dangXuLyCay.asStateFlow()
 
@@ -59,12 +57,17 @@ class SproutViewModel @JvmOverloads constructor(
         viewModelScope.launch { repo.theoDoiThietBi().collect { _thietBi.value = it } }
         viewModelScope.launch { repo.theoDoiNguong().collect { _nguong.value = it } }
         viewModelScope.launch { repo.theoDoiTrangThai().collect { _trangThai.value = it } }
+
+        // Lắng nghe thông tin cây và cập nhật cả _thongTinCay lẫn _tenCay
         viewModelScope.launch {
             repo.theoDoiThongTinCay().collect {
                 _thongTinCay.value = it
                 _dangXuLyCay.value = false
+                // CẬP NHẬT TÊN CÂY CHO MÀN HÌNH TỔNG QUAN
+                _tenCay.value = it?.ten ?: "S.P.R.O.U.T"
             }
         }
+
         viewModelScope.launch { repo.theoDoiLichSu().collect { _lichSu.value = it } }
         viewModelScope.launch { repo.theoDoiCanhBao().collect { _canhBao.value = it } }
         viewModelScope.launch { repo.theoDoiAiLog().collect { _aiLog.value = it } }
@@ -79,23 +82,21 @@ class SproutViewModel @JvmOverloads constructor(
 
     // ---------------- Màn "Loại cây" ----------------
 
-    /** Chế độ AI: nhập tên cây, bridge tự tra cache / gọi Gemini nếu cây mới */
     fun xacDinhLoaiCay(tenCay: String) {
         if (tenCay.isBlank()) return
         _dangXuLyCay.value = true
         repo.xacDinhLoaiCay(tenCay.trim())
     }
 
-    /** Chế độ Personal: người dùng tự áp ngưỡng, không qua AI */
     fun apDungNguongCaNhan(
         nhietMin: Double, nhietMax: Double,
         amKKMin: Double, amKKMax: Double,
         datMin: Int, datMax: Int,
-        luxMin: Double
+        sangMin: Double, sangMax: Double
     ) {
         repo.datNguongNhiet(nhietMin, nhietMax)
         repo.datNguongDoAmKK(amKKMin, amKKMax)
         repo.datNguongDoAmDat(datMin, datMax)
-        repo.datNguongAnhSang(luxMin)
+        repo.datNguongAnhSang(sangMin, sangMax)
     }
 }

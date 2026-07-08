@@ -46,6 +46,7 @@ import vhdt.sprout.components.TieuDeMuc
 import vhdt.sprout.ui.theme.ChuMo
 import vhdt.sprout.ui.theme.ChuPhu
 import vhdt.sprout.ui.theme.DoNguyHiem
+import vhdt.sprout.ui.theme.NenChinh
 import vhdt.sprout.ui.theme.NenTheVien
 import vhdt.sprout.ui.theme.TimGemini
 import vhdt.sprout.ui.theme.VangCanhBao
@@ -53,22 +54,6 @@ import vhdt.sprout.ui.theme.XanhDuong
 import vhdt.sprout.ui.theme.XanhLa
 import vhdt.sprout.viewmodel.SproutViewModel
 
-/**
- * Màn hình GỘP: TỰ ĐỘNG + LOẠI CÂY
- *
- * - AUTO   -> Arduino tự vận hành theo ngưỡng của loại cây. Hiện ô nhập tên
- *             cây (AI/cache), thiết bị hiển thị CHỈ XEM.
- * - MANUAL -> người dùng tự kiểm soát hoàn toàn. Hiện công tắc thiết bị +
- *             ngưỡng cá nhân (Personal) để tự kéo tay.
- *
- * Toàn bộ input (tên cây đang gõ, các thanh trượt Personal) dùng
- * rememberSaveable — GHI NHỚ giá trị khi chuyển sang tab khác rồi quay lại,
- * không bị reset về mặc định.
- *
- * Icon cần thêm (ngoài bộ đã dùng ở màn Tổng quan):
- *   settings_24px, touch_app_24px, auto_awesome_24px, edit_24px, save_24px,
- *   thermostat_24px, humidity_percentage_24px, grass_24px, light_mode_24px
- */
 @Composable
 fun AutoScreen(vm: SproutViewModel) {
     val tb by vm.thietBi.collectAsState()
@@ -76,7 +61,8 @@ fun AutoScreen(vm: SproutViewModel) {
     val dangManual = tt.mode == "MANUAL"
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .background(NenChinh),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -123,7 +109,7 @@ fun AutoScreen(vm: SproutViewModel) {
         }
 
         item {
-            TieuDeMuc(if (dangManual) "Ngưỡng cá nhân (Personal)" else "Loại cây (AI đề xuất)")
+            TieuDeMuc(if (dangManual) "Ngưỡng cá nhân (Personal)" else "Loại cây đang trồng (Chế độ AI)")
         }
         item {
             if (dangManual) KhoiCheDoPersonal(vm) else KhoiCheDoAi(vm)
@@ -149,7 +135,7 @@ private fun CongTacCheDo(dangManual: Boolean, onChon: (Boolean) -> Unit) {
             .padding(4.dp)
     ) {
         LuaChonCheDo(
-            iconRes = R.drawable.robot_2_24px,
+            iconRes = R.drawable.robot_2_24px, // thay robot_2_24px
             nhan = "AUTO",
             dangChon = !dangManual,
             mau = XanhDuong,
@@ -157,7 +143,7 @@ private fun CongTacCheDo(dangManual: Boolean, onChon: (Boolean) -> Unit) {
             onClick = { onChon(false) }
         )
         LuaChonCheDo(
-            iconRes = R.drawable.edit_note_24px,
+            iconRes = R.drawable.edit_note_24px, // thay edit_note_24px
             nhan = "MANUAL",
             dangChon = dangManual,
             mau = VangCanhBao,
@@ -203,8 +189,7 @@ private fun LuaChonCheDo(
 }
 
 // ================================================================
-// KHỐI AUTO — nhập loại cây, bridge tự tra cache / gọi Gemini nếu cây mới
-// tenCay dùng rememberSaveable -> gõ dở rồi chuyển tab khác vẫn còn nguyên
+// KHỐI AUTO — nhập loại cây
 // ================================================================
 
 @Composable
@@ -214,15 +199,6 @@ private fun KhoiCheDoAi(vm: SproutViewModel) {
     val thongTin by vm.thongTinCay.collectAsState()
 
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        KhungMo {
-            Text(
-                "Nhập tên loại cây bạn đang trồng. Nếu là cây mới, hệ thống sẽ hỏi " +
-                        "Gemini AI đúng 1 lần rồi lưu lại — các lần sau dùng ngay kết quả cũ, " +
-                        "không tốn thêm token.",
-                fontSize = 12.sp, color = ChuPhu
-            )
-        }
-
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
@@ -270,7 +246,7 @@ private fun KhoiCheDoAi(vm: SproutViewModel) {
                         DongThongSo(R.drawable.thermometer_24px, "${tt.nguong.nhietMin}–${tt.nguong.nhietMax}°C")
                         DongThongSo(R.drawable.humidity_high_24px, "Độ ẩm KK ${tt.nguong.amKKMin}–${tt.nguong.amKKMax}%")
                         DongThongSo(R.drawable.grass_24px, "Độ ẩm đất ${tt.nguong.datMin}–${tt.nguong.datMax}%")
-                        DongThongSo(R.drawable.light_mode_24px, "Bật đèn khi dưới ${tt.nguong.luxMin} lux")
+                        DongThongSo(R.drawable.light_mode_24px, "Bật đèn khi dưới ${tt.nguong.sangMin} lux")
                     }
 
                     if (tt.ghiChu.isNotBlank()) {
@@ -320,10 +296,7 @@ private fun NhanNguon(nguon: String) {
 }
 
 // ================================================================
-// KHỐI MANUAL — ngưỡng Personal, tự tay kéo, áp thẳng, không qua AI.
-// Mỗi giá trị tách thành 1 Float rememberSaveable riêng (Float lưu được
-// vào Bundle, còn ClosedFloatingPointRange thì KHÔNG) -> đảm bảo ghi nhớ
-// thật sự khi chuyển tab qua lại, không chỉ lúc còn trong bộ nhớ RAM.
+// KHỐI MANUAL — ngưỡng Personal
 // ================================================================
 
 @Composable
@@ -338,10 +311,9 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
     var datMin by rememberSaveable { mutableFloatStateOf(30f) }
     var datMax by rememberSaveable { mutableFloatStateOf(70f) }
     var luxMin by rememberSaveable { mutableFloatStateOf(300f) }
+    var luxMax by rememberSaveable { mutableFloatStateOf(1000f) } // THÊM nguongSangMax
 
-    // Chỉ đồng bộ 1 LẦN DUY NHẤT từ Firebase lúc mở màn lần đầu.
-    // Sau đó mọi chỉnh sửa của người dùng được giữ nguyên (ghi nhớ),
-    // kể cả khi chuyển sang tab khác rồi quay lại.
+    // Đồng bộ 1 lần từ Firebase
     LaunchedEffect(ng, daKhoiTao) {
         if (!daKhoiTao) {
             nhietMin = ng.nhietMin.toFloat()
@@ -351,6 +323,7 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
             datMin = ng.datMin.toFloat()
             datMax = ng.datMax.toFloat()
             luxMin = ng.nguongDen.toFloat()
+            luxMax = ng.nguongSangMax.toFloat()
             daKhoiTao = true
         }
     }
@@ -364,6 +337,7 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
             )
         }
 
+        // Nhiệt độ
         KhoiNguong(
             iconRes = R.drawable.thermometer_24px,
             nhan = "Nhiệt độ (°C)",
@@ -377,6 +351,7 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
             )
         }
 
+        // Độ ẩm KK
         KhoiNguong(
             iconRes = R.drawable.humidity_high_24px,
             nhan = "Độ ẩm không khí (%)",
@@ -390,6 +365,7 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
             )
         }
 
+        // Độ ẩm đất
         KhoiNguong(
             iconRes = R.drawable.grass_24px,
             nhan = "Độ ẩm đất (%)",
@@ -403,14 +379,29 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
             )
         }
 
+        // Ánh sáng Min
         KhoiNguong(
             iconRes = R.drawable.light_mode_24px,
-            nhan = "Ngưỡng bật đèn (lux)",
+            nhan = "Bật đèn dưới (lux)",
             gtHienThi = "< ${luxMin.toInt()} lux"
         ) {
             Slider(
                 value = luxMin,
                 onValueChange = { luxMin = it },
+                valueRange = 0f..2000f,
+                colors = sliderMauXanh()
+            )
+        }
+
+        // THÊM: Ánh sáng Max (cảnh báo quá sáng)
+        KhoiNguong(
+            iconRes = R.drawable.light_mode_24px,
+            nhan = "Cảnh báo trên (lux)",
+            gtHienThi = "> ${luxMax.toInt()} lux"
+        ) {
+            Slider(
+                value = luxMax,
+                onValueChange = { luxMax = it },
                 valueRange = 0f..2000f,
                 colors = sliderMauXanh()
             )
@@ -425,7 +416,8 @@ private fun KhoiCheDoPersonal(vm: SproutViewModel) {
                     amKKMax = amKKMax.toDouble(),
                     datMin = datMin.toInt(),
                     datMax = datMax.toInt(),
-                    luxMin = luxMin.toDouble()
+                    sangMin = luxMin.toDouble(),
+                    sangMax = luxMax.toDouble() // gửi thêm tham số mới
                 )
             },
             modifier = Modifier.fillMaxWidth(),

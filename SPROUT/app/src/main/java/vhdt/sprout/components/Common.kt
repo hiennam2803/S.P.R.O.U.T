@@ -2,7 +2,9 @@ package vhdt.sprout.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,15 +31,54 @@ import androidx.compose.ui.unit.sp
 import vhdt.sprout.ui.theme.ChuMo
 import vhdt.sprout.ui.theme.ChuPhu
 import vhdt.sprout.ui.theme.DoNguyHiem
-import vhdt.sprout.ui.theme.NenThe
-import vhdt.sprout.ui.theme.NenTheVien
 import vhdt.sprout.ui.theme.VangCanhBao
 import vhdt.sprout.ui.theme.XanhLa
 
-/**
- * Thẻ hiển thị 1 chỉ số cảm biến, đổi màu khi vượt ngưỡng cảnh báo.
- * iconRes: id vector trong res/drawable, dạng "..._24px" (Material Symbols).
- */
+// ============================
+// 🪟 GLASS CARD – dùng Card Material3
+// ============================
+@Composable
+fun GlassCard(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.15f),
+    borderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            content()
+        }
+    }
+}
+
+// ============================
+// 🏷️ GLASS TAG – nhãn nhỏ
+// ============================
+@Composable
+fun GlassTag(
+    text: String,
+    color: Color = MaterialTheme.colorScheme.primary,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(30.dp))
+            .background(color.copy(alpha = 0.15f))
+            .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(30.dp))
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+    ) {
+        Text(text = text, fontSize = 10.sp, color = color, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+// ============================
+// 📡 THẺ CẢM BIẾN
+// ============================
 @Composable
 fun TheCamBien(
     iconRes: Int,
@@ -53,11 +95,14 @@ fun TheCamBien(
     }
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = NenThe),
-        shape = RoundedCornerShape(14.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.12f)
+        ),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -87,9 +132,13 @@ fun TheCamBien(
     }
 }
 
-enum class TrangThaiCanhBao { BINH_THUONG, CANH_BAO, NGUY_HIEM }
+enum class TrangThaiCanhBao {
+    BINH_THUONG, CANH_BAO, NGUY_HIEM
+}
 
-/** Nhãn tròn nhỏ hiển thị online/offline, AUTO/MANUAL... (giữ chấm tròn màu, không cần icon) */
+// ============================
+// 🟢 NHÃN TRẠNG THÁI (chấm tròn)
+// ============================
 @Composable
 fun NhanTrangThai(text: String, mau: Color, modifier: Modifier = Modifier) {
     Row(
@@ -99,18 +148,18 @@ fun NhanTrangThai(text: String, mau: Color, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Column(
+        Box(
             modifier = Modifier
+                .size(8.dp)
                 .background(mau, RoundedCornerShape(50))
-                .padding(4.dp)
-        ) {}
+        )
         Text(text = text, fontSize = 12.sp, color = mau, fontWeight = FontWeight.Medium)
     }
 }
 
-/**
- * 1 hàng điều khiển thiết bị: icon (drawable) + tên + trạng thái + công tắc bật/tắt.
- */
+// ============================
+// ⚙️ HÀNG THIẾT BỊ
+// ============================
 @Composable
 fun HangThietBi(
     iconRes: Int,
@@ -122,8 +171,11 @@ fun HangThietBi(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = NenThe),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.10f)
+        ),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
     ) {
         Row(
             modifier = Modifier
@@ -158,7 +210,9 @@ fun HangThietBi(
     }
 }
 
-/** Tiêu đề 1 mục trong màn hình (không phải AppBar) */
+// ============================
+// 📝 TIÊU ĐỀ MỤC
+// ============================
 @Composable
 fun TieuDeMuc(text: String, modifier: Modifier = Modifier) {
     Text(
@@ -169,15 +223,10 @@ fun TieuDeMuc(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Khung viền mảnh dùng bọc 1 khối nội dung (thay divider) */
+// ============================
+// 📦 KHUNG MỜ (alias cho GlassCard)
+// ============================
 @Composable
 fun KhungMo(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = NenThe),
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, NenTheVien)
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) { content() }
-    }
+    GlassCard(modifier = modifier, content = content)
 }

@@ -21,7 +21,12 @@ data class ThietBi(
     val tangAm: Int = 0
 )
 
-/** /sprout/nguong — ngưỡng điều khiển hiện tại (nguongDen tính theo LUX) */
+/**
+ * /sprout/nguong — ngưỡng điều khiển hiện tại (LUX).
+ * nguongDen: bật đèn quang hợp khi anhSang < nguongDen.
+ * nguongSangMax: cảnh báo "quá sáng" khi anhSang > nguongSangMax
+ * (KHÔNG có thiết bị che nắng — chỉ để cảnh báo, không điều khiển relay nào).
+ */
 data class Nguong(
     val nhietMin: Double = 18.0,
     val nhietMax: Double = 30.0,
@@ -29,7 +34,8 @@ data class Nguong(
     val amKKMax: Double = 85.0,
     val datMin: Int = 30,
     val datMax: Int = 70,
-    val nguongDen: Double = 300.0
+    val nguongDen: Double = 300.0,
+    val nguongSangMax: Double = 900.0   // mặc định 900 — khớp trần ~1000 lux của LDR Proteus demo
 )
 
 /** /sprout/trangThai — trạng thái tổng quan hệ thống */
@@ -42,7 +48,11 @@ data class TrangThai(
     val capNhatLuc: String = ""
 )
 
-/** Ngưỡng đề xuất theo loại cây (nằm lồng trong ThongTinCay) */
+/**
+ * Ngưỡng đề xuất theo loại cây (nằm lồng trong ThongTinCay).
+ * sangMin/sangMax tính theo LUX, thang mô phỏng 0-1000 (LDR Proteus demo),
+ * KHÔNG phải lux thật ngoài trời.
+ */
 data class NguongCay(
     val nhietMin: Double = 0.0,
     val nhietMax: Double = 0.0,
@@ -50,7 +60,8 @@ data class NguongCay(
     val amKKMax: Double = 0.0,
     val datMin: Double = 0.0,
     val datMax: Double = 0.0,
-    val luxMin: Double = 0.0
+    val sangMin: Double = 0.0,
+    val sangMax: Double = 0.0
 )
 
 /** /sprout/thongTinCay — kết quả AI Gemini hoặc cache cho loại cây hiện tại */

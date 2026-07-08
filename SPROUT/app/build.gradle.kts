@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.firebase.database.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.compose.runtime.saveable)
+    implementation(libs.androidx.compose.foundation)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -2,23 +2,23 @@ package vhdt.sprout.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val Color0 = Color(0xFF06120A)
-
-private val SproutColorScheme = darkColorScheme(
+private val LightColorScheme = lightColorScheme(
     primary          = XanhLa,
-    onPrimary        = Color0,
+    onPrimary        = Color.White,
     secondary        = XanhDuong,
+    onSecondary      = Color.White,
     background       = NenChinh,
     onBackground     = ChuChinh,
     surface          = NenThe,
     onSurface        = ChuChinh,
     surfaceVariant   = NenTheVien,
     onSurfaceVariant = ChuPhu,
-    error            = DoNguyHiem
+    error            = DoNguyHiem,
+    onError          = Color.White
 )
 
 @Composable
@@ -27,7 +27,7 @@ fun SproutTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colorScheme = SproutColorScheme,
+        colorScheme = LightColorScheme,  // Luôn dùng light theme
         typography = SproutTypography,
         content = content
     )

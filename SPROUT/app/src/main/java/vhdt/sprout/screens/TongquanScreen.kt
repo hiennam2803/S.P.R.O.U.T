@@ -1,11 +1,14 @@
 package vhdt.sprout.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
@@ -13,38 +16,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import vhdt.sprout.R
-import vhdt.sprout.data.ThietBi
+import vhdt.sprout.components.GlassCard
+import vhdt.sprout.components.GlassTag
 import vhdt.sprout.components.HangThietBi
-import vhdt.sprout.components.KhungMo
-import vhdt.sprout.components.NhanTrangThai
 import vhdt.sprout.components.TheCamBien
-import vhdt.sprout.components.TieuDeMuc
 import vhdt.sprout.components.TrangThaiCanhBao
+import vhdt.sprout.data.ThietBi
 import vhdt.sprout.ui.theme.ChuMo
 import vhdt.sprout.ui.theme.ChuPhu
 import vhdt.sprout.ui.theme.DoNguyHiem
+import vhdt.sprout.ui.theme.NenChinh
 import vhdt.sprout.ui.theme.VangCanhBao
 import vhdt.sprout.ui.theme.XanhDuong
 import vhdt.sprout.ui.theme.XanhLa
 import vhdt.sprout.viewmodel.SproutViewModel
 
-/**
- * Màn hình 1/4 — TỔNG QUAN
- * Hiển thị toàn bộ thông số: cảm biến, trạng thái thiết bị, chế độ hệ thống,
- * tư vấn AI mới nhất và cảnh báo gần nhất — tất cả trên 1 màn hình duy nhất.
- *
- * TẤT CẢ icon dùng vector trong res/drawable (Material Symbols "_24px"),
- * cần có sẵn các file sau trong res/drawable/:
- *   thermostat_24px, humidity_percentage_24px, grass_24px, water_24px,
- *   light_mode_24px, sensor_door_24px, lock_24px, mode_fan_24px,
- *   water_drop_24px, local_fire_department_24px, lightbulb_24px,
- *   dry_24px, humidity_high_24px
- */
 @Composable
 fun TongQuanScreen(vm: SproutViewModel) {
     val cb by vm.camBien.collectAsState()
@@ -53,133 +45,244 @@ fun TongQuanScreen(vm: SproutViewModel) {
     val tt by vm.trangThai.collectAsState()
     val aiLog by vm.aiLog.collectAsState()
     val canhBao by vm.canhBao.collectAsState()
+    val tenCay by vm.tenCay.collectAsState()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NenChinh),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // ---- Header: trạng thái kết nối + chế độ ----
+        // ---- HEADER: Tên cây + trạng thái ----
         item {
-            Row(
+            GlassCard(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.15f)
             ) {
-                NhanTrangThai(
-                    text = if (tt.online) "Trực tuyến" else "Mất kết nối",
-                    mau = if (tt.online) XanhLa else ChuMo
-                )
-                NhanTrangThai(
-                    text = if (tt.mode == "AUTO") "AUTO" else "MANUAL",
-                    mau = if (tt.mode == "AUTO") XanhDuong else VangCanhBao
-                )
-                if (tt.nuocHet) {
-                    NhanTrangThai(text = "Hết nước", mau = DoNguyHiem)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = tenCay.ifEmpty { "S.P.R.O.U.T" },
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        GlassTag(
+                            text = if (tt.online) "Trực tuyến" else "Mất kết nối",
+                            color = if (tt.online) XanhLa else ChuMo
+                        )
+                        GlassTag(
+                            text = if (tt.mode == "AUTO") "⚡ AUTO" else "🖐 MANUAL",
+                            color = if (tt.mode == "AUTO") XanhDuong else VangCanhBao
+                        )
+                        if (tt.nuocHet) {
+                            GlassTag(text = "⚠ Hết nước", color = DoNguyHiem)
+                        }
+                    }
                 }
             }
         }
 
-        // ---- Lưới cảm biến ----
-        item { TieuDeMuc("Cảm biến") }
+        // ---- CẢM BIẾN ----
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    TheCamBien(
-                        iconRes = R.drawable.thermometer_24px, nhan = "Nhiệt độ",
-                        giaTri = "%.1f".format(cb.nhietDo), donVi = "°C",
-                        trangThaiCanhBao = phanLoai(cb.nhietDo, ng.nhietMin, ng.nhietMax),
-                        modifier = Modifier.weight(1f)
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Dữ liệu cảm biến",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    TheCamBien(
-                        iconRes = R.drawable.snowing_heavy_24px, nhan = "Độ ẩm KK",
-                        giaTri = "%.1f".format(cb.doAmKK), donVi = "%",
-                        trangThaiCanhBao = phanLoai(cb.doAmKK, ng.amKKMin, ng.amKKMax),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    TheCamBien(
-                        iconRes = R.drawable.grass_24px, nhan = "Độ ẩm đất",
-                        giaTri = cb.doAmDat.toString(), donVi = "%",
-                        trangThaiCanhBao = phanLoai(cb.doAmDat.toDouble(), ng.datMin.toDouble(), ng.datMax.toDouble()),
-                        modifier = Modifier.weight(1f)
-                    )
-                    TheCamBien(
-                        iconRes = R.drawable.humidity_high_24px, nhan = "Mực nước",
-                        giaTri = cb.mucNuoc.toString(), donVi = "%",
-                        trangThaiCanhBao = if (cb.mucNuoc < 15) TrangThaiCanhBao.NGUY_HIEM
-                        else if (cb.mucNuoc < 30) TrangThaiCanhBao.CANH_BAO
-                        else TrangThaiCanhBao.BINH_THUONG,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    TheCamBien(
-                        iconRes = R.drawable.light_mode_24px, nhan = "Ánh sáng",
-                        giaTri = "%.0f".format(cb.anhSang), donVi = "lux",
-                        trangThaiCanhBao = if (cb.anhSang < ng.nguongDen) TrangThaiCanhBao.CANH_BAO
-                        else TrangThaiCanhBao.BINH_THUONG,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TheCamBien(
-                        iconRes = if (cb.cuaMo) R.drawable.door_open_24px else R.drawable.door_front_24px,
-                        nhan = "Cửa",
-                        giaTri = if (cb.cuaMo) "Đang mở" else "Đã đóng", donVi = "",
-                        trangThaiCanhBao = if (cb.cuaMo) TrangThaiCanhBao.CANH_BAO else TrangThaiCanhBao.BINH_THUONG,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        TheCamBien(
+                            iconRes = R.drawable.thermometer_24px,
+                            nhan = "Nhiệt độ",
+                            giaTri = "%.1f".format(cb.nhietDo),
+                            donVi = "°C",
+                            trangThaiCanhBao = phanLoai(cb.nhietDo, ng.nhietMin, ng.nhietMax),
+                            modifier = Modifier.weight(1f)
+                        )
+                        TheCamBien(
+                            iconRes = R.drawable.snowing_heavy_24px,
+                            nhan = "Độ ẩm KK",
+                            giaTri = "%.1f".format(cb.doAmKK),
+                            donVi = "%",
+                            trangThaiCanhBao = phanLoai(cb.doAmKK, ng.amKKMin, ng.amKKMax),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        TheCamBien(
+                            iconRes = R.drawable.grass_24px,
+                            nhan = "Độ ẩm đất",
+                            giaTri = cb.doAmDat.toString(),
+                            donVi = "%",
+                            trangThaiCanhBao = phanLoai(cb.doAmDat.toDouble(), ng.datMin.toDouble(), ng.datMax.toDouble()),
+                            modifier = Modifier.weight(1f)
+                        )
+                        TheCamBien(
+                            iconRes = R.drawable.humidity_high_24px,
+                            nhan = "Mực nước",
+                            giaTri = cb.mucNuoc.toString(),
+                            donVi = "%",
+                            trangThaiCanhBao = when {
+                                cb.mucNuoc < 15 -> TrangThaiCanhBao.NGUY_HIEM
+                                cb.mucNuoc < 30 -> TrangThaiCanhBao.CANH_BAO
+                                else -> TrangThaiCanhBao.BINH_THUONG
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        TheCamBien(
+                            iconRes = R.drawable.light_mode_24px,
+                            nhan = "Ánh sáng",
+                            giaTri = "%.0f".format(cb.anhSang),
+                            donVi = "lux",
+                            trangThaiCanhBao = if (cb.anhSang < ng.nguongDen || cb.anhSang > ng.nguongSangMax)
+                                TrangThaiCanhBao.CANH_BAO else TrangThaiCanhBao.BINH_THUONG,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TheCamBien(
+                            iconRes = if (cb.cuaMo) R.drawable.door_open_24px else R.drawable.door_front_24px,
+                            nhan = "Cửa",
+                            giaTri = if (cb.cuaMo) "Đang mở" else "Đã đóng",
+                            donVi = "",
+                            trangThaiCanhBao = if (cb.cuaMo) TrangThaiCanhBao.CANH_BAO else TrangThaiCanhBao.BINH_THUONG,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
 
-        // ---- Thiết bị ----
-        item { TieuDeMuc("Thiết bị") }
-        item { LuoiThietBi(tb) }
-
-        // ---- AI tư vấn (mặc định, rule-based) ----
-        item { TieuDeMuc("AI tư vấn (mặc định)") }
+        // ---- THIẾT BỊ ----
         item {
-            KhungMo {
-                val moiNhat = aiLog.lastOrNull()
-                if (moiNhat == null) {
-                    Text("Đang chờ dữ liệu phân tích...", color = ChuPhu, fontSize = 13.sp)
-                } else {
-                    Text(moiNhat.tomTat, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                    Text(moiNhat.khuyenNghi, color = ChuPhu, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-                    Text(moiNhat.thoiGian, color = ChuMo, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Thiết bị",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    LuoiThietBi(tb)
                 }
             }
         }
 
-        // ---- Cảnh báo gần nhất ----
-        item { TieuDeMuc("Cảnh báo gần nhất") }
+        // ---- AI TƯ VẤN ----
         item {
-            KhungMo {
-                val moiNhat = canhBao.lastOrNull()
-                if (moiNhat == null) {
-                    Text("Không có cảnh báo nào.", color = ChuPhu, fontSize = 13.sp)
-                } else {
-                    Text(moiNhat.noiDung, color = VangCanhBao, fontSize = 13.sp)
-                    Text(moiNhat.thoiGian, color = ChuMo, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    Text(
+                        text = "AI tư vấn (mặc định)",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val moiNhat = aiLog.lastOrNull()
+                    if (moiNhat == null) {
+                        Text("Đang chờ dữ liệu phân tích...", color = ChuPhu, fontSize = 13.sp)
+                    } else {
+                        Text(
+                            moiNhat.tomTat,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            moiNhat.khuyenNghi,
+                            color = ChuPhu,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Text(
+                            moiNhat.thoiGian,
+                            color = ChuMo,
+                            fontSize = 10.sp,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
                 }
             }
         }
+
+        // ---- CẢNH BÁO GẦN NHẤT ----
+        // ---- CẢNH BÁO GẦN NHẤT ----
+        item {
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    Text(
+                        text = "🚨 Cảnh báo gần nhất",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val moiNhat = canhBao.lastOrNull()
+                    if (moiNhat == null) {
+                        Text("Không có cảnh báo nào.", color = ChuPhu, fontSize = 13.sp)
+                    } else {
+                        // Chuyển đổi nội dung cảnh báo sang tiếng Việt dễ đọc
+                        val noiDungDep = formatCanhBao(moiNhat.noiDung)
+                        Text(
+                            text = noiDungDep,
+                            color = VangCanhBao,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = moiNhat.thoiGian,
+                            color = ChuMo,
+                            fontSize = 10.sp,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(8.dp)) }
     }
 }
 
+
+private fun formatCanhBao(raw: String): String {
+    val code = raw.substringAfterLast(",").trim()
+    return when (code) {
+        "ANH_SANG_YEU" -> "Ánh sáng yếu, cần bổ sung đèn"
+        "ANH_SANG_MANH" -> "Ánh sáng quá mạnh, có thể gây cháy lá"
+        "CUA_MO" -> "Cửa buồng đang mở"
+        "NUOC_CAN" -> "Bồn nước sắp cạn"
+        "NHIET_CAO" -> "Nhiệt độ quá cao"
+        "NHIET_THAP" -> "Nhiệt độ quá thấp"
+        "AM_CAO" -> "Độ ẩm không khí quá cao"
+        "AM_THAP" -> "Độ ẩm không khí quá thấp"
+        "DAT_KHO" -> "Đất quá khô, cần tưới"
+        "DAT_NGAP" -> "Đất bị ngập úng"
+        else -> raw // fallback
+    }
+}
 @Composable
 private fun LuoiThietBi(tb: ThietBi) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        HangThietBi(R.drawable.cyclone_24px, "Quạt thông gió", tb.quat == 1, choPhepChinh = false, onDoiTrangThai = {})
-        HangThietBi(R.drawable.rainy_24px, "Bơm tưới", tb.bom == 1, choPhepChinh = false, onDoiTrangThai = {})
-        HangThietBi(R.drawable.fireplace_24px, "Sưởi ấm", tb.suoi == 1, choPhepChinh = false, onDoiTrangThai = {})
-        HangThietBi(R.drawable.light_mode_24px, "Đèn quang hợp", tb.den == 1, choPhepChinh = false, onDoiTrangThai = {})
-        HangThietBi(R.drawable.windshield_defrost_front_24px, "Hút ẩm", tb.hutAm == 1, choPhepChinh = false, onDoiTrangThai = {})
-        HangThietBi(R.drawable.cool_to_dry_24px, "Tăng ẩm", tb.tangAm == 1, choPhepChinh = false, onDoiTrangThai = {})
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        HangThietBi(R.drawable.cyclone_24px, "Quạt thông gió", tb.quat == 1, false, {})
+        HangThietBi(R.drawable.rainy_24px, "Bơm tưới", tb.bom == 1, false, {})
+        HangThietBi(R.drawable.fireplace_24px, "Sưởi ấm", tb.suoi == 1, false, {})
+        HangThietBi(R.drawable.light_mode_24px, "Đèn quang hợp", tb.den == 1, false, {})
+        HangThietBi(R.drawable.windshield_defrost_front_24px, "Hút ẩm", tb.hutAm == 1, false, {})
+        HangThietBi(R.drawable.cool_to_dry_24px, "Tăng ẩm", tb.tangAm == 1, false, {})
     }
 }
 
-/** Phân loại giá trị so với khoảng [min,max] để tô màu cảnh báo */
 private fun phanLoai(giaTri: Double, min: Double, max: Double): TrangThaiCanhBao {
     val bienDo = (max - min).coerceAtLeast(0.01)
     return when {

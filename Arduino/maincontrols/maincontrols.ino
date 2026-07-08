@@ -10,6 +10,18 @@
       Da them canh bao "TOI:<lux>lux<<nguong>" tren LCD + gui
       ALERT,ANH_SANG_YEU len Python/Firebase de web cung thay duoc.
   ------------------------------------------------------------
+  THAY DOI SO VOI BAN v2.5 (-> v2.6): THEM NGUONG SANG_MAX
+    - Truoc day anh sang CHI co 1 nguong (nguong_den) de bat den khi troi
+      toi, trong khi nhiet do/do am KK/do am dat deu co CAP nguong Min-Max
+      day du. He qua: Gemini/Python KHONG CO CHO de de xuat muc "qua sang"
+      (vd cay bi chay la duoi nang gat), va LCD/Firebase khong bao gio
+      canh bao truong hop nay.
+    - Da them nguong_sangMax (LUX). Neu PA_anhSang > nguong_sangMax thi
+      coi la "cay co van de" + canh bao ALERT,ANH_SANG_MANH, tuong tu
+      cach dat_max canh bao "ngap" ma khong co thiet bi rieng de xu ly.
+    - Giao thuc SET_LIGHT doi tu 1 tham so (nguong) sang 2 tham so
+      (min,max): SET_LIGHT,min,max. DATA gui them 1 truong nguongSangMax.
+  ------------------------------------------------------------
   THAY DOI SO VOI BAN v2.3:
     - FIX LOI: chayLogicTuDong() truoc day KHONG co dong nao dieu khien
       AP_denBat theo anh sang -> den quang hop KHONG BAO GIO tu bat o
@@ -27,14 +39,17 @@
     Arduino -> Python (2s/lan):
       DATA,nhieDo,doAmKK,doAmDat,mucNuoc,anhSang,
            cua,quat,bom,suoi,den,hutAm,tangAm,
-           nhietMin,nhietMax,amMin,amMax,datMin,datMax,nguongDen,mode
+           nhietMin,nhietMax,amMin,amMax,datMin,datMax,
+           nguongDen,nguongSangMax,mode
 
     Python -> Arduino:
       SET_MODE,AUTO|MANUAL
       SET_TEMP,min,max
       SET_SOIL,min,max
       SET_HUMI,min,max
-      SET_LIGHT,nguong        (don vi LUX, KHONG con phai % nua)
+      SET_LIGHT,min,max       (don vi LUX. min = bat den khi anh sang duoi
+                                muc nay; max = canh bao khi anh sang qua
+                                muc nay, KHONG co thiet bi rieng de xu ly)
       CMD_QUAT,0|1      (chi MANUAL)
       CMD_BOM,0|1       (chi MANUAL)
       CMD_SUOI,0|1      (chi MANUAL)
@@ -109,6 +124,14 @@ float nguong_amKKMax   = 85.0;
 int   nguong_datMin    = 30;
 int   nguong_datMax    = 70;
 int   nguong_den       = 300;   // bat den khi anh sang < nguong nay (LUX)
+int   nguong_sangMax   = 900;   // canh bao "qua sang" khi anh sang > nguong nay (LUX)
+                                 // (KHONG co thiet bi che nang -> chi canh bao)
+                                 // Mac dinh 900 (thay vi 10000) vi LDR trong mach
+                                 // Proteus demo nay chi do thuc te toi da ~1000 lux
+                                 // (gioi han linh kien/nguon sang mo phong, KHONG
+                                 // phai gioi han cong thuc). Neu sau nay chuyen
+                                 // sang mach/LDR that co dai rong hon, chinh lai
+                                 // gia tri nay (va dai goi y ben Python) cho khop.
 int   nguong_nuocCan   = 10;   // khoa bom khi muc nuoc < nguong nay (%)
 
 // KHÔNG dùng hysteresis cho bơm nữa (tắt ngay khi đạt datMax hoặc nuoc het)
@@ -189,7 +212,7 @@ void setup() {
   delay(2000);
   lcd.clear();
 
-  Serial.println(F("SPROUT_READY,S.P.R.O.U.T v2.5 San sang"));
+  Serial.println(F("SPROUT_READY,S.P.R.O.U.T v2.6 San sang"));
 }
 
 
@@ -330,7 +353,7 @@ bool kiemTraCayCoVanDe() {
   if (PA_nhietDo > nguong_nhietMax || PA_nhietDo < nguong_nhietMin) return true;
   if (PA_doAmKK  > nguong_amKKMax  || PA_doAmKK  < nguong_amKKMin)  return true;
   if (PA_doAmDat < nguong_datMin   || PA_doAmDat > nguong_datMax)    return true;
-  if (PA_anhSang < nguong_den) return true;
+  if (PA_anhSang < nguong_den || PA_anhSang > nguong_sangMax) return true;
   if (PA_nuocHet || PA_cuaMo) return true;
   return false;
 }
@@ -374,6 +397,8 @@ void hienThiLCD_CanhBao() {
     dong1 = "DAT NGAP:" + String(PA_doAmDat) + "%>" + String(nguong_datMax) + "%";
   } else if (PA_anhSang < nguong_den) {
     dong1 = "TOI:" + String((int)PA_anhSang) + "lux<" + String(nguong_den);
+  } else if (PA_anhSang > nguong_sangMax) {
+    dong1 = "SANG QUA:" + String((int)PA_anhSang) + "lux>" + String(nguong_sangMax);
   }
   inDongLCD(1, dong1);
 
@@ -389,6 +414,8 @@ void hienThiLCD_CanhBao() {
     dong2 = "DAT NGAP:" + String(PA_doAmDat) + "%>" + String(nguong_datMax) + "%";
   } else if (dongMotLaNhiet && PA_anhSang < nguong_den) {
     dong2 = "TOI:" + String((int)PA_anhSang) + "lux<" + String(nguong_den);
+  } else if (dongMotLaNhiet && PA_anhSang > nguong_sangMax) {
+    dong2 = "SANG QUA:" + String((int)PA_anhSang) + "lux>" + String(nguong_sangMax);
   }
   inDongLCD(2, dong2);
 
@@ -434,9 +461,10 @@ void hienThiKhoiDong() {
 // ================================================================
 
 void guiDuLieuLenPython() {
-  if (PA_nuocHet)              Serial.println(F("ALERT,NUOC_CAN"));
-  if (PA_cuaMo)                Serial.println(F("ALERT,CUA_MO"));
-  if (PA_anhSang < nguong_den) Serial.println(F("ALERT,ANH_SANG_YEU"));
+  if (PA_nuocHet)                    Serial.println(F("ALERT,NUOC_CAN"));
+  if (PA_cuaMo)                      Serial.println(F("ALERT,CUA_MO"));
+  if (PA_anhSang < nguong_den)       Serial.println(F("ALERT,ANH_SANG_YEU"));
+  if (PA_anhSang > nguong_sangMax)   Serial.println(F("ALERT,ANH_SANG_MANH"));
 
   Serial.print(F("DATA,"));
   Serial.print(PA_nhietDo, 1);       Serial.print(F(","));
@@ -458,6 +486,7 @@ void guiDuLieuLenPython() {
   Serial.print(nguong_datMin);       Serial.print(F(","));
   Serial.print(nguong_datMax);       Serial.print(F(","));
   Serial.print(nguong_den);          Serial.print(F(","));
+  Serial.print(nguong_sangMax);      Serial.print(F(","));
   Serial.println(heThongAuto ? F("AUTO") : F("MANUAL"));
 }
 
@@ -514,12 +543,17 @@ void nhanLenhTuPython() {
   }
 
   if (lenh == "SET_LIGHT") {
-    int v = (int)layThamSoFloat(thamSo, 0);
-    if (v >= 0 && v <= 100000) {
-      nguong_den = v;
-      Serial.print(F("ACK,SET_LIGHT,")); Serial.println(nguong_den);
+    int vMin = (int)layThamSoFloat(thamSo, 0);
+    int vMax = (int)layThamSoFloat(thamSo, 1);
+    bool minHopLe = (vMin >= 0 && vMin <= 100000);
+    bool maxHopLe = (vMax >= 0 && vMax <= 100000 && vMax > vMin);
+    if (minHopLe) nguong_den     = vMin;
+    if (maxHopLe) nguong_sangMax = vMax;
+    if (minHopLe && maxHopLe) {
+      Serial.print(F("ACK,SET_LIGHT,")); Serial.print(nguong_den);
+      Serial.print(F(","));              Serial.println(nguong_sangMax);
     } else {
-      Serial.println(F("ERR,SET_LIGHT,GIA_TRI_PHAI_TRONG_0_100000"));
+      Serial.println(F("ERR,SET_LIGHT,GIA_TRI_PHAI_TRONG_0_100000_VA_MAX_LON_HON_MIN"));
     }
     return;
   }

@@ -14,6 +14,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import vhdt.sprout.component.BotBar
 import vhdt.sprout.component.TopBarSprout
 import vhdt.sprout.screens.AutoScreen
+import vhdt.sprout.screens.BieudoScreen
 import vhdt.sprout.screens.SplashScreen
 import vhdt.sprout.viewmodel.SproutViewModel
 import vhdt.sprout.screens.TongQuanScreen
@@ -77,10 +78,10 @@ fun NavGraph(
                 composable(NavRoutes.TuDong) {
                     AutoScreen(vm)
                 }
-//
-//                composable(NavRoutes.BieuDo) {
-//                    BieuDoScreen(vm)
-//                }
+
+                composable(NavRoutes.BieuDo) {
+                    BieudoScreen(vm)
+                }
             }
         }
     }

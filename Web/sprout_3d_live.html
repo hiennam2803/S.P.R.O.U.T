@@ -1,312 +1,641 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>S.P.R.O.U.T — Buồng trồng cây thông minh</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#070c12;--bg2:#0b141d;--bg3:#101c28;--bg4:#16283a;
-  --border:#1c2e40;--border2:#28405a;
-  --green:#34d399;--green2:#0f5132;--green3:#0a3324;
-  --blue:#5aa9e6;--blue2:#2f6fa8;
-  --amber:#f2b705;--red:#ef4444;
-  --gold:#e8b84b;--gold-dim:#8a6f2e;
-  --coral:#f5734c;--coral-deep:#5c2415;
-  --text:#dce8f0;--text2:#7f97ac;--text3:#44607a;
-  --sans:'Inter',system-ui,sans-serif;
-  --serif:'Fraunces',serif;
-  --mono:'JetBrains Mono',monospace;
-}
-body{
-  font-family:var(--sans);background:var(--bg);color:var(--text);
-  height:100vh;display:flex;flex-direction:column;overflow:hidden;
-}
+  /* ========== RESET & VARIABLES ========== */
+  * { box-sizing: border-box; margin:0; padding:0; }
+  :root {
+    --bg: #070c12;
+    --bg2: #0b141d;
+    --bg3: #101c28;
+    --bg4: #16283a;
+    --border: #1c2e40;
+    --border2: #28405a;
+    --green: #34d399;
+    --green2: #0f5132;
+    --green3: #0a3324;
+    --blue: #5aa9e6;
+    --blue2: #2f6fa8;
+    --amber: #f2b705;
+    --red: #ef4444;
+    --gold: #e8b84b;
+    --gold-dim: #8a6f2e;
+    --coral: #f5734c;
+    --coral-deep: #5c2415;
+    --text: #dce8f0;
+    --text2: #7f97ac;
+    --text3: #44607a;
+    --sans: 'Inter', system-ui, sans-serif;
+    --serif: 'Fraunces', serif;
+    --mono: 'JetBrains Mono', monospace;
+    --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
 
-/* ============ HERO HEADER (nameplate) ============ */
-header{
-  display:flex;align-items:center;gap:18px;
-  padding:12px 24px;
-  background:
-    radial-gradient(ellipse 700px 200px at 15% 0%, #0f2a2088 0%, transparent 70%),
-    linear-gradient(180deg,#0a1219,#0b141d);
-  border-bottom:1px solid var(--border);
-  flex-shrink:0;flex-wrap:wrap;position:relative;
-}
-header::after{
-  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold-dim) 20%,var(--gold-dim) 80%,transparent);
-  opacity:.5;
-}
-.brand{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding-right:16px;border-right:1px solid var(--border);flex-shrink:0;
-}
-.brand-mark{
-  width:36px;height:36px;border-radius:10px;
-  background:linear-gradient(155deg,var(--green3),#08201a);
-  border:1px solid var(--green2);
-  display:flex;align-items:center;justify-content:center;font-size:17px;
-  box-shadow:inset 0 1px 0 #ffffff0d;
-}
-.brand-code{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--text3)}
+  /* ========== HEADER ========== */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 24px;
+    background: radial-gradient(ellipse 700px 200px at 15% 0%, #0f2a2088 0%, transparent 70%),
+                linear-gradient(180deg,#0a1219,#0b141d);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute; left:0; right:0; bottom:-1px; height:1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim) 20%, var(--gold-dim) 80%, transparent);
+    opacity: .5;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 16px;
+    border-right: 1px solid var(--border);
+  }
+  .brand-mark {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(155deg, var(--green3), #08201a);
+    border: 1px solid var(--green2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: inset 0 1px 0 #ffffff0d;
+  }
+  .brand-code {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+  }
+  .nameplate {
+    flex: 1;
+    min-width: 200px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 14px;
+    height: 1px;
+    background: var(--gold-dim);
+  }
+  #plantName {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(1.2rem, 2.4vw, 1.9rem);
+    color: #f2f7fa;
+    line-height: 1.05;
+    letter-spacing: .2px;
+  }
+  .plantSub {
+    font-size: 10.5px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  #quickStats {
+    display: flex;
+    gap: 18px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  #quickStats span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  #quickStats b {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    letter-spacing: .3px;
+  }
+  .pill.online { background: #082616; color: #4ade80; border: 1px solid #14532d; }
+  .pill.offline { background: #210a0a; color: #f87171; border: 1px solid #4c1010; }
+  .pill.auto { background: #0a1e30; color: #67b8f0; border: 1px solid #1e4566; }
+  .pill.manual { background: #2c1600; color: #fb923c; border: 1px solid #7c3d12; }
+  .pill.warn { background: #2a1a00; color: #fbbf24; border: 1px solid #78500f; animation: blink 1.6s infinite; }
+  #ts { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+  @keyframes blink { 0%,100%{ opacity:1 } 50%{ opacity:.45 } }
 
-.nameplate{flex:1;min-width:220px}
-.eyebrow{
-  font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:3px;
-  color:var(--gold);text-transform:uppercase;margin-bottom:3px;
-  display:flex;align-items:center;gap:7px;
-}
-.eyebrow::before{content:'';width:14px;height:1px;background:var(--gold-dim)}
-h1#plantName{
-  font-family:var(--serif);font-style:italic;font-weight:600;
-  font-size:clamp(1.3rem,2.6vw,2rem);color:#f2f7fa;line-height:1.05;
-  letter-spacing:.2px;
-}
-.plantSub{font-size:10.5px;color:var(--text3);margin-top:3px}
-#quickStats{
-  display:flex;gap:16px;margin-top:7px;flex-wrap:wrap;
-}
-#quickStats span{
-  font-family:var(--mono);font-size:11px;color:var(--text2);
-  display:flex;align-items:center;gap:5px;
-}
-#quickStats b{color:var(--text);font-weight:600}
+  /* ========== MAIN ========== */
+  main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
 
-.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
-.pill{
-  padding:4px 11px;border-radius:20px;font-size:10px;font-weight:700;
-  display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.3px;
-}
-.pill.online{background:#082616;color:#4ade80;border:1px solid #14532d}
-.pill.offline{background:#210a0a;color:#f87171;border:1px solid #4c1010}
-.pill.auto{background:#0a1e30;color:#67b8f0;border:1px solid #1e4566}
-.pill.manual{background:#2c1600;color:#fb923c;border:1px solid #7c3d12}
-.pill.warn{background:#2a1a00;color:#fbbf24;border:1px solid #78500f;animation:blink 1.6s infinite}
-#ts{font-family:var(--mono);font-size:10px;color:var(--text3)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+  /* ===== 3D VIEW ===== */
+  #vp {
+    flex: 1 1 0;
+    position: relative;
+    min-width: 0;
+    cursor: grab;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  #vp:active { cursor: grabbing; }
+  canvas { display: block; width: 100% !important; height: 100% !important; }
+  #hint3d {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--text3);
+    background: #0b141dcc;
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    pointer-events: none;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+  }
+  /* Label 3D overlay */
+  .l3 {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--mono);
+    border-radius: 6px;
+    padding: 3px 8px;
+    pointer-events: none;
+    white-space: nowrap;
+    border: 1px solid;
+    line-height: 1.4;
+    backdrop-filter: blur(3px);
+  }
+  .l3.on { color: #4ade80; border-color: #166534; background: #05191080; }
+  .l3.off { color: #3a5268; border-color: #1a2d42; background: #0c1520aa; }
+  .l3.warn { color: #f59e0b; border-color: #78350f; background: #1c0e00aa; }
+  .l3.lighton { color: #4ade80; border-color: #166534; background: #04180caa; }
+  .l3.heaton { color: #ff8a70; border-color: #7f1d1d; background: #1c0505aa; }
 
-/* ============ MAIN ============ */
-main{display:flex;flex:1;min-height:0;overflow:hidden}
+  /* ===== SIDE PANEL ===== */
+  #panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 12px;
+    gap: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+  #panel::-webkit-scrollbar { width: 5px; }
+  #panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-#vp{flex:1 1 0;position:relative;min-width:0;cursor:grab;overflow:hidden;background:var(--bg)}
-#vp:active{cursor:grabbing}
-canvas{display:block;width:100%!important;height:100%!important}
-#hint3d{
-  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
-  font-family:var(--mono);font-size:9.5px;color:var(--text3);background:#0b141dcc;
-  padding:4px 13px;border-radius:20px;border:1px solid var(--border);
-  pointer-events:none;white-space:nowrap;backdrop-filter:blur(4px);
-}
+  .card {
+    background: linear-gradient(180deg, var(--bg4) 44%, var(--bg3));
+    background-color: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    position: relative;
+  }
+  .card h4 {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+  }
+  .card h4 .ic { font-size: 11px; }
+  .card h4::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
 
-.l3{
-  position:absolute;font-size:10px;font-weight:600;font-family:var(--mono);
-  border-radius:6px;padding:3px 8px;pointer-events:none;white-space:nowrap;
-  border:1px solid;line-height:1.4;backdrop-filter:blur(3px);
-}
-.l3.on{color:#4ade80;border-color:#166534;background:#05191080}
-.l3.off{color:#3a5268;border-color:#1a2d42;background:#0c1520aa}
-.l3.warn{color:#f59e0b;border-color:#78350f;background:#1c0e00aa}
-.l3.lighton{color:#4ade80;border-color:#166534;background:#04180caa}
-.l3.heaton{color:#ff8a70;border-color:#7f1d1d;background:#1c0505aa}
+  /* Sensor grid */
+  .sg {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .si {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    transition: border-color .3s;
+  }
+  .sv {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+  }
+  .sv.warn { color: var(--red); }
+  .sv.ok { color: var(--green); }
+  .sl {
+    font-size: 8px;
+    color: var(--text3);
+    margin-top: 4px;
+    letter-spacing: .5px;
+  }
 
-/* ============ SIDE PANEL ============ */
-#panel{
-  width:264px;flex-shrink:0;background:var(--bg2);
-  border-left:1px solid var(--border);
-  display:flex;flex-direction:column;overflow-y:auto;
-  padding:12px;gap:10px;scrollbar-width:thin;
-  scrollbar-color:var(--border2) transparent;
-}
-#panel::-webkit-scrollbar{width:6px}
-#panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+  /* Progress bars */
+  .sbar-wrap { margin-bottom: 6px; }
+  .sbar-wrap:last-child { margin-bottom: 0; }
+  .sbar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text2);
+    margin-bottom: 3px;
+  }
+  .sbar-label span:last-child {
+    color: var(--text);
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  .sbar {
+    height: 5px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .sbar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width .5s, background .5s;
+  }
 
-.card{
-  background:linear-gradient(180deg,var(--bg4)44,var(--bg3));
-  background-color:var(--bg3);
-  border:1px solid var(--border);border-radius:13px;padding:12px 13px;
-  position:relative;
-}
-.card h4{
-  font-size:9.5px;font-weight:700;letter-spacing:2px;
-  color:var(--text3);text-transform:uppercase;margin-bottom:10px;
-  display:flex;align-items:center;gap:6px;font-family:var(--mono);
-}
-.card h4 .ic{font-size:11px;filter:grayscale(0) saturate(1.3)}
-.card h4::after{content:'';flex:1;height:1px;background:var(--border)}
+  /* Mode buttons */
+  .mrow {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .mbtn {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .4px;
+    background: var(--bg);
+    color: var(--text3);
+    transition: all .2s;
+    font-family: var(--sans);
+  }
+  .mbtn.a.active { background: #0a1e30; color: #67b8f0; border-color: #1e4566; }
+  .mbtn.m.active { background: #2c1600; color: #fb923c; border-color: #7c3d12; }
 
-/* SENSOR GRID */
-.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.si{
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:9px;padding:9px 5px;text-align:center;
-  transition:border-color .3s;
-}
-.sv{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);line-height:1}
-.sv.warn{color:var(--red)}
-.sv.ok{color:var(--green)}
-.sl{font-size:8px;color:var(--text3);margin-top:4px;letter-spacing:.5px}
+  /* Device rows */
+  .drow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #0f1e2d;
+  }
+  .drow:last-child { border-bottom: none; }
+  .dname {
+    font-size: 11px;
+    color: #93aec4;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #1a2d42;
+    flex-shrink: 0;
+    transition: all .3s;
+  }
+  .dot.on { background: var(--green); box-shadow: 0 0 7px #34d39977; }
+  .dot.warn { background: var(--amber); box-shadow: 0 0 7px #f2b70577; }
+  .dot.on-green { background: var(--green); box-shadow: 0 0 7px #34d39988; }
+  .dot.on-red { background: var(--coral); box-shadow: 0 0 7px #f5734c88; }
 
-.sbar-wrap{margin-bottom:7px}
-.sbar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px}
-.sbar-label span:last-child{color:var(--text);font-weight:600;font-family:var(--mono)}
-.sbar{height:5px;background:var(--bg);border:1px solid var(--border);border-radius:3px;overflow:hidden}
-.sbar-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
+  /* Toggle switch */
+  .tog {
+    width: 36px; height: 19px;
+    border-radius: 10px;
+    background: #16283a;
+    border: 1px solid var(--border2);
+    position: relative;
+    cursor: pointer;
+    transition: background .25s;
+    flex-shrink: 0;
+  }
+  .tog::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #3a5268;
+    top: 2px; left: 2px;
+    transition: all .25s;
+  }
+  .tog.on { background: var(--green2); border-color: var(--green); }
+  .tog.on::after { left: 19px; background: var(--green); }
+  .tog.on-red { background: var(--coral-deep); border-color: var(--coral); }
+  .tog.on-red::after { left: 19px; background: var(--coral); }
+  .tog.disabled { opacity: .3; cursor: not-allowed; }
 
-/* MODE */
-.mrow{display:flex;gap:6px;margin-bottom:9px}
-.mbtn{
-  flex:1;padding:8px 4px;border-radius:9px;border:1px solid var(--border);
-  font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.4px;
-  background:var(--bg);color:var(--text3);transition:all .2s;font-family:var(--sans);
-}
-.mbtn.a.active{background:#0a1e30;color:#67b8f0;border-color:#1e4566}
-.mbtn.m.active{background:#2c1600;color:#fb923c;border-color:#7c3d12}
+  /* Sliders */
+  .srow { margin-bottom: 6px; }
+  .srow:last-child { margin-bottom: 0; }
+  .srow label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text2);
+    margin-bottom: 3px;
+  }
+  .srow label span:last-child {
+    color: var(--text);
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--blue);
+    height: 3px;
+    cursor: pointer;
+    background: var(--border2);
+    border-radius: 2px;
+    -webkit-appearance: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--blue);
+    border: 1px solid var(--text2);
+    cursor: pointer;
+  }
 
-/* DEVICES */
-.drow{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:6px 0;border-bottom:1px solid #0f1e2d;
-}
-.drow:last-child{border-bottom:none}
-.dname{font-size:11.5px;color:#93aec4;display:flex;align-items:center;gap:7px}
-.dot{width:6px;height:6px;border-radius:50%;background:#1a2d42;flex-shrink:0;transition:all .3s}
-.dot.on{background:var(--green);box-shadow:0 0 7px #34d39977}
-.dot.warn{background:var(--amber);box-shadow:0 0 7px #f2b70577}
-.dot.on-green{background:var(--green);box-shadow:0 0 7px #34d39988}
-.dot.on-red{background:var(--coral);box-shadow:0 0 7px #f5734c88}
+  .applyBtn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: #0a1e30;
+    color: #67b8f0;
+    border: 1px solid #1e4566;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--sans);
+    letter-spacing: .3px;
+    transition: background .2s;
+  }
+  .applyBtn:hover { background: #0d2740; }
 
-/* TOGGLE */
-.tog{
-  width:36px;height:19px;border-radius:10px;background:#16283a;
-  border:1px solid var(--border2);position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;
-}
-.tog::after{
-  content:'';position:absolute;width:14px;height:14px;
-  border-radius:50%;background:#3a5268;top:2px;left:2px;transition:all .25s;
-}
-.tog.on{background:var(--green2);border-color:var(--green)}
-.tog.on::after{left:19px;background:var(--green)}
-.tog.on-red{background:var(--coral-deep);border-color:var(--coral)}
-.tog.on-red::after{left:19px;background:var(--coral)}
-.tog.disabled{opacity:.3;cursor:not-allowed}
+  /* Plant input */
+  .plantRow {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .plantRow input {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 6px 9px;
+    font-size: 11.5px;
+    font-family: var(--sans);
+  }
+  .plantRow input:focus { outline: none; border-color: var(--gold-dim); }
+  .plantRow button {
+    padding: 6px 12px;
+    background: var(--green3);
+    color: var(--green);
+    border: 1px solid var(--green2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+    font-weight: 600;
+    font-family: var(--sans);
+    transition: background .2s;
+  }
+  .plantRow button:hover { background: #0f432d; }
+  #cayBox {
+    font-size: 10.5px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  #cayBox b { font-family: var(--serif); font-style: italic; font-size: 12.5px; }
+  .hint-sm {
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
 
-/* SLIDER */
-.srow{margin-bottom:7px}
-.srow label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px}
-.srow label span:last-child{color:var(--text);font-weight:600;font-family:var(--mono)}
-input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
+  /* AI & Alerts */
+  #aiBox {
+    font-size: 11.5px;
+    color: #8fb0cc;
+    line-height: 1.65;
+    min-height: 34px;
+  }
+  #aiBox .ait {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+  #alertBox {
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: var(--text2);
+  }
+  #alertBox .alertLine {
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+    margin-bottom: 4px;
+    color: var(--amber);
+  }
+  #alertBox .alertLine:last-child { margin-bottom: 0; }
+  .okline {
+    color: var(--green) !important;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
 
-.applyBtn{
-  width:100%;margin-top:8px;padding:8px;background:#0a1e30;
-  color:#67b8f0;border:1px solid #1e4566;border-radius:9px;cursor:pointer;
-  font-size:11px;font-weight:700;font-family:var(--sans);letter-spacing:.3px;
-  transition:background .2s;
-}
-.applyBtn:hover{background:#0d2740}
+  /* Offline overlay */
+  #offlineOv {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: #070c12f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  #offlineOv h2 { color: #f87171; font-size: 1.1rem; font-family: var(--serif); font-style: italic; font-weight: 500; }
+  #offlineOv p { color: var(--text3); font-size: 12px; text-align: center; max-width: 280px; font-family: var(--mono); }
+  .spin {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-/* PLANT INPUT */
-.plantRow{display:flex;gap:6px;margin-bottom:8px}
-.plantRow input{
-  flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);
-  border-radius:8px;color:var(--text);padding:6px 9px;font-size:11.5px;font-family:var(--sans);
-}
-.plantRow input:focus{outline:none;border-color:var(--gold-dim)}
-.plantRow button{
-  padding:6px 10px;background:var(--green3);color:var(--green);border:1px solid var(--green2);
-  border-radius:8px;cursor:pointer;font-size:11px;white-space:nowrap;font-weight:600;font-family:var(--sans);
-}
-#cayBox{font-size:10.5px;color:var(--text2);line-height:1.7}
-#cayBox b{font-family:var(--serif);font-style:italic;font-size:12.5px}
-.hint-sm{font-size:9px;color:var(--text3);margin-top:7px;line-height:1.5}
-
-/* AI / ALERTS */
-#aiBox{font-size:11.5px;color:#8fb0cc;line-height:1.65;min-height:34px}
-#aiBox .ait{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px}
-#alertBox{font-size:11.5px;line-height:1.7;color:var(--text2)}
-#alertBox .alertLine{display:flex;gap:7px;align-items:flex-start;margin-bottom:4px;color:var(--amber)}
-#alertBox .alertLine:last-child{margin-bottom:0}
-.okline{color:var(--green)!important;display:flex;gap:7px;align-items:center}
-
-/* OFFLINE */
-#offlineOv{
-  position:fixed;inset:0;z-index:999;background:#070c12f0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-}
-#offlineOv h2{color:#f87171;font-size:1.1rem;font-family:var(--serif);font-style:italic;font-weight:500}
-#offlineOv p{color:var(--text3);font-size:12px;text-align:center;max-width:280px;font-family:var(--mono)}
-.spin{
-  width:32px;height:32px;border:3px solid var(--border2);
-  border-top-color:var(--gold);border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 820px) {
+    #panel { width: 240px; padding: 10px; }
+    .sg { grid-template-columns: repeat(3,1fr); gap: 4px; }
+    .sv { font-size: 14px; }
+  }
+  @media (max-width: 640px) {
+    main { flex-direction: column; }
+    #vp { height: 50vh; flex: none; }
+    #panel { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 50vh; }
+    header { padding: 8px 12px; gap: 10px; }
+    .brand { padding-right: 10px; }
+    .brand-mark { width: 32px; height: 32px; font-size: 16px; }
+    #quickStats { gap: 10px; }
+    #quickStats span { font-size: 10px; }
+    .header-right .pill { font-size: 8px; padding: 2px 8px; }
+  }
 </style>
 </head>
 <body>
-
-<header>
-  <div class="brand">
-    <div class="brand-mark">🌿</div>
-    <div class="brand-code">SPROUT–01</div>
-  </div>
-
-  <div class="nameplate">
-    <div class="eyebrow" id="eyebrowStatus">ĐANG THEO DÕI</div>
-    <h1 id="plantName">S.P.R.O.U.T</h1>
-    <div class="plantSub" id="plantSub">Chưa chọn loại cây — dùng ngưỡng mặc định</div>
-    <div id="quickStats">
-      <span>🌡 <b id="qsTemp">--°C</b></span>
-      <span>💧 <b id="qsHumi">--%</b></span>
-      <span>☀ <b id="qsLight">-- lux</b></span>
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="brand">
+      <div class="brand-mark">🌿</div>
+      <div class="brand-code">SPROUT–01</div>
     </div>
-  </div>
-
-  <div class="header-right">
-    <span class="pill offline" id="bdgOnline">⚫ Offline</span>
-    <span class="pill auto" id="bdgMode">⚡ AUTO</span>
-    <span class="pill warn" id="bdgWarn" style="display:none">⚠ Cảnh báo</span>
-    <span id="ts">--:--</span>
-  </div>
-</header>
-
-<main>
-  <div id="vp">
-    <canvas id="c3"></canvas>
-    <div id="hint3d">kéo để xoay · cuộn để zoom</div>
-    <div class="l3 off" id="lFan"   style="display:none">Quạt làm mát</div>
-    <div class="l3 off" id="lLight" style="display:none">Đèn quang hợp</div>
-    <div class="l3 off" id="lHeat"  style="display:none">Đèn sưởi</div>
-    <div class="l3 off" id="lHumid" style="display:none">Tăng ẩm</div>
-    <div class="l3 off" id="lDehu"  style="display:none">Hút ẩm</div>
-    <div class="l3 off" id="lPump"  style="display:none">Bơm tưới</div>
-    <div class="l3 off" id="lDoor"  style="display:none">Cửa</div>
-    <div class="l3 off" id="lTank"  style="display:none">Bồn nước</div>
-  </div>
-
-  <div id="panel">
-
-    <div class="card">
-      <h4><span class="ic">📡</span>Cảm biến</h4>
-      <div class="sg">
-        <div class="si">
-          <div class="sv" id="svT">--</div>
-          <div class="sl">NHIỆT °C</div>
-        </div>
-        <div class="si">
-          <div class="sv" id="svH">--</div>
-          <div class="sl">ẨM KK %</div>
-        </div>
-        <div class="si">
-          <div class="sv" id="svL">--</div>
-          <div class="sl">SÁNG (LUX)</div>
-        </div>
+    <div class="nameplate">
+      <div class="eyebrow" id="eyebrowStatus">ĐANG THEO DÕI</div>
+      <h1 id="plantName">S.P.R.O.U.T</h1>
+      <div class="plantSub" id="plantSub">Chưa chọn loại cây — dùng ngưỡng mặc định</div>
+      <div id="quickStats">
+        <span>🌡 <b id="qsTemp">--°C</b></span>
+        <span>💧 <b id="qsHumi">--%</b></span>
+        <span>☀ <b id="qsLight">-- lux</b></span>
       </div>
-      <div style="margin-top:10px">
+    </div>
+    <div class="header-right">
+      <span class="pill offline" id="bdgOnline">⚫ Offline</span>
+      <span class="pill auto" id="bdgMode">⚡ AUTO</span>
+      <span class="pill warn" id="bdgWarn" style="display:none">⚠ Cảnh báo</span>
+      <span id="ts">--:--</span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main>
+    <!-- 3D View -->
+    <div id="vp">
+      <canvas id="c3"></canvas>
+      <div id="hint3d">kéo để xoay · cuộn để zoom</div>
+      <div class="l3 off" id="lFan"   style="display:none">Quạt</div>
+      <div class="l3 off" id="lLight" style="display:none">Đèn quang hợp</div>
+      <div class="l3 off" id="lHeat"  style="display:none">Đèn sưởi</div>
+      <div class="l3 off" id="lHumid" style="display:none">Tăng ẩm</div>
+      <div class="l3 off" id="lDehu"  style="display:none">Hút ẩm</div>
+      <div class="l3 off" id="lPump"  style="display:none">Bơm tưới</div>
+      <div class="l3 off" id="lDoor"  style="display:none">Cửa</div>
+      <div class="l3 off" id="lTank"  style="display:none">Bồn nước</div>
+    </div>
+
+    <!-- Side Panel -->
+    <div id="panel">
+
+      <!-- Cảm biến -->
+      <div class="card">
+        <h4><span class="ic">📡</span>Cảm biến</h4>
+        <div class="sg">
+          <div class="si">
+            <div class="sv" id="svT">--</div>
+            <div class="sl">NHIỆT °C</div>
+          </div>
+          <div class="si">
+            <div class="sv" id="svH">--</div>
+            <div class="sl">ẨM KK %</div>
+          </div>
+          <div class="si">
+            <div class="sv" id="svL">--</div>
+            <div class="sl">SÁNG (LUX)</div>
+          </div>
+        </div>
         <div class="sbar-wrap">
           <div class="sbar-label"><span>Độ ẩm đất</span><span id="vS">--%</span></div>
           <div class="sbar"><div class="sbar-fill" id="bS" style="width:0%;background:var(--green)"></div></div>
@@ -320,685 +649,722 @@ input[type=range]{width:100%;accent-color:var(--blue);height:3px;cursor:pointer}
           <div class="sbar"><div id="bD" style="height:100%;border-radius:2px;width:0%;transition:width .5s,background .5s;background:var(--amber)"></div></div>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <h4><span class="ic">🎛</span>Điều khiển</h4>
-      <div class="mrow">
-        <button class="mbtn a active" id="btnAuto"   onclick="setMode('AUTO')">⚡ AUTO</button>
-        <button class="mbtn m"        id="btnManual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
+      <!-- Điều khiển -->
+      <div class="card">
+        <h4><span class="ic">🎛</span>Điều khiển</h4>
+        <div class="mrow">
+          <button class="mbtn a active" id="btnAuto"   onclick="setMode('AUTO')">⚡ AUTO</button>
+          <button class="mbtn m"        id="btnManual" onclick="setMode('MANUAL')">🖐 MANUAL</button>
+        </div>
+        <div class="drow"><div class="dname"><div class="dot" id="dFan"></div>Quạt làm mát</div><button class="tog" id="tFan"   onclick="cmdDev('CMD_QUAT',this)"></button></div>
+        <div class="drow"><div class="dname"><div class="dot" id="dLight"></div>Đèn quang hợp</div><button class="tog" id="tLight" onclick="cmdDev('CMD_DEN',this)"></button></div>
+        <div class="drow"><div class="dname"><div class="dot" id="dHeat"></div>Đèn sưởi</div><button class="tog" id="tHeat"  onclick="cmdDev('CMD_SUOI',this)"></button></div>
+        <div class="drow"><div class="dname"><div class="dot" id="dHumid"></div>Tăng ẩm</div><button class="tog" id="tHumid" onclick="cmdDev('CMD_TANGAM',this)"></button></div>
+        <div class="drow"><div class="dname"><div class="dot" id="dDehu"></div>Hút ẩm</div><button class="tog" id="tDehu"  onclick="cmdDev('CMD_HUTAM',this)"></button></div>
+        <div class="drow"><div class="dname"><div class="dot" id="dPump"></div>Bơm tưới</div><button class="tog" id="tPump"  onclick="cmdDev('CMD_BOM',this)"></button></div>
       </div>
-      <div class="drow"><div class="dname"><div class="dot" id="dFan"></div>Quạt làm mát</div><button class="tog" id="tFan"   onclick="cmdDev('CMD_QUAT',this)"></button></div>
-      <div class="drow"><div class="dname"><div class="dot" id="dLight"></div>Đèn quang hợp</div><button class="tog" id="tLight" onclick="cmdDev('CMD_DEN',this)"></button></div>
-      <div class="drow"><div class="dname"><div class="dot" id="dHeat"></div>Đèn sưởi</div><button class="tog" id="tHeat"  onclick="cmdDev('CMD_SUOI',this)"></button></div>
-      <div class="drow"><div class="dname"><div class="dot" id="dHumid"></div>Tăng ẩm</div><button class="tog" id="tHumid" onclick="cmdDev('CMD_TANGAM',this)"></button></div>
-      <div class="drow"><div class="dname"><div class="dot" id="dDehu"></div>Hút ẩm</div><button class="tog" id="tDehu"  onclick="cmdDev('CMD_HUTAM',this)"></button></div>
-      <div class="drow"><div class="dname"><div class="dot" id="dPump"></div>Bơm tưới</div><button class="tog" id="tPump"  onclick="cmdDev('CMD_BOM',this)"></button></div>
-    </div>
 
-    <div class="card">
-      <h4><span class="ic">🎚</span>Ngưỡng</h4>
-      <div class="srow">
-        <label><span>Nhiệt Min</span><span id="vTmin">18°C</span></label>
-        <input type="range" min="10" max="25" value="18" step="1" id="slTmin" oninput="onSl()">
+      <!-- Ngưỡng -->
+      <div class="card">
+        <h4><span class="ic">🎚</span>Ngưỡng</h4>
+        <div class="srow">
+          <label><span>Nhiệt Min</span><span id="vTmin">18°C</span></label>
+          <input type="range" min="10" max="25" value="18" step="0.5" id="slTmin" oninput="onSl()">
+        </div>
+        <div class="srow">
+          <label><span>Nhiệt Max</span><span id="vTmax">30°C</span></label>
+          <input type="range" min="25" max="40" value="30" step="0.5" id="slTmax" oninput="onSl()">
+        </div>
+        <div class="srow">
+          <label><span>Đất Min</span><span id="vSmin">30%</span></label>
+          <input type="range" min="10" max="60" value="30" step="1" id="slSmin" oninput="onSl()">
+        </div>
+        <div class="srow">
+          <label><span>Đất Max</span><span id="vSmax">70%</span></label>
+          <input type="range" min="50" max="90" value="70" step="1" id="slSmax" oninput="onSl()">
+        </div>
+        <div class="srow">
+          <label><span>Ánh sáng Min (lux)</span><span id="vLmin">300</span></label>
+          <input type="range" min="0" max="1000" value="300" step="10" id="slLmin" oninput="onSl()">
+        </div>
+        <div class="srow">
+          <label><span>Ánh sáng Max (lux)</span><span id="vLmax">900</span></label>
+          <input type="range" min="0" max="1000" value="900" step="10" id="slLmax" oninput="onSl()">
+        </div>
+        <button class="applyBtn" onclick="applyThresh()">▶ Áp dụng → Arduino</button>
       </div>
-      <div class="srow">
-        <label><span>Nhiệt Max</span><span id="vTmax">30°C</span></label>
-        <input type="range" min="25" max="40" value="30" step="1" id="slTmax" oninput="onSl()">
-      </div>
-      <div class="srow" style="margin-top:8px">
-        <label><span>Đất Min</span><span id="vSmin">30%</span></label>
-        <input type="range" min="10" max="60" value="30" step="1" id="slSmin" oninput="onSl()">
-      </div>
-      <div class="srow">
-        <label><span>Đất Max</span><span id="vSmax">70%</span></label>
-        <input type="range" min="50" max="90" value="70" step="1" id="slSmax" oninput="onSl()">
-      </div>
-      <button class="applyBtn" onclick="applyThresh()">▶ Áp dụng → Arduino</button>
-    </div>
 
-    <div class="card">
-      <h4><span class="ic">🌿</span>Loại cây</h4>
-      <div class="plantRow">
-        <input type="text" id="tenCay" placeholder="vd: cà chua">
-        <button onclick="xacDinhCay()">Xác định</button>
+      <!-- Loại cây -->
+      <div class="card">
+        <h4><span class="ic">🌿</span>Loại cây</h4>
+        <div class="plantRow">
+          <input type="text" id="tenCay" placeholder="vd: cà chua" />
+          <button onclick="xacDinhCay()">Xác định</button>
+        </div>
+        <div id="cayBox">Chưa chọn — dùng ngưỡng mặc định.</div>
+        <div class="hint-sm">Chỉ gọi Gemini cho cây mới, cây đã hỏi sẽ dùng lại cache.</div>
       </div>
-      <div id="cayBox">Chưa chọn — dùng ngưỡng mặc định.</div>
-      <div class="hint-sm">Chỉ gọi Gemini cho cây mới, cây đã hỏi sẽ dùng lại cache.</div>
-    </div>
 
-    <div class="card">
-      <h4><span class="ic">🤖</span>AI tư vấn</h4>
-      <div id="aiBox">Đang chờ kết nối Arduino...</div>
-    </div>
+      <!-- AI tư vấn -->
+      <div class="card">
+        <h4><span class="ic">🤖</span>AI tư vấn</h4>
+        <div id="aiBox">Đang chờ kết nối Arduino...</div>
+      </div>
 
-    <div class="card">
-      <h4><span class="ic">🚨</span>Cảnh báo</h4>
-      <div id="alertBox"><div class="okline">✓ Không có cảnh báo</div></div>
+      <!-- Cảnh báo -->
+      <div class="card">
+        <h4><span class="ic">🚨</span>Cảnh báo</h4>
+        <div id="alertBox"><div class="okline">✓ Không có cảnh báo</div></div>
+      </div>
     </div>
+  </main>
 
+  <!-- Offline overlay -->
+  <div id="offlineOv">
+    <div class="spin"></div>
+    <h2>Đang kết nối Firebase...</h2>
+    <p>Đảm bảo bridge.py đang chạy và Proteus đang mô phỏng.</p>
   </div>
-</main>
 
-<div id="offlineOv">
-  <div class="spin"></div>
-  <h2>Đang kết nối Firebase...</h2>
-  <p>Đảm bảo bridge.py đang chạy và Proteus đang mô phỏng.</p>
-</div>
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Firebase + Logic (ES Module) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    const firebaseConfig = {
+      apiKey:"AIzaSyAEVGBzSqFDXMQuUrIMX4NFzz5Zq6pRthQ",
+      authDomain:"sprout-3609f.firebaseapp.com",
+      databaseURL:"https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:"sprout-3609f",
+      storageBucket:"sprout-3609f.firebasestorage.app",
+      messagingSenderId:"1026541317812",
+      appId:"1:1026541317812:web:82c07bd9999cebe01171e1"
+    };
 
-const firebaseConfig = {
-  apiKey:"AIzaSyAEVGBzSqFDXMQuUrIMX4NFzz5Zq6pRthQ",
-  authDomain:"sprout-3609f.firebaseapp.com",
-  databaseURL:"https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"sprout-3609f",
-  storageBucket:"sprout-3609f.firebasestorage.app",
-  messagingSenderId:"1026541317812",
-  appId:"1:1026541317812:web:82c07bd9999cebe01171e1"
-};
+    const app = initializeApp(firebaseConfig);
+    const fdb = getDatabase(app);
 
-const app = initializeApp(firebaseConfig);
-const fdb = getDatabase(app);
+    const S = {
+      mode: "AUTO",
+      dev: { quat:0, bom:0, suoi:0, den:0, hutAm:0, tangAm:0 },
+      cb: { nhietDo:0, doAmKK:0, doAmDat:0, mucNuoc:0, anhSang:0, cuaMo:false },
+      ng: { nhietMin:18, nhietMax:30, amKKMin:50, amKKMax:85, datMin:30, datMax:70, nguongDen:300, nguongSangMax:900 },
+      online: false
+    };
+    window._S = S;
 
-// anhSang / nguongDen tính theo LUX (0-100000), khớp với Arduino v2.5 + bridge v3.4
-const S = {
-  mode:"AUTO",
-  dev:{quat:0,bom:0,suoi:0,den:0,hutAm:0,tangAm:0},
-  cb:{nhietDo:0,doAmKK:0,doAmDat:0,mucNuoc:0,anhSang:0,cuaMo:false},
-  ng:{nhietMin:18,nhietMax:30,amKKMin:50,amKKMax:85,datMin:30,datMax:70,nguongDen:300},
-  online:false
-};
-window._S = S;
+    const el = id => document.getElementById(id);
+    const LUX_MAX = 100000;
 
-const el = id => document.getElementById(id);
-const LUX_MAX = 100000;
-
-// ------------------------------------------------------------------
-// FIX LỖI "CẢNH BÁO KẸT": trước đây badge cảnh báo lấy từ
-// /sprout/trangThai/canhBaoMoi — một chuỗi text được GHI MỘT LẦN khi có
-// sự cố (vd cửa mở) nhưng KHÔNG BAO GIỜ được xóa khi hết sự cố (Arduino
-// chỉ gửi ALERT khi đang có vấn đề, im lặng khi hết vấn đề). Kết quả:
-// cửa đã đóng từ lâu nhưng dashboard vẫn hiển thị "CUA_MO".
-// Sửa: tính danh sách cảnh báo TỪ TRẠNG THÁI CẢM BIẾN HIỆN TẠI mỗi khi
-// /sprout/camBien cập nhật (mỗi ~2s) — luôn phản ánh đúng thực tế.
-// ------------------------------------------------------------------
-function computeAlerts(cb, ng){
-  const list=[];
-  if (cb.cuaMo) list.push("🚪 Cửa buồng đang mở");
-  if (cb.mucNuoc!=null && cb.mucNuoc < 20) list.push(`🪣 Bồn nước sắp cạn (${cb.mucNuoc}%)`);
-  if (cb.anhSang!=null && ng.nguongDen!=null && cb.anhSang < ng.nguongDen)
-    list.push(`☀️ Ánh sáng yếu (${Math.round(cb.anhSang)} lux < ${ng.nguongDen})`);
-  if (cb.nhietDo!=null){
-    if (ng.nhietMax!=null && cb.nhietDo > ng.nhietMax) list.push(`🌡️ Quá nóng (${cb.nhietDo}°C > ${ng.nhietMax}°C)`);
-    else if (ng.nhietMin!=null && cb.nhietDo < ng.nhietMin) list.push(`🌡️ Quá lạnh (${cb.nhietDo}°C < ${ng.nhietMin}°C)`);
-  }
-  if (cb.doAmKK!=null){
-    if (ng.amKKMax!=null && cb.doAmKK > ng.amKKMax) list.push(`💧 Không khí quá ẩm (${cb.doAmKK}% > ${ng.amKKMax}%)`);
-    else if (ng.amKKMin!=null && cb.doAmKK < ng.amKKMin) list.push(`💧 Không khí quá khô (${cb.doAmKK}% < ${ng.amKKMin}%)`);
-  }
-  if (cb.doAmDat!=null){
-    if (ng.datMin!=null && cb.doAmDat < ng.datMin) list.push(`🌱 Đất khô (${cb.doAmDat}% < ${ng.datMin}%)`);
-    else if (ng.datMax!=null && cb.doAmDat > ng.datMax) list.push(`🌱 Đất ngập nước (${cb.doAmDat}% > ${ng.datMax}%)`);
-  }
-  return list;
-}
-
-function renderAlerts(list){
-  const badge=el("bdgWarn"), box=el("alertBox");
-  if (list.length===0){
-    badge.style.display="none";
-    box.innerHTML=`<div class="okline">✓ Không có cảnh báo</div>`;
-  } else {
-    badge.style.display="";
-    badge.textContent=`⚠ ${list.length} cảnh báo`;
-    box.innerHTML = list.map(t=>`<div class="alertLine">${t}</div>`).join("");
-  }
-}
-
-onValue(ref(fdb,"/sprout/trangThai"), snap=>{
-  const d=snap.val(); if(!d) return;
-  S.online=!!d.online; S.mode=d.mode||"AUTO";
-  el("offlineOv").style.display=S.online?"none":"flex";
-  const ob=el("bdgOnline");
-  ob.textContent=S.online?"🟢 Online":"⚫ Offline";
-  ob.className="pill "+(S.online?"online":"offline");
-  const mb=el("bdgMode");
-  mb.textContent=S.mode==="AUTO"?"⚡ AUTO":"🖐 MANUAL";
-  mb.className="pill "+(S.mode==="AUTO"?"auto":"manual");
-  el("btnAuto").classList.toggle("active",S.mode==="AUTO");
-  el("btnManual").classList.toggle("active",S.mode==="MANUAL");
-  lockToggles(S.mode==="AUTO");
-  el("eyebrowStatus").textContent = "ĐANG THEO DÕI · " + (S.mode==="AUTO"?"TỰ ĐỘNG":"THỦ CÔNG");
-  if(d.capNhatLuc) el("ts").textContent=d.capNhatLuc;
-  if(d.aiMoiNhat) el("aiBox").innerHTML=`${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc||""}</div>`;
-  // Lưu ý: KHÔNG dùng d.canhBaoMoi để bật badge cảnh báo nữa (xem computeAlerts)
-});
-
-onValue(ref(fdb,"/sprout/camBien"), snap=>{
-  const d=snap.val(); if(!d) return;
-  Object.assign(S.cb,d);
-  const ng=S.ng;
-  sval("svT",d.nhietDo?.toFixed(1),d.nhietDo,ng.nhietMin,ng.nhietMax);
-  sval("svH",d.doAmKK?.toFixed(1),d.doAmKK,ng.amKKMin,ng.amKKMax);
-  sval("svL", (d.anhSang!==undefined&&d.anhSang!==null)?Math.round(d.anhSang):"--",
-       d.anhSang, S.ng.nguongDen||300, LUX_MAX);
-  bar("bS","vS",d.doAmDat,0,100,d.doAmDat<ng.datMin||d.doAmDat>ng.datMax);
-  bar("bW","vW",d.mucNuoc,0,100,d.mucNuoc<15);
-  const cu=!!d.cuaMo;
-  el("vD").textContent=cu?"🔓 Mở":"🔒 Đóng";
-  el("bD").style.width=(cu?"100":"0")+"%";
-  el("bD").style.background=cu?"var(--amber)":"var(--green)";
-
-  // Quick stats trên header
-  if(d.nhietDo!=null) el("qsTemp").textContent=d.nhietDo.toFixed(1)+"°C";
-  if(d.doAmKK!=null)  el("qsHumi").textContent=d.doAmKK.toFixed(0)+"%";
-  if(d.anhSang!=null) el("qsLight").textContent=Math.round(d.anhSang)+" lux";
-
-  // Tính lại cảnh báo THEO TRẠNG THÁI HIỆN TẠI mỗi lần có dữ liệu mới
-  renderAlerts(computeAlerts(S.cb, S.ng));
-});
-
-onValue(ref(fdb,"/sprout/thietBi"), snap=>{
-  const d=snap.val(); if(!d) return;
-  Object.assign(S.dev,d);
-  updDev("Fan",d.quat,"tFan","dFan");
-  updDevColor("Light",d.den,"tLight","dLight","green");
-  updDevColor("Heat",d.suoi,"tHeat","dHeat","red");
-  updDev("Humid",d.tangAm,"tHumid","dHumid");
-  updDev("Dehu",d.hutAm,"tDehu","dDehu");
-  updDev("Pump",d.bom,"tPump","dPump");
-});
-
-onValue(ref(fdb,"/sprout/nguong"), snap=>{
-  const d=snap.val(); if(!d) return;
-  Object.assign(S.ng, d);
-  if(d.nhietMin!=null){el("slTmin").value=d.nhietMin;el("vTmin").textContent=d.nhietMin+"°C"}
-  if(d.nhietMax!=null){el("slTmax").value=d.nhietMax;el("vTmax").textContent=d.nhietMax+"°C"}
-  if(d.datMin!=null){el("slSmin").value=d.datMin;el("vSmin").textContent=d.datMin+"%"}
-  if(d.datMax!=null){el("slSmax").value=d.datMax;el("vSmax").textContent=d.datMax+"%"}
-  // Ngưỡng đổi cũng có thể làm thay đổi tình trạng cảnh báo hiện tại
-  renderAlerts(computeAlerts(S.cb, S.ng));
-});
-
-onValue(ref(fdb,"/sprout/thongTinCay"), snap=>{
-  const d=snap.val();
-  const box=el("cayBox");
-  const nameEl=el("plantName"), subEl=el("plantSub");
-  if(!d){
-    box.textContent="Chưa chọn — dùng ngưỡng mặc định.";
-    nameEl.textContent="S.P.R.O.U.T";
-    subEl.textContent="Chưa chọn loại cây — dùng ngưỡng mặc định";
-    return;
-  }
-  if(d.loi){
-    box.innerHTML=`⚠ ${d.loi}`;
-    subEl.textContent="Có lỗi khi lấy dữ liệu cây — xem chi tiết bên dưới";
-    return;
-  }
-  const nguon = d.nguon==="gemini" ? "✨ Gemini (mới)" : "💾 Cache";
-  const ng = d.nguong||{};
-  nameEl.textContent = d.ten || "S.P.R.O.U.T";
-  subEl.textContent = (d.ghiChu ? d.ghiChu+" · " : "") + nguon;
-  box.innerHTML =
-    `<b>${d.ten}</b> — ${nguon}<br>`+
-    `🌡${ng.nhietMin}-${ng.nhietMax}°C 💧${ng.amKKMin}-${ng.amKKMax}%<br>`+
-    `🌱${ng.datMin}-${ng.datMax}% ☀&gt;${ng.sangMin} lux`+
-    (d.ghiChu?`<br><i>${d.ghiChu}</i>`:"");
-});
-
-function writeCmd(obj){ set(ref(fdb,"/sprout/lenh"),{...obj,thoiGian:new Date().toLocaleString("vi-VN")}); }
-window.setMode=m=>writeCmd({loai:"SET_MODE",giaTri:m});
-window.cmdDev=(cmd,btn)=>{
-  if(S.mode!=="MANUAL"){alert("Chuyển sang MANUAL trước!");return;}
-  const on=btn.classList.toggle("on");
-  writeCmd({loai:cmd,giaTri:on?"1":"0"});
-};
-window.onSl=()=>{
-  el("vTmin").textContent=el("slTmin").value+"°C";
-  el("vTmax").textContent=el("slTmax").value+"°C";
-  el("vSmin").textContent=el("slSmin").value+"%";
-  el("vSmax").textContent=el("slSmax").value+"%";
-};
-window.applyThresh=()=>{
-  writeCmd({loai:"SET_TEMP",min:+el("slTmin").value,max:+el("slTmax").value});
-  setTimeout(()=>writeCmd({loai:"SET_SOIL",min:+el("slSmin").value,max:+el("slSmax").value}),300);
-};
-window.xacDinhCay=()=>{
-  const ten=el("tenCay").value.trim();
-  if(!ten){alert("Nhập tên loại cây trước đã!");return;}
-  el("cayBox").textContent="⏳ Đang xử lý (tra cache trước, chỉ gọi Gemini nếu là cây mới)...";
-  writeCmd({loai:"SET_PLANT",giaTri:ten});
-};
-
-function sval(id,display,val,mn,mx){
-  const e=el(id);
-  e.textContent=display??"-";
-  e.className="sv"+(val<mn||val>mx?" warn":" ok");
-}
-function bar(bid,vid,val,mn,mx,warn){
-  const pct=Math.max(0,Math.min(100,((val-mn)/(mx-mn))*100));
-  el(bid).style.width=pct+"%";
-  el(bid).style.background=warn?"var(--red)":val>60?"var(--green)":"var(--blue)";
-  el(vid).textContent=(val??"-")+"%";
-}
-function updDev(key,on,tid,did){
-  const t=el(tid),d=el(did);
-  if(t) t.classList.toggle("on",!!on);
-  if(d) d.className="dot"+(on?" on":"");
-}
-function updDevColor(key,on,tid,did,color){
-  const t=el(tid),d=el(did);
-  if(t){
-    t.classList.remove("on","on-red");
-    if(on) t.classList.add(color==="red" ? "on-red" : "on");
-  }
-  if(d){
-    d.className="dot"+(on?(color==="red"?" on-red":" on-green"):"");
-  }
-}
-function lockToggles(lock){
-  document.querySelectorAll(".tog").forEach(t=>{t.classList.toggle("disabled",lock);t.disabled=lock;});
-}
-</script>
-
-<script>
-(function(){
-  const vp=document.getElementById("vp");
-  let W=vp.clientWidth, H=vp.clientHeight;
-  const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x0e1e2c);
-  scene.fog=new THREE.Fog(0x0e1e2c, 25, 45);
-
-  const cam=new THREE.PerspectiveCamera(40,W/H,.1,100);
-  cam.position.set(0,6,15);
-  cam.lookAt(0,2,0);
-
-  const ren=new THREE.WebGLRenderer({canvas:document.getElementById("c3"),antialias:true});
-  ren.setPixelRatio(Math.min(devicePixelRatio,2));
-  ren.shadowMap.enabled=true;
-  ren.shadowMap.type=THREE.PCFSoftShadowMap;
-  ren.setSize(W,H);
-  ren.toneMapping=THREE.ACESFilmicToneMapping;
-  ren.toneMappingExposure=1.2;
-
-  const M={
-    glass:  new THREE.MeshPhysicalMaterial({
-      color:0x8ecae6,transparent:true,opacity:.25,roughness:.05,metalness:.1,
-      side:THREE.DoubleSide,envMapIntensity:.8
-    }),
-    glassDoor:new THREE.MeshPhysicalMaterial({
-      color:0xa8d8ea,transparent:true,opacity:.30,roughness:.05,metalness:.1,
-      side:THREE.DoubleSide,envMapIntensity:.6
-    }),
-    frame:  new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.35,metalness:.85}),
-    floor:  new THREE.MeshStandardMaterial({color:0x0a1208,roughness:.98}),
-    soil:   new THREE.MeshStandardMaterial({color:0x3a2a1a,roughness:1}),
-    stem:   new THREE.MeshStandardMaterial({color:0x1a6a3a,roughness:.8}),
-    leaf:   new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65}),
-    device: new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.45,metalness:.7}),
-    device2:new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.5,metalness:.6}),
-    lampCover:new THREE.MeshStandardMaterial({color:0x9aa8a0,emissive:0x22c55e,emissiveIntensity:0}),
-    heatLamp:new THREE.MeshStandardMaterial({color:0x3a1a1a,emissive:0xff1a1a,emissiveIntensity:0}),
-    waterTank:new THREE.MeshPhysicalMaterial({color:0x2a6aaa,transparent:true,opacity:.35,roughness:.1,metalness:.2,side:THREE.DoubleSide}),
-    waterFill:new THREE.MeshStandardMaterial({color:0x4a9af6,transparent:true,opacity:.7}),
-    pipe:   new THREE.MeshStandardMaterial({color:0x3a5a7a,roughness:.4,metalness:.8}),
-    fanBlade:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.3,metalness:.9}),
-    fanHub: new THREE.MeshStandardMaterial({color:0x1a3a5a,roughness:.3,metalness:.95}),
-    mistDev:new THREE.MeshStandardMaterial({color:0x2a4a6a,roughness:.5,metalness:.6}),
-    ceilPanel:new THREE.MeshPhysicalMaterial({
-      color:0x8ecae6,transparent:true,opacity:.18,roughness:.05,metalness:.05,
-      side:THREE.DoubleSide,envMapIntensity:.5
-    }),
-  };
-
-  const mesh=(geo,mat,x,y,z,rx,ry,rz)=>{
-    const m=new THREE.Mesh(geo,mat);
-    m.position.set(x,y,z);
-    if(rx)m.rotation.x=rx;
-    if(ry)m.rotation.y=ry;
-    if(rz)m.rotation.z=rz;
-    m.castShadow=m.receiveShadow=true;
-    scene.add(m);return m;
-  };
-
-  const GW=8,GH=6,GD=6;
-
-  mesh(new THREE.BoxGeometry(GW,.15,GD),M.floor,0,-.075,0);
-  mesh(new THREE.BoxGeometry(6,.2,4),M.soil,0,.18,0);
-
-  const panels=[
-    [GW,GH,.06,0,GH/2,-GD/2,0,0,0],
-    [GW,GH,.06,0,GH/2, GD/2,0,0,0],
-    [.06,GH,GD,-GW/2,GH/2,0,0,0,0],
-    [.06,GH,GD, GW/2,GH/2,0,0,0,0],
-  ];
-  panels.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.glass,x,y,z));
-
-  mesh(new THREE.BoxGeometry(GW,.06,GD),M.ceilPanel,0,GH,0);
-
-  const frameE=[
-    [GW+.1,.1,.1,0,0,-GD/2],[GW+.1,.1,.1,0,0,GD/2],
-    [GW+.1,.1,.1,0,GH,-GD/2],[GW+.1,.1,.1,0,GH,GD/2],
-    [.1,GH+.1,.1,-GW/2,GH/2,-GD/2],[.1,GH+.1,.1,GW/2,GH/2,-GD/2],
-    [.1,GH+.1,.1,-GW/2,GH/2,GD/2],[.1,GH+.1,.1,GW/2,GH/2,GD/2],
-    [.1,.1,GD+.1,-GW/2,0,0],[.1,.1,GD+.1,GW/2,0,0],
-    [.1,.1,GD+.1,-GW/2,GH,0],[.1,.1,GD+.1,GW/2,GH,0],
-  ];
-  frameE.forEach(([w,h,d,x,y,z])=>mesh(new THREE.BoxGeometry(w,h,d),M.frame,x,y,z));
-
-  const doorPivot=new THREE.Group();
-  doorPivot.position.set(GW/2,GH/2,0);
-  scene.add(doorPivot);
-  const doorMesh=new THREE.Mesh(new THREE.BoxGeometry(.08,GH*.85,GD*.42),M.glassDoor);
-  doorMesh.position.set(0,0,GD*.21);
-  doorMesh.castShadow=true;
-  doorPivot.add(doorMesh);
-
-  mesh(new THREE.BoxGeometry(1,.08,.8),M.device,.0,GH-.04,0);
-
-  const fanPivot=new THREE.Group();
-  fanPivot.position.set(0,GH-.14,0);
-  scene.add(fanPivot);
-
-  const fanHub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.2,.28,20),M.fanHub);
-  fanHub.castShadow=true;
-  fanPivot.add(fanHub);
-
-  const fanRod=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.35,10),M.frame);
-  fanRod.position.y=.3;
-  fanPivot.add(fanRod);
-
-  const bladeGroup=new THREE.Group();
-  fanPivot.add(bladeGroup);
-  const blades=[];
-  for(let i=0;i<4;i++){
-    const bg=new THREE.Group();
-    bg.rotation.y=(i/4)*Math.PI*2;
-    const blade=new THREE.Mesh(new THREE.BoxGeometry(2.6,.04,.42),M.fanBlade);
-    blade.position.set(1.3,0,0);
-    blade.rotation.z=.06;
-    bg.add(blade);
-    const mount=new THREE.Mesh(new THREE.BoxGeometry(.24,.1,.18),M.fanHub);
-    mount.position.set(.12,-.04,0);
-    bg.add(mount);
-    bladeGroup.add(bg);
-    blades.push(blade);
-  }
-
-  const growBarY=GH*.55, growBarH=3.2;
-  const growBar=mesh(new THREE.BoxGeometry(.12,growBarH,.2),M.device,-GW/2+.1,growBarY,0);
-
-  const ledCount=8, ledGap=.32;
-  const ledSpanH=(ledCount-1)*ledGap;
-  const ledStartY=growBarY-ledSpanH/2+.3;
-  const ledMeshes=[];
-  for(let i=0;i<ledCount;i++){
-    const ledMat=M.lampCover.clone();
-    const led=mesh(new THREE.BoxGeometry(.06,.05,.12),ledMat,-GW/2+.16,ledStartY+i*ledGap,0);
-    led.material=ledMat;
-    ledMeshes.push(led);
-  }
-
-  const heatMat1=M.heatLamp.clone();
-  const heatMat2=M.heatLamp.clone();
-  const heatLamp1=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),heatMat1,-GW/2+.12,.7,-1.2,0,0,Math.PI/2);
-  const heatLamp2=mesh(new THREE.CylinderGeometry(.12,.12,.06,20),heatMat2,-GW/2+.12,.7, 1.2,0,0,Math.PI/2);
-
-  mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2,-1.2,.45,-GD/2+.26);
-  mesh(new THREE.BoxGeometry(.38,.08,.32),M.device,-1.2,.87,-GD/2+.26);
-  mesh(new THREE.CylinderGeometry(.04,.05,.2,10),M.device,-1.2,1.05,-GD/2+.26,Math.PI/2,0,0);
-
-  mesh(new THREE.BoxGeometry(.5,.7,.45),M.device2, 1.2,.45,-GD/2+.26);
-  mesh(new THREE.BoxGeometry(.38,.08,.32),M.device, 1.2,.87,-GD/2+.26);
-  for(let i=0;i<4;i++){
-    mesh(new THREE.BoxGeometry(.35,.02,.04),M.frame,1.2,.3+i*.1,-GD/2+.08);
-  }
-
-  const tankX=GW/2+1.3;
-  mesh(new THREE.BoxGeometry(1.1,2.2,.9),M.waterTank,tankX,1.15,-.1);
-  [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz])=>{
-    mesh(new THREE.BoxGeometry(.06,2.3,.06),M.frame,tankX+sx*.52,1.2,-.1+sz*.45);
-  });
-  mesh(new THREE.BoxGeometry(1.2,.12,.95),M.frame,tankX,.07,-.1);
-  mesh(new THREE.BoxGeometry(1.2,.06,.95),M.frame,tankX,2.27,-.1);
-
-  const waterFillMesh=mesh(new THREE.BoxGeometry(1.0,1.0,.78),M.waterFill,tankX,.5+.5,-.1);
-  waterFillMesh.userData={baseY:.5};
-
-  const floatBall=mesh(new THREE.SphereGeometry(.07,10,8),
-    new THREE.MeshStandardMaterial({color:0xfbbf24,emissive:0xfbbf24,emissiveIntensity:.3}),
-    tankX,.6,-.1);
-
-  for(let i=0;i<5;i++){
-    mesh(new THREE.BoxGeometry(1.05,.015,.02),M.frame,tankX,.2+i*.4,-.1+.43);
-  }
-
-  mesh(new THREE.CylinderGeometry(.05,.05,1.4,10),M.pipe,tankX-.7,1.8,-.1,0,0,Math.PI/2);
-  mesh(new THREE.CylinderGeometry(.05,.05,.6,10),M.pipe,GW/2+.12,1.5,-.1);
-  mesh(new THREE.BoxGeometry(.22,.22,.16),M.device2,GW/2+.12,1.18,-.1);
-  mesh(new THREE.CylinderGeometry(.03,.03,5.5,8),M.pipe,0,4.8,-.5,0,0,Math.PI/2);
-
-  const dropperX=[-2.2,-1.0,0,1.0,2.2];
-  dropperX.forEach(dx=>{
-    mesh(new THREE.CylinderGeometry(.015,.015,.9,6),M.pipe,dx,4.35,-.5);
-    mesh(new THREE.SphereGeometry(.03,6,6),M.pipe,dx,3.9,-.5);
-  });
-
-  const plantData=[
-    [-2.2,.3,-1.2,.8],[-1,.3,.8,.65],[0,.3,-1,.9],
-    [1,.3,1.1,.75],[2.2,.3,-.8,.7]
-  ];
-  const leafMats=[];
-  const plantMeshes=[];
-  plantData.forEach(([px,py,pz,h])=>{
-    const stemH=h;
-    mesh(new THREE.CylinderGeometry(.04,.07,stemH,8),M.stem,px,py+stemH/2,pz);
-    const lr=.18+Math.random()*.15;
-    const lm=new THREE.MeshStandardMaterial({color:0x2a9a4a,roughness:.65});
-    const lf=mesh(new THREE.SphereGeometry(lr,10,8),lm,px,py+stemH+lr*.7,pz);
-    leafMats.push(lm);
-    plantMeshes.push({mesh:lf,px,py,pz,h:stemH});
-    if(Math.random()>.4){
-      const lm2=lm.clone();
-      const lf2=mesh(new THREE.SphereGeometry(lr*.7,8,6),lm2,px+.18,py+stemH*.7+.1,pz+.12);
-      leafMats.push(lm2);
-      plantMeshes.push({mesh:lf2,px:px+.18,py:py+stemH*.7+.1,pz:pz+.12,h:0});
-    }
-  });
-
-  const drops=[];
-  for(let i=0;i<40;i++){
-    const d=new THREE.Mesh(
-      new THREE.SphereGeometry(.03,5,5),
-      new THREE.MeshStandardMaterial({color:0x60a5fa,transparent:true,opacity:0})
-    );
-    d.userData={active:false,vy:0,sx:0,sz:0};
-    d.position.y=-10;
-    scene.add(d);drops.push(d);
-  }
-
-  const MISTN=200;
-  const mistPos=new Float32Array(MISTN*3);
-  const mistV=[];
-  for(let i=0;i<MISTN;i++){
-    mistPos[i*3]=(Math.random()-.5)*7;
-    mistPos[i*3+1]=Math.random()*5.5;
-    mistPos[i*3+2]=(Math.random()-.5)*5.5;
-    mistV.push({vx:(Math.random()-.5)*.004,vy:.004+Math.random()*.006});
-  }
-  const mistGeo=new THREE.BufferGeometry();
-  mistGeo.setAttribute("position",new THREE.BufferAttribute(mistPos,3));
-  const mistMat=new THREE.PointsMaterial({color:0x88ccff,size:.055,transparent:true,opacity:0});
-  scene.add(new THREE.Points(mistGeo,mistMat));
-
-  scene.add(new THREE.AmbientLight(0x3a5a7a,2.5));
-  const sun=new THREE.DirectionalLight(0x8ac4e8,2.0);
-  sun.position.set(8,12,8);sun.castShadow=true;
-  sun.shadow.mapSize.set(1024,1024);
-  scene.add(sun);
-
-  const growPt=new THREE.PointLight(0x22c55e,0,7);
-  growPt.position.set(-GW/2+.3,growBarY,0);
-  scene.add(growPt);
-
-  const heatPt1=new THREE.PointLight(0xff1a1a,0,4);
-  heatPt1.position.set(-GW/2+.3,.8,-1.2);
-  scene.add(heatPt1);
-  const heatPt2=new THREE.PointLight(0xff1a1a,0,4);
-  heatPt2.position.set(-GW/2+.3,.8, 1.2);
-  scene.add(heatPt2);
-
-  const mistPt=new THREE.PointLight(0x88ccff,0,4);
-  mistPt.position.set(-1.2,1.2,-GD/2+.5);
-  scene.add(mistPt);
-
-  const tankPt=new THREE.PointLight(0x3b82f6,0,3);
-  tankPt.position.set(tankX,2,-.1);
-  scene.add(tankPt);
-
-  let drag=false,px=0,py=0,rotY=.55,rotX=.22,zoom=15;
-  const cv=document.getElementById("c3");
-  const onDown=(cx,cy)=>{drag=true;px=cx;py=cy;};
-  const onMove=(cx,cy)=>{
-    if(!drag)return;
-    rotY+=(cx-px)*.007; rotX+=(cy-py)*.004;
-    rotX=Math.max(-.4,Math.min(.5,rotX));
-    px=cx;py=cy;
-  };
-  cv.addEventListener("mousedown",e=>onDown(e.clientX,e.clientY));
-  window.addEventListener("mouseup",()=>drag=false);
-  window.addEventListener("mousemove",e=>onMove(e.clientX,e.clientY));
-  cv.addEventListener("wheel",e=>{zoom=Math.max(7,Math.min(22,zoom+e.deltaY*.012));});
-  cv.addEventListener("touchstart",e=>onDown(e.touches[0].clientX,e.touches[0].clientY));
-  window.addEventListener("touchend",()=>drag=false);
-  window.addEventListener("touchmove",e=>onMove(e.touches[0].clientX,e.touches[0].clientY));
-
-  const tv=new THREE.Vector3();
-  function proj(x,y,z,id,txt,cls){
-    tv.set(x,y,z).project(cam);
-    const lx=(tv.x*.5+.5)*W, ly=(-.5*tv.y+.5)*H;
-    const lb=document.getElementById(id);
-    if(!lb)return;
-    if(tv.z>1||lx<0||lx>W||ly<0||ly>H){lb.style.display="none";return;}
-    lb.style.display="";
-    lb.style.left=lx+"px"; lb.style.top=ly+"px";
-    lb.textContent=txt; lb.className="l3 "+cls;
-  }
-
-  const clock=new THREE.Clock();
-  let fanAngle=0;
-  const LED_OFF_COLOR=new THREE.Color(0x9aa8a0);
-  const LED_ON_COLOR =new THREE.Color(0x4ade80);
-  const HEAT_OFF_COLOR=new THREE.Color(0x3a1a1a);
-  const HEAT_ON_COLOR =new THREE.Color(0xff2222);
-
-  function animate(){
-    requestAnimationFrame(animate);
-    const dt=clock.getDelta(), t=clock.elapsedTime;
-    const Sv=window._S||{};
-    const dev=Sv.dev||{}, cb=Sv.cb||{}, ng=Sv.ng||{};
-
-    cam.position.x=Math.sin(rotY)*Math.cos(rotX)*zoom;
-    cam.position.y=Math.sin(rotX)*zoom*.7+3;
-    cam.position.z=Math.cos(rotY)*Math.cos(rotX)*zoom;
-    cam.lookAt(0,2,0);
-
-    const fanOn=!!dev.quat;
-    if(fanOn) fanAngle+=dt*8;
-    bladeGroup.rotation.y=fanAngle;
-
-    const growOn=!!dev.den;
-    growPt.intensity=growOn?3+Math.sin(t*1.2)*.2:0;
-    const ledEmissive=growOn?2.6:0;
-    ledMeshes.forEach(led=>{
-      led.material.color.lerp(growOn?LED_ON_COLOR:LED_OFF_COLOR,.15);
-      led.material.emissive.set(0x22c55e);
-      led.material.emissiveIntensity=ledEmissive;
-    });
-
-    const heatOn=!!dev.suoi;
-    heatPt1.intensity=heatOn?2+Math.sin(t*6)*.6:0;
-    heatPt2.intensity=heatOn?2+Math.sin(t*6)*.6:0;
-    const heatEmissive=heatOn?1.1+Math.sin(t*5)*.3:0;
-    [heatMat1,heatMat2].forEach(hm=>{
-      hm.color.lerp(heatOn?HEAT_ON_COLOR:HEAT_OFF_COLOR,.15);
-      hm.emissive.set(0xff1a1a);
-      hm.emissiveIntensity=heatEmissive;
-    });
-
-    const mistOn=!!dev.tangAm;
-    mistMat.opacity=mistOn?Math.min(.6,mistMat.opacity+.02):Math.max(0,mistMat.opacity-.015);
-    mistPt.intensity=mistOn?1.5:0;
-    if(mistOn){
-      const pos=mistGeo.attributes.position.array;
-      for(let i=0;i<MISTN;i++){
-        pos[i*3+1]+=mistV[i].vy; pos[i*3]+=mistV[i].vx;
-        if(pos[i*3+1]>5.6){pos[i*3+1]=.1;pos[i*3]=(Math.random()-.5)*7;}
-      }
-      mistGeo.attributes.position.needsUpdate=true;
+    // ---- Helper: write command to Firebase ----
+    function writeCmd(obj) {
+      set(ref(fdb, "/sprout/lenh"), { ...obj, thoiGian: new Date().toLocaleString("vi-VN") });
     }
 
-    const pumpOn=!!dev.bom;
-    drops.forEach((d,i)=>{
-      if(pumpOn&&!d.userData.active&&Math.random()<.04){
-        d.userData.active=true; d.userData.vy=0;
-        const si=Math.floor(Math.random()*dropperX.length);
-        d.position.set(dropperX[si],3.85,-.5);
-        d.material.opacity=.8;
+    // ---- FIX: cmdDev sử dụng trạng thái thực từ S.dev ----
+    window.cmdDev = (cmd, btn) => {
+      if (S.mode !== "MANUAL") { alert("Chuyển sang MANUAL trước!"); return; }
+      // map command to device key in S.dev
+      const map = {
+        "CMD_QUAT": "quat",
+        "CMD_DEN": "den",
+        "CMD_SUOI": "suoi",
+        "CMD_TANGAM": "tangAm",
+        "CMD_HUTAM": "hutAm",
+        "CMD_BOM": "bom"
+      };
+      const key = map[cmd];
+      if (!key) return;
+      // current state from Firebase
+      const current = S.dev[key] || 0;
+      const newState = current ? 0 : 1;
+      // update button visually immediately
+      btn.classList.remove("on", "on-red", "on-green");
+      if (newState) {
+        // heater uses red, others use green
+        const color = (cmd === "CMD_SUOI") ? "on-red" : "on";
+        btn.classList.add(color);
       }
-      if(d.userData.active){
-        d.userData.vy-=.018;
-        d.position.y+=d.userData.vy;
-        d.material.opacity=Math.max(0,d.material.opacity-.01);
-        if(d.position.y<.3){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
+      // send command
+      writeCmd({ loai: cmd, giaTri: newState.toString() });
+    };
+
+    window.setMode = m => writeCmd({ loai: "SET_MODE", giaTri: m });
+    window.onSl = () => {
+      el("vTmin").textContent = el("slTmin").value + "°C";
+      el("vTmax").textContent = el("slTmax").value + "°C";
+      el("vSmin").textContent = el("slSmin").value + "%";
+      el("vSmax").textContent = el("slSmax").value + "%";
+      el("vLmin").textContent = el("slLmin").value;
+      el("vLmax").textContent = el("slLmax").value;
+    };
+    window.applyThresh = () => {
+      writeCmd({ loai: "SET_TEMP", min: +el("slTmin").value, max: +el("slTmax").value });
+      setTimeout(() => writeCmd({ loai: "SET_SOIL", min: +el("slSmin").value, max: +el("slSmax").value }), 300);
+      setTimeout(() => writeCmd({ loai: "SET_LIGHT", min: +el("slLmin").value, max: +el("slLmax").value }), 600);
+    };
+    window.xacDinhCay = () => {
+      const ten = el("tenCay").value.trim();
+      if (!ten) { alert("Nhập tên loại cây trước đã!"); return; }
+      el("cayBox").textContent = "⏳ Đang xử lý (tra cache trước, chỉ gọi Gemini nếu là cây mới)...";
+      writeCmd({ loai: "SET_PLANT", giaTri: ten });
+    };
+
+    // ---- Cảnh báo dựa trên trạng thái hiện tại ----
+    function computeAlerts(cb, ng) {
+      const list = [];
+      if (cb.cuaMo) list.push("🚪 Cửa buồng đang mở");
+      if (cb.mucNuoc != null && cb.mucNuoc < 20) list.push(`🪣 Bồn nước sắp cạn (${cb.mucNuoc}%)`);
+      if (cb.anhSang != null && ng.nguongDen != null && cb.anhSang < ng.nguongDen)
+        list.push(`☀️ Ánh sáng yếu (${Math.round(cb.anhSang)} lux < ${ng.nguongDen})`);
+      if (cb.anhSang != null && ng.nguongSangMax != null && cb.anhSang > ng.nguongSangMax)
+        list.push(`☀️ Ánh sáng quá mạnh (${Math.round(cb.anhSang)} lux > ${ng.nguongSangMax})`);
+      if (cb.nhietDo != null) {
+        if (ng.nhietMax != null && cb.nhietDo > ng.nhietMax) list.push(`🌡️ Quá nóng (${cb.nhietDo}°C > ${ng.nhietMax}°C)`);
+        else if (ng.nhietMin != null && cb.nhietDo < ng.nhietMin) list.push(`🌡️ Quá lạnh (${cb.nhietDo}°C < ${ng.nhietMin}°C)`);
       }
-      if(!pumpOn){d.userData.active=false;d.material.opacity=0;d.position.y=-10;}
+      if (cb.doAmKK != null) {
+        if (ng.amKKMax != null && cb.doAmKK > ng.amKKMax) list.push(`💧 Không khí quá ẩm (${cb.doAmKK}% > ${ng.amKKMax}%)`);
+        else if (ng.amKKMin != null && cb.doAmKK < ng.amKKMin) list.push(`💧 Không khí quá khô (${cb.doAmKK}% < ${ng.amKKMin}%)`);
+      }
+      if (cb.doAmDat != null) {
+        if (ng.datMin != null && cb.doAmDat < ng.datMin) list.push(`🌱 Đất khô (${cb.doAmDat}% < ${ng.datMin}%)`);
+        else if (ng.datMax != null && cb.doAmDat > ng.datMax) list.push(`🌱 Đất ngập nước (${cb.doAmDat}% > ${ng.datMax}%)`);
+      }
+      return list;
+    }
+
+    function renderAlerts(list) {
+      const badge = el("bdgWarn"), box = el("alertBox");
+      if (list.length === 0) {
+        badge.style.display = "none";
+        box.innerHTML = `<div class="okline">✓ Không có cảnh báo</div>`;
+      } else {
+        badge.style.display = "";
+        badge.textContent = `⚠ ${list.length} cảnh báo`;
+        box.innerHTML = list.map(t => `<div class="alertLine">${t}</div>`).join("");
+      }
+    }
+
+    // ---- Firebase listeners ----
+    onValue(ref(fdb, "/sprout/trangThai"), snap => {
+      const d = snap.val(); if (!d) return;
+      S.online = !!d.online;
+      S.mode = d.mode || "AUTO";
+      el("offlineOv").style.display = S.online ? "none" : "flex";
+      const ob = el("bdgOnline");
+      ob.textContent = S.online ? "🟢 Online" : "⚫ Offline";
+      ob.className = "pill " + (S.online ? "online" : "offline");
+      const mb = el("bdgMode");
+      mb.textContent = S.mode === "AUTO" ? "⚡ AUTO" : "🖐 MANUAL";
+      mb.className = "pill " + (S.mode === "AUTO" ? "auto" : "manual");
+      el("btnAuto").classList.toggle("active", S.mode === "AUTO");
+      el("btnManual").classList.toggle("active", S.mode === "MANUAL");
+      // lock toggles in AUTO mode (disable)
+      document.querySelectorAll(".tog").forEach(t => {
+        t.classList.toggle("disabled", S.mode === "AUTO");
+        t.disabled = (S.mode === "AUTO");
+      });
+      el("eyebrowStatus").textContent = "ĐANG THEO DÕI · " + (S.mode === "AUTO" ? "TỰ ĐỘNG" : "THỦ CÔNG");
+      if (d.capNhatLuc) el("ts").textContent = d.capNhatLuc;
+      if (d.aiMoiNhat) el("aiBox").innerHTML = `${d.aiMoiNhat}<div class="ait">${d.aiCapNhatLuc || ""}</div>`;
     });
 
-    const wlevel=Math.max(0,Math.min(1,(cb.mucNuoc||0)/100));
-    waterFillMesh.scale.y=Math.max(.01,wlevel);
-    waterFillMesh.position.y=.2+wlevel*.95;
-    floatBall.position.y=.3+wlevel*1.75;
-    tankPt.intensity=wlevel>.1?1:0;
+    onValue(ref(fdb, "/sprout/camBien"), snap => {
+      const d = snap.val(); if (!d) return;
+      Object.assign(S.cb, d);
+      const ng = S.ng;
+      sval("svT", d.nhietDo?.toFixed(1), d.nhietDo, ng.nhietMin, ng.nhietMax);
+      sval("svH", d.doAmKK?.toFixed(1), d.doAmKK, ng.amKKMin, ng.amKKMax);
+      sval("svL", (d.anhSang !== undefined && d.anhSang !== null) ? Math.round(d.anhSang) : "--",
+           d.anhSang, S.ng.nguongDen || 300, LUX_MAX);
+      bar("bS", "vS", d.doAmDat, 0, 100, d.doAmDat < ng.datMin || d.doAmDat > ng.datMax);
+      bar("bW", "vW", d.mucNuoc, 0, 100, d.mucNuoc < 15);
+      const cu = !!d.cuaMo;
+      el("vD").textContent = cu ? "🔓 Mở" : "🔒 Đóng";
+      el("bD").style.width = (cu ? "100" : "0") + "%";
+      el("bD").style.background = cu ? "var(--amber)" : "var(--green)";
 
-    const soilLow=(cb.doAmDat||0)<(ng.datMin||30);
-    plantMeshes.forEach((p,i)=>{
-      p.mesh.rotation.z=Math.sin(t*.5+i)*(fanOn?.1:.025);
-      p.mesh.material.color.set(soilLow?0x7a5a10:0x2a9a4a);
-      p.mesh.material.emissive=new THREE.Color(growOn?0x001a00:0x000000);
-      p.mesh.material.emissiveIntensity=growOn?.15:0;
+      if (d.nhietDo != null) el("qsTemp").textContent = d.nhietDo.toFixed(1) + "°C";
+      if (d.doAmKK != null)  el("qsHumi").textContent = d.doAmKK.toFixed(0) + "%";
+      if (d.anhSang != null) el("qsLight").textContent = Math.round(d.anhSang) + " lux";
+
+      renderAlerts(computeAlerts(S.cb, S.ng));
     });
 
-    const doorOpen=!!cb.cuaMo;
-    doorPivot.rotation.y=THREE.MathUtils.lerp(doorPivot.rotation.y,doorOpen?-Math.PI*.42:0,dt*3);
+    onValue(ref(fdb, "/sprout/thietBi"), snap => {
+      const d = snap.val(); if (!d) return;
+      Object.assign(S.dev, d);
+      updDev("Fan", d.quat, "tFan", "dFan");
+      updDevColor("Light", d.den, "tLight", "dLight", "green");
+      updDevColor("Heat", d.suoi, "tHeat", "dHeat", "red");
+      updDev("Humid", d.tangAm, "tHumid", "dHumid");
+      updDev("Dehu", d.hutAm, "tDehu", "dDehu");
+      updDev("Pump", d.bom, "tPump", "dPump");
+    });
 
-    proj(0,GH-.2,0,     "lFan",   fanOn ?"🌀 Quạt BẬT":"Quạt TẮT", fanOn?"on":"off");
-    proj(-GW/2+.2,3,0,  "lLight", growOn?"💡 Đèn quang hợp BẬT":"Đèn quang hợp", growOn?"lighton":"off");
-    proj(-GW/2+.2,.7,0, "lHeat",  heatOn?"🔥 Đèn sưởi BẬT":"Đèn sưởi", heatOn?"heaton":"off");
-    proj(-1.2,.8,-GD/2+.4,"lHumid",dev.tangAm?"💧 Tăng ẩm BẬT":"Tăng ẩm", dev.tangAm?"on":"off");
-    proj(1.2,.8,-GD/2+.4, "lDehu", dev.hutAm?"🌬 Hút ẩm BẬT":"Hút ẩm", dev.hutAm?"on":"off");
-    proj(0,4.5,-.5,       "lPump", pumpOn?"💧 Tưới BẬT":"Bơm tưới", pumpOn?"on":"off");
-    proj(GW/2+.15,GH*.6,-.1,"lDoor",doorOpen?"🚪 Cửa MỞ!":"Cửa đóng", doorOpen?"warn":"off");
-    proj(tankX,2.4,-.1, "lTank", `🪣 ${Math.round((cb.mucNuoc||0))}%`, (cb.mucNuoc||0)<20?"warn":"on");
+    onValue(ref(fdb, "/sprout/nguong"), snap => {
+      const d = snap.val(); if (!d) return;
+      Object.assign(S.ng, d);
+      if (d.nhietMin != null) { el("slTmin").value = d.nhietMin; el("vTmin").textContent = d.nhietMin + "°C"; }
+      if (d.nhietMax != null) { el("slTmax").value = d.nhietMax; el("vTmax").textContent = d.nhietMax + "°C"; }
+      if (d.datMin != null) { el("slSmin").value = d.datMin; el("vSmin").textContent = d.datMin + "%"; }
+      if (d.datMax != null) { el("slSmax").value = d.datMax; el("vSmax").textContent = d.datMax + "%"; }
+      if (d.nguongDen != null) { el("slLmin").value = d.nguongDen; el("vLmin").textContent = d.nguongDen; }
+      if (d.nguongSangMax != null) { el("slLmax").value = d.nguongSangMax; el("vLmax").textContent = d.nguongSangMax; }
+      renderAlerts(computeAlerts(S.cb, S.ng));
+    });
 
-    ren.render(scene,cam);
-  }
+    onValue(ref(fdb, "/sprout/thongTinCay"), snap => {
+      const d = snap.val();
+      const box = el("cayBox");
+      const nameEl = el("plantName"), subEl = el("plantSub");
+      if (!d) {
+        box.textContent = "Chưa chọn — dùng ngưỡng mặc định.";
+        nameEl.textContent = "S.P.R.O.U.T";
+        subEl.textContent = "Chưa chọn loại cây — dùng ngưỡng mặc định";
+        return;
+      }
+      if (d.loi) {
+        box.innerHTML = `⚠ ${d.loi}`;
+        subEl.textContent = "Có lỗi khi lấy dữ liệu cây — xem chi tiết bên dưới";
+        return;
+      }
+      const nguon = d.nguon === "gemini" ? "✨ Gemini (mới)" : "💾 Cache";
+      const ng = d.nguong || {};
+      nameEl.textContent = d.ten || "S.P.R.O.U.T";
+      subEl.textContent = (d.ghiChu ? d.ghiChu + " · " : "") + nguon;
+      box.innerHTML =
+        `<b>${d.ten}</b> — ${nguon}<br>` +
+        `🌡${ng.nhietMin}-${ng.nhietMax}°C 💧${ng.amKKMin}-${ng.amKKMax}%<br>` +
+        `🌱${ng.datMin}-${ng.datMax}% ☀${ng.sangMin}-${ng.sangMax} lux` +
+        (d.ghiChu ? `<br><i>${d.ghiChu}</i>` : "");
+    });
 
-  animate();
+    // ---- UI helpers ----
+    function sval(id, display, val, mn, mx) {
+      const e = el(id);
+      e.textContent = display ?? "-";
+      e.className = "sv" + (val < mn || val > mx ? " warn" : " ok");
+    }
+    function bar(bid, vid, val, mn, mx, warn) {
+      const pct = Math.max(0, Math.min(100, ((val - mn) / (mx - mn)) * 100));
+      el(bid).style.width = pct + "%";
+      el(bid).style.background = warn ? "var(--red)" : val > 60 ? "var(--green)" : "var(--blue)";
+      el(vid).textContent = (val ?? "-") + "%";
+    }
+    function updDev(key, on, tid, did) {
+      const t = el(tid), d = el(did);
+      if (t) t.classList.toggle("on", !!on);
+      if (d) d.className = "dot" + (on ? " on" : "");
+    }
+    function updDevColor(key, on, tid, did, color) {
+      const t = el(tid), d = el(did);
+      if (t) { t.classList.remove("on", "on-red"); if (on) t.classList.add(color === "red" ? "on-red" : "on"); }
+      if (d) { d.className = "dot" + (on ? (color === "red" ? " on-red" : " on-green") : ""); }
+    }
+  </script>
 
-  window.addEventListener("resize",()=>{
-    W=vp.clientWidth; H=vp.clientHeight;
-    cam.aspect=W/H; cam.updateProjectionMatrix();
-    ren.setSize(W,H);
-  });
+  <!-- 3D scene (keep existing script) -->
+  <script>
+    (function() {
+      const vp = document.getElementById("vp");
+      let W = vp.clientWidth, H = vp.clientHeight;
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0e1e2c);
+      scene.fog = new THREE.Fog(0x0e1e2c, 25, 45);
 
-})();
-</script>
+      const cam = new THREE.PerspectiveCamera(40, W / H, .1, 100);
+      cam.position.set(0, 6, 15);
+      cam.lookAt(0, 2, 0);
 
+      const ren = new THREE.WebGLRenderer({ canvas: document.getElementById("c3"), antialias: true });
+      ren.setPixelRatio(Math.min(devicePixelRatio, 2));
+      ren.shadowMap.enabled = true;
+      ren.shadowMap.type = THREE.PCFSoftShadowMap;
+      ren.setSize(W, H);
+      ren.toneMapping = THREE.ACESFilmicToneMapping;
+      ren.toneMappingExposure = 1.2;
+
+      const M = {
+        glass: new THREE.MeshPhysicalMaterial({ color: 0x8ecae6, transparent: true, opacity: .25, roughness: .05, metalness: .1, side: THREE.DoubleSide, envMapIntensity: .8 }),
+        glassDoor: new THREE.MeshPhysicalMaterial({ color: 0xa8d8ea, transparent: true, opacity: .30, roughness: .05, metalness: .1, side: THREE.DoubleSide, envMapIntensity: .6 }),
+        frame: new THREE.MeshStandardMaterial({ color: 0x2a4a6a, roughness: .35, metalness: .85 }),
+        floor: new THREE.MeshStandardMaterial({ color: 0x0a1208, roughness: .98 }),
+        soil: new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 1 }),
+        stem: new THREE.MeshStandardMaterial({ color: 0x1a6a3a, roughness: .8 }),
+        leaf: new THREE.MeshStandardMaterial({ color: 0x2a9a4a, roughness: .65 }),
+        device: new THREE.MeshStandardMaterial({ color: 0x2a4a6a, roughness: .45, metalness: .7 }),
+        device2: new THREE.MeshStandardMaterial({ color: 0x3a5a7a, roughness: .5, metalness: .6 }),
+        lampCover: new THREE.MeshStandardMaterial({ color: 0x9aa8a0, emissive: 0x22c55e, emissiveIntensity: 0 }),
+        heatLamp: new THREE.MeshStandardMaterial({ color: 0x3a1a1a, emissive: 0xff1a1a, emissiveIntensity: 0 }),
+        waterTank: new THREE.MeshPhysicalMaterial({ color: 0x2a6aaa, transparent: true, opacity: .35, roughness: .1, metalness: .2, side: THREE.DoubleSide }),
+        waterFill: new THREE.MeshStandardMaterial({ color: 0x4a9af6, transparent: true, opacity: .7 }),
+        pipe: new THREE.MeshStandardMaterial({ color: 0x3a5a7a, roughness: .4, metalness: .8 }),
+        fanBlade: new THREE.MeshStandardMaterial({ color: 0x2a4a6a, roughness: .3, metalness: .9 }),
+        fanHub: new THREE.MeshStandardMaterial({ color: 0x1a3a5a, roughness: .3, metalness: .95 }),
+        mistDev: new THREE.MeshStandardMaterial({ color: 0x2a4a6a, roughness: .5, metalness: .6 }),
+        ceilPanel: new THREE.MeshPhysicalMaterial({ color: 0x8ecae6, transparent: true, opacity: .18, roughness: .05, metalness: .05, side: THREE.DoubleSide, envMapIntensity: .5 }),
+      };
+
+      const mesh = (geo, mat, x, y, z, rx, ry, rz) => {
+        const m = new THREE.Mesh(geo, mat);
+        m.position.set(x, y, z);
+        if (rx) m.rotation.x = rx;
+        if (ry) m.rotation.y = ry;
+        if (rz) m.rotation.z = rz;
+        m.castShadow = m.receiveShadow = true;
+        scene.add(m);
+        return m;
+      };
+
+      const GW = 8, GH = 6, GD = 6;
+
+      mesh(new THREE.BoxGeometry(GW, .15, GD), M.floor, 0, -.075, 0);
+      mesh(new THREE.BoxGeometry(6, .2, 4), M.soil, 0, .18, 0);
+
+      const panels = [
+        [GW, GH, .06, 0, GH / 2, -GD / 2, 0, 0, 0],
+        [GW, GH, .06, 0, GH / 2, GD / 2, 0, 0, 0],
+        [.06, GH, GD, -GW / 2, GH / 2, 0, 0, 0, 0],
+        [.06, GH, GD, GW / 2, GH / 2, 0, 0, 0, 0],
+      ];
+      panels.forEach(([w, h, d, x, y, z]) => mesh(new THREE.BoxGeometry(w, h, d), M.glass, x, y, z));
+
+      mesh(new THREE.BoxGeometry(GW, .06, GD), M.ceilPanel, 0, GH, 0);
+
+      const frameE = [
+        [GW + .1, .1, .1, 0, 0, -GD / 2], [GW + .1, .1, .1, 0, 0, GD / 2],
+        [GW + .1, .1, .1, 0, GH, -GD / 2], [GW + .1, .1, .1, 0, GH, GD / 2],
+        [.1, GH + .1, .1, -GW / 2, GH / 2, -GD / 2], [.1, GH + .1, .1, GW / 2, GH / 2, -GD / 2],
+        [.1, GH + .1, .1, -GW / 2, GH / 2, GD / 2], [.1, GH + .1, .1, GW / 2, GH / 2, GD / 2],
+        [.1, .1, GD + .1, -GW / 2, 0, 0], [.1, .1, GD + .1, GW / 2, 0, 0],
+        [.1, .1, GD + .1, -GW / 2, GH, 0], [.1, .1, GD + .1, GW / 2, GH, 0],
+      ];
+      frameE.forEach(([w, h, d, x, y, z]) => mesh(new THREE.BoxGeometry(w, h, d), M.frame, x, y, z));
+
+      const doorPivot = new THREE.Group();
+      doorPivot.position.set(GW / 2, GH / 2, 0);
+      scene.add(doorPivot);
+      const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(.08, GH * .85, GD * .42), M.glassDoor);
+      doorMesh.position.set(0, 0, GD * .21);
+      doorMesh.castShadow = true;
+      doorPivot.add(doorMesh);
+
+      mesh(new THREE.BoxGeometry(1, .08, .8), M.device, .0, GH - .04, 0);
+
+      const fanPivot = new THREE.Group();
+      fanPivot.position.set(0, GH - .14, 0);
+      scene.add(fanPivot);
+
+      const fanHub = new THREE.Mesh(new THREE.CylinderGeometry(.18, .2, .28, 20), M.fanHub);
+      fanHub.castShadow = true;
+      fanPivot.add(fanHub);
+
+      const fanRod = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, .35, 10), M.frame);
+      fanRod.position.y = .3;
+      fanPivot.add(fanRod);
+
+      const bladeGroup = new THREE.Group();
+      fanPivot.add(bladeGroup);
+      const blades = [];
+      for (let i = 0; i < 4; i++) {
+        const bg = new THREE.Group();
+        bg.rotation.y = (i / 4) * Math.PI * 2;
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(2.6, .04, .42), M.fanBlade);
+        blade.position.set(1.3, 0, 0);
+        blade.rotation.z = .06;
+        bg.add(blade);
+        const mount = new THREE.Mesh(new THREE.BoxGeometry(.24, .1, .18), M.fanHub);
+        mount.position.set(.12, -.04, 0);
+        bg.add(mount);
+        bladeGroup.add(bg);
+        blades.push(blade);
+      }
+
+      const growBarY = GH * .55, growBarH = 3.2;
+      const growBar = mesh(new THREE.BoxGeometry(.12, growBarH, .2), M.device, -GW / 2 + .1, growBarY, 0);
+
+      const ledCount = 8, ledGap = .32;
+      const ledSpanH = (ledCount - 1) * ledGap;
+      const ledStartY = growBarY - ledSpanH / 2 + .3;
+      const ledMeshes = [];
+      for (let i = 0; i < ledCount; i++) {
+        const ledMat = M.lampCover.clone();
+        const led = mesh(new THREE.BoxGeometry(.06, .05, .12), ledMat, -GW / 2 + .16, ledStartY + i * ledGap, 0);
+        led.material = ledMat;
+        ledMeshes.push(led);
+      }
+
+      const heatMat1 = M.heatLamp.clone();
+      const heatMat2 = M.heatLamp.clone();
+      const heatLamp1 = mesh(new THREE.CylinderGeometry(.12, .12, .06, 20), heatMat1, -GW / 2 + .12, .7, -1.2, 0, 0, Math.PI / 2);
+      const heatLamp2 = mesh(new THREE.CylinderGeometry(.12, .12, .06, 20), heatMat2, -GW / 2 + .12, .7, 1.2, 0, 0, Math.PI / 2);
+
+      mesh(new THREE.BoxGeometry(.5, .7, .45), M.device2, -1.2, .45, -GD / 2 + .26);
+      mesh(new THREE.BoxGeometry(.38, .08, .32), M.device, -1.2, .87, -GD / 2 + .26);
+      mesh(new THREE.CylinderGeometry(.04, .05, .2, 10), M.device, -1.2, 1.05, -GD / 2 + .26, Math.PI / 2, 0, 0);
+
+      mesh(new THREE.BoxGeometry(.5, .7, .45), M.device2, 1.2, .45, -GD / 2 + .26);
+      mesh(new THREE.BoxGeometry(.38, .08, .32), M.device, 1.2, .87, -GD / 2 + .26);
+      for (let i = 0; i < 4; i++) {
+        mesh(new THREE.BoxGeometry(.35, .02, .04), M.frame, 1.2, .3 + i * .1, -GD / 2 + .08);
+      }
+
+      const tankX = GW / 2 + 1.3;
+      mesh(new THREE.BoxGeometry(1.1, 2.2, .9), M.waterTank, tankX, 1.15, -.1);
+      [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([sx, sz]) => {
+        mesh(new THREE.BoxGeometry(.06, 2.3, .06), M.frame, tankX + sx * .52, 1.2, -.1 + sz * .45);
+      });
+      mesh(new THREE.BoxGeometry(1.2, .12, .95), M.frame, tankX, .07, -.1);
+      mesh(new THREE.BoxGeometry(1.2, .06, .95), M.frame, tankX, 2.27, -.1);
+
+      const waterFillMesh = mesh(new THREE.BoxGeometry(1.0, 1.0, .78), M.waterFill, tankX, .5 + .5, -.1);
+      waterFillMesh.userData = { baseY: .5 };
+
+      const floatBall = mesh(new THREE.SphereGeometry(.07, 10, 8), new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: .3 }), tankX, .6, -.1);
+
+      for (let i = 0; i < 5; i++) {
+        mesh(new THREE.BoxGeometry(1.05, .015, .02), M.frame, tankX, .2 + i * .4, -.1 + .43);
+      }
+
+      mesh(new THREE.CylinderGeometry(.05, .05, 1.4, 10), M.pipe, tankX - .7, 1.8, -.1, 0, 0, Math.PI / 2);
+      mesh(new THREE.CylinderGeometry(.05, .05, .6, 10), M.pipe, GW / 2 + .12, 1.5, -.1);
+      mesh(new THREE.BoxGeometry(.22, .22, .16), M.device2, GW / 2 + .12, 1.18, -.1);
+      mesh(new THREE.CylinderGeometry(.03, .03, 5.5, 8), M.pipe, 0, 4.8, -.5, 0, 0, Math.PI / 2);
+
+      const dropperX = [-2.2, -1.0, 0, 1.0, 2.2];
+      dropperX.forEach(dx => {
+        mesh(new THREE.CylinderGeometry(.015, .015, .9, 6), M.pipe, dx, 4.35, -.5);
+        mesh(new THREE.SphereGeometry(.03, 6, 6), M.pipe, dx, 3.9, -.5);
+      });
+
+      const plantData = [
+        [-2.2, .3, -1.2, .8], [-1, .3, .8, .65], [0, .3, -1, .9],
+        [1, .3, 1.1, .75], [2.2, .3, -.8, .7]
+      ];
+      const leafMats = [];
+      const plantMeshes = [];
+      plantData.forEach(([px, py, pz, h]) => {
+        const stemH = h;
+        mesh(new THREE.CylinderGeometry(.04, .07, stemH, 8), M.stem, px, py + stemH / 2, pz);
+        const lr = .18 + Math.random() * .15;
+        const lm = new THREE.MeshStandardMaterial({ color: 0x2a9a4a, roughness: .65 });
+        const lf = mesh(new THREE.SphereGeometry(lr, 10, 8), lm, px, py + stemH + lr * .7, pz);
+        leafMats.push(lm);
+        plantMeshes.push({ mesh: lf, px, py, pz, h: stemH });
+        if (Math.random() > .4) {
+          const lm2 = lm.clone();
+          const lf2 = mesh(new THREE.SphereGeometry(lr * .7, 8, 6), lm2, px + .18, py + stemH * .7 + .1, pz + .12);
+          leafMats.push(lm2);
+          plantMeshes.push({ mesh: lf2, px: px + .18, py: py + stemH * .7 + .1, pz: pz + .12, h: 0 });
+        }
+      });
+
+      const drops = [];
+      for (let i = 0; i < 40; i++) {
+        const d = new THREE.Mesh(new THREE.SphereGeometry(.03, 5, 5), new THREE.MeshStandardMaterial({ color: 0x60a5fa, transparent: true, opacity: 0 }));
+        d.userData = { active: false, vy: 0, sx: 0, sz: 0 };
+        d.position.y = -10;
+        scene.add(d);
+        drops.push(d);
+      }
+
+      const MISTN = 200;
+      const mistPos = new Float32Array(MISTN * 3);
+      const mistV = [];
+      for (let i = 0; i < MISTN; i++) {
+        mistPos[i * 3] = (Math.random() - .5) * 7;
+        mistPos[i * 3 + 1] = Math.random() * 5.5;
+        mistPos[i * 3 + 2] = (Math.random() - .5) * 5.5;
+        mistV.push({ vx: (Math.random() - .5) * .004, vy: .004 + Math.random() * .006 });
+      }
+      const mistGeo = new THREE.BufferGeometry();
+      mistGeo.setAttribute("position", new THREE.BufferAttribute(mistPos, 3));
+      const mistMat = new THREE.PointsMaterial({ color: 0x88ccff, size: .055, transparent: true, opacity: 0 });
+      scene.add(new THREE.Points(mistGeo, mistMat));
+
+      scene.add(new THREE.AmbientLight(0x3a5a7a, 2.5));
+      const sun = new THREE.DirectionalLight(0x8ac4e8, 2.0);
+      sun.position.set(8, 12, 8);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
+      scene.add(sun);
+
+      const growPt = new THREE.PointLight(0x22c55e, 0, 7);
+      growPt.position.set(-GW / 2 + .3, growBarY, 0);
+      scene.add(growPt);
+
+      const heatPt1 = new THREE.PointLight(0xff1a1a, 0, 4);
+      heatPt1.position.set(-GW / 2 + .3, .8, -1.2);
+      scene.add(heatPt1);
+      const heatPt2 = new THREE.PointLight(0xff1a1a, 0, 4);
+      heatPt2.position.set(-GW / 2 + .3, .8, 1.2);
+      scene.add(heatPt2);
+
+      const mistPt = new THREE.PointLight(0x88ccff, 0, 4);
+      mistPt.position.set(-1.2, 1.2, -GD / 2 + .5);
+      scene.add(mistPt);
+
+      const tankPt = new THREE.PointLight(0x3b82f6, 0, 3);
+      tankPt.position.set(tankX, 2, -.1);
+      scene.add(tankPt);
+
+      let drag = false, px = 0, py = 0, rotY = .55, rotX = .22, zoom = 15;
+      const cv = document.getElementById("c3");
+      const onDown = (cx, cy) => { drag = true; px = cx; py = cy; };
+      const onMove = (cx, cy) => {
+        if (!drag) return;
+        rotY += (cx - px) * .007;
+        rotX += (cy - py) * .004;
+        rotX = Math.max(-.4, Math.min(.5, rotX));
+        px = cx; py = cy;
+      };
+      cv.addEventListener("mousedown", e => onDown(e.clientX, e.clientY));
+      window.addEventListener("mouseup", () => drag = false);
+      window.addEventListener("mousemove", e => onMove(e.clientX, e.clientY));
+      cv.addEventListener("wheel", e => { zoom = Math.max(7, Math.min(22, zoom + e.deltaY * .012)); });
+      cv.addEventListener("touchstart", e => onDown(e.touches[0].clientX, e.touches[0].clientY));
+      window.addEventListener("touchend", () => drag = false);
+      window.addEventListener("touchmove", e => onMove(e.touches[0].clientX, e.touches[0].clientY));
+
+      const tv = new THREE.Vector3();
+      function proj(x, y, z, id, txt, cls) {
+        tv.set(x, y, z).project(cam);
+        const lx = (tv.x * .5 + .5) * W, ly = (-.5 * tv.y + .5) * H;
+        const lb = document.getElementById(id);
+        if (!lb) return;
+        if (tv.z > 1 || lx < 0 || lx > W || ly < 0 || ly > H) { lb.style.display = "none"; return; }
+        lb.style.display = "";
+        lb.style.left = lx + "px";
+        lb.style.top = ly + "px";
+        lb.textContent = txt;
+        lb.className = "l3 " + cls;
+      }
+
+      const clock = new THREE.Clock();
+      let fanAngle = 0;
+      const LED_OFF_COLOR = new THREE.Color(0x9aa8a0);
+      const LED_ON_COLOR = new THREE.Color(0x4ade80);
+      const HEAT_OFF_COLOR = new THREE.Color(0x3a1a1a);
+      const HEAT_ON_COLOR = new THREE.Color(0xff2222);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = clock.getDelta(),
+          t = clock.elapsedTime;
+        const Sv = window._S || {};
+        const dev = Sv.dev || {},
+          cb = Sv.cb || {},
+          ng = Sv.ng || {};
+
+        cam.position.x = Math.sin(rotY) * Math.cos(rotX) * zoom;
+        cam.position.y = Math.sin(rotX) * zoom * .7 + 3;
+        cam.position.z = Math.cos(rotY) * Math.cos(rotX) * zoom;
+        cam.lookAt(0, 2, 0);
+
+        const fanOn = !!dev.quat;
+        if (fanOn) fanAngle += dt * 8;
+        bladeGroup.rotation.y = fanAngle;
+
+        const growOn = !!dev.den;
+        growPt.intensity = growOn ? 3 + Math.sin(t * 1.2) * .2 : 0;
+        const ledEmissive = growOn ? 2.6 : 0;
+        ledMeshes.forEach(led => {
+          led.material.color.lerp(growOn ? LED_ON_COLOR : LED_OFF_COLOR, .15);
+          led.material.emissive.set(0x22c55e);
+          led.material.emissiveIntensity = ledEmissive;
+        });
+
+        const heatOn = !!dev.suoi;
+        heatPt1.intensity = heatOn ? 2 + Math.sin(t * 6) * .6 : 0;
+        heatPt2.intensity = heatOn ? 2 + Math.sin(t * 6) * .6 : 0;
+        const heatEmissive = heatOn ? 1.1 + Math.sin(t * 5) * .3 : 0;
+        [heatMat1, heatMat2].forEach(hm => {
+          hm.color.lerp(heatOn ? HEAT_ON_COLOR : HEAT_OFF_COLOR, .15);
+          hm.emissive.set(0xff1a1a);
+          hm.emissiveIntensity = heatEmissive;
+        });
+
+        const mistOn = !!dev.tangAm;
+        mistMat.opacity = mistOn ? Math.min(.6, mistMat.opacity + .02) : Math.max(0, mistMat.opacity - .015);
+        mistPt.intensity = mistOn ? 1.5 : 0;
+        if (mistOn) {
+          const pos = mistGeo.attributes.position.array;
+          for (let i = 0; i < MISTN; i++) {
+            pos[i * 3 + 1] += mistV[i].vy;
+            pos[i * 3] += mistV[i].vx;
+            if (pos[i * 3 + 1] > 5.6) { pos[i * 3 + 1] = .1;
+              pos[i * 3] = (Math.random() - .5) * 7; }
+          }
+          mistGeo.attributes.position.needsUpdate = true;
+        }
+
+        const pumpOn = !!dev.bom;
+        drops.forEach((d, i) => {
+          if (pumpOn && !d.userData.active && Math.random() < .04) {
+            d.userData.active = true;
+            d.userData.vy = 0;
+            const si = Math.floor(Math.random() * dropperX.length);
+            d.position.set(dropperX[si], 3.85, -.5);
+            d.material.opacity = .8;
+          }
+          if (d.userData.active) {
+            d.userData.vy -= .018;
+            d.position.y += d.userData.vy;
+            d.material.opacity = Math.max(0, d.material.opacity - .01);
+            if (d.position.y < .3) { d.userData.active = false;
+              d.material.opacity = 0;
+              d.position.y = -10; }
+          }
+          if (!pumpOn) { d.userData.active = false;
+            d.material.opacity = 0;
+            d.position.y = -10; }
+        });
+
+        const wlevel = Math.max(0, Math.min(1, (cb.mucNuoc || 0) / 100));
+        waterFillMesh.scale.y = Math.max(.01, wlevel);
+        waterFillMesh.position.y = .2 + wlevel * .95;
+        floatBall.position.y = .3 + wlevel * 1.75;
+        tankPt.intensity = wlevel > .1 ? 1 : 0;
+
+        const soilLow = (cb.doAmDat || 0) < (ng.datMin || 30);
+        plantMeshes.forEach((p, i) => {
+          p.mesh.rotation.z = Math.sin(t * .5 + i) * (fanOn ? .1 : .025);
+          p.mesh.material.color.set(soilLow ? 0x7a5a10 : 0x2a9a4a);
+          p.mesh.material.emissive = new THREE.Color(growOn ? 0x001a00 : 0x000000);
+          p.mesh.material.emissiveIntensity = growOn ? .15 : 0;
+        });
+
+        const doorOpen = !!cb.cuaMo;
+        doorPivot.rotation.y = THREE.MathUtils.lerp(doorPivot.rotation.y, doorOpen ? -Math.PI * .42 : 0, dt * 3);
+
+        proj(0, GH - .2, 0, "lFan", fanOn ? "🌀 Quạt BẬT" : "Quạt TẮT", fanOn ? "on" : "off");
+        proj(-GW / 2 + .2, 3, 0, "lLight", growOn ? "💡 Đèn quang hợp BẬT" : "Đèn quang hợp", growOn ? "lighton" : "off");
+        proj(-GW / 2 + .2, .7, 0, "lHeat", heatOn ? "🔥 Đèn sưởi BẬT" : "Đèn sưởi", heatOn ? "heaton" : "off");
+        proj(-1.2, .8, -GD / 2 + .4, "lHumid", dev.tangAm ? "💧 Tăng ẩm BẬT" : "Tăng ẩm", dev.tangAm ? "on" : "off");
+        proj(1.2, .8, -GD / 2 + .4, "lDehu", dev.hutAm ? "🌬 Hút ẩm BẬT" : "Hút ẩm", dev.hutAm ? "on" : "off");
+        proj(0, 4.5, -.5, "lPump", pumpOn ? "💧 Tưới BẬT" : "Bơm tưới", pumpOn ? "on" : "off");
+        proj(GW / 2 + .15, GH * .6, -.1, "lDoor", doorOpen ? "🚪 Cửa MỞ!" : "Cửa đóng", doorOpen ? "warn" : "off");
+        proj(tankX, 2.4, -.1, "lTank", `🪣 ${Math.round((cb.mucNuoc || 0))}%`, (cb.mucNuoc || 0) < 20 ? "warn" : "on");
+
+        ren.render(scene, cam);
+      }
+
+      animate();
+
+      window.addEventListener("resize", () => {
+        W = vp.clientWidth;
+        H = vp.clientHeight;
+        cam.aspect = W / H;
+        cam.updateProjectionMatrix();
+        ren.setSize(W, H);
+      });
+    })();
+  </script>
 </body>
 </html>

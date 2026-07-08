@@ -1,7 +1,25 @@
 """
-S.P.R.O.U.T — Python Bridge v3.4
-Nâng cấp từ v3.3: SỬA LỖI LẪN LỘN ĐƠN VỊ ÁNH SÁNG (% <-> LUX)
+S.P.R.O.U.T — Python Bridge v3.5
+Nâng cấp từ v3.4: THÊM NGƯỠNG "QUÁ SÁNG" (sangMax)
 
+  THAY ĐỔI SO VỚI v3.4:
+    - Trước đây ánh sáng chỉ có 1 ngưỡng (sangMin/nguongDen) để bật đèn
+      quang hợp khi thiếu sáng, trong khi nhiệt độ/độ ẩm KK/độ ẩm đất đều
+      có CẶP ngưỡng Min-Max đầy đủ. Hệ quả: Gemini không có chỗ đề xuất
+      mức "quá sáng" (vd cây bị cháy lá dưới nắng gắt), hệ thống cũng
+      không cảnh báo trường hợp này.
+    - Đã thêm field "sangMax" vào hồ sơ cây (Gemini + cache + Firebase),
+      thêm "nguongSangMax" vào self.nguong, tăng số field DATA từ Arduino
+      lên 22 (thêm nguongSangMax trước "mode").
+    - Lệnh SET_LIGHT đổi từ 1 tham số sang 2 tham số (min, max) — khớp
+      với thay đổi bên .ino. Web/Firebase gửi lệnh SET_LIGHT giờ cần cả
+      "min" và "max" (giống SET_TEMP/SET_SOIL/SET_HUMI).
+    - LƯU Ý: phần cứng KHÔNG có thiết bị che nắng, nên sangMax chỉ dùng
+      để CẢNH BÁO (giống cách datMax cảnh báo "ngập" mà không có máy hút
+      nước riêng), không điều khiển relay nào.
+
+  (Các ghi chú của v3.4 vẫn giữ nguyên bên dưới)
+  ------------------------------------------------------------
   THAY ĐỔI SO VỚI v3.3:
     - FIX LỖI NGHIÊM TRỌNG: Arduino tính PA_anhSang và nguong_den theo
       LUX THỰC TẾ (0-100000, xem docAnhSangLux() bên .ino), nhưng toàn bộ
@@ -95,6 +113,12 @@ SERVICE_KEY  = "sprout-3609f-firebase-adminsdk-fbsvc-eabd4ae960.json"
 AI_INTERVAL  = 30            # Chu kỳ phân tích rule-based mặc định (giây) — KHÔNG gọi Gemini
 HISTORY_INTERVAL = 30        # Ghi lịch sử mỗi N giây
 
+# Trần lux thực tế mà LDR trong mạch Proteus demo này đo được (~1000 lux,
+# do đặc tính linh kiện/nguồn sáng mô phỏng — KHÔNG phải giới hạn công thức).
+# Dùng để ghim ngưỡng sáng do Gemini đề xuất, không dùng thang lux thật
+# ngoài trời (có thể lên tới hàng chục nghìn lux) cho bản demo Proteus.
+PROTEUS_LUX_MAX = 1000
+
 # ----------------------------------------------------------------
 # CẤU HÌNH GEMINI AI — chỉ gọi khi người dùng nhập LOẠI CÂY MỚI
 # ----------------------------------------------------------------
@@ -114,7 +138,7 @@ CURRENT_PLANT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "c
 # Các field BẮT BUỘC phải có trong 1 hồ sơ cây hợp lệ (dùng để validate
 # cả kết quả mới từ Gemini LẪN dữ liệu đọc từ cache cũ trên đĩa)
 PLANT_REQUIRED_FIELDS = ["nhietMin", "nhietMax", "amKKMin", "amKKMax",
-                          "datMin", "datMax", "sangMin"]
+                          "datMin", "datMax", "sangMin", "sangMax"]
 
 
 # ================================================================
@@ -252,7 +276,9 @@ class SproutBridge:
             "nhietMin": 18.0, "nhietMax": 30.0,
             "amKKMin":  50.0, "amKKMax":  85.0,
             "datMin":   30,   "datMax":   70,
-            "nguongDen": 300.0     # LUX (khop voi mac dinh nguong_den ben .ino)
+            "nguongDen": 300.0,     # LUX (khop voi mac dinh nguong_den ben .ino)
+            "nguongSangMax": 900.0  # LUX — gioi han theo LDR Proteus (~1000 lux max),
+                                    # khop voi mac dinh nguong_sangMax ben .ino
         }
         self.mode        = "AUTO"
         self.nuocHet     = False
@@ -342,8 +368,9 @@ class SproutBridge:
         # ---- DATA chính ----
         # DATA,nhiet,amKK,dat,nuoc,sang,cua,
         #      quat,bom,suoi,den,hutam,tangam,
-        #      nhietMin,nhietMax,amMin,amMax,datMin,datMax,nguongDen,mode
-        if kind == "DATA" and len(parts) >= 21:
+        #      nhietMin,nhietMax,amMin,amMax,datMin,datMax,
+        #      nguongDen,nguongSangMax,mode
+        if kind == "DATA" and len(parts) >= 22:
             try:
                 with self.lock:
                     self.camBien = {
@@ -369,9 +396,10 @@ class SproutBridge:
                         "amKKMax":   round(float(parts[16]), 1),
                         "datMin":    int(parts[17]),
                         "datMax":    int(parts[18]),
-                        "nguongDen": round(float(parts[19]), 1)   # LUX (khong phai %)
+                        "nguongDen": round(float(parts[19]), 1),   # LUX (khong phai %)
+                        "nguongSangMax": round(float(parts[20]), 1)  # LUX
                     }
-                    self.mode    = parts[20].strip().upper()
+                    self.mode    = parts[21].strip().upper()
                     self.nuocHet = self.camBien["mucNuoc"] < 10
 
                 self.push_firebase()
@@ -496,10 +524,11 @@ class SproutBridge:
                     self.send(f"SET_HUMI,{min_val},{max_val}")
 
                 elif loai == "SET_LIGHT":
-                    # gia_tri o day la LUX, khop truc tiep voi Arduino
-                    # (KHONG con quy doi % nua — xem ghi chu dau file v3.4)
-                    gia_tri = cmd.get("giaTri", 300)
-                    self.send(f"SET_LIGHT,{gia_tri}")
+                    # min/max o day la LUX, khop truc tiep voi Arduino
+                    # (KHONG con quy doi % nua — xem ghi chu dau file v3.4/v3.5)
+                    min_val = cmd.get("min", cmd.get("giaTri", 300))
+                    max_val = cmd.get("max", 900)
+                    self.send(f"SET_LIGHT,{min_val},{max_val}")
 
                 elif loai in ("CMD_QUAT", "CMD_BOM", "CMD_SUOI",
                               "CMD_DEN",  "CMD_HUTAM", "CMD_TANGAM"):
@@ -617,6 +646,13 @@ class SproutBridge:
             issues.append(f"Đất ngập {cb['doAmDat']}% > {ng['datMax']}%")
             advice.append("Giảm tưới, kiểm tra thoát nước")
 
+        if cb["anhSang"] < ng["nguongDen"]:
+            issues.append(f"Thiếu sáng {cb['anhSang']} lux < {ng['nguongDen']} lux")
+            advice.append("Bật đèn quang hợp bổ sung")
+        elif cb["anhSang"] > ng.get("nguongSangMax", 100000):
+            issues.append(f"Quá sáng {cb['anhSang']} lux > {ng.get('nguongSangMax')} lux")
+            advice.append("Che bớt nắng / di chuyển cây vào bóng râm")
+
         if cb["mucNuoc"] < 20:
             issues.append(f"Bồn nước sắp cạn: {cb['mucNuoc']}%")
             advice.append("Thêm nước vào bồn ngay")
@@ -655,6 +691,11 @@ class SproutBridge:
             "Bạn là chuyên gia nông nghiệp/thực vật học. Với loại cây "
             f"\"{ten_cay_hienthi}\", hãy đề xuất ngưỡng môi trường lý tưởng "
             "để trồng trong buồng trồng cây thông minh có cảm biến. "
+            "LƯU Ý QUAN TRỌNG: đây là hệ thống DEMO mô phỏng trên Proteus, "
+            "cảm biến ánh sáng (LDR) trong mạch mô phỏng CHỈ đo được tối đa "
+            "khoảng 1000 lux (không phải lux thật ngoài trời), nên ngưỡng "
+            "ánh sáng đề xuất PHẢI nằm trong khoảng 0-1000 lux, KHÔNG dùng "
+            "thang lux thực tế ngoài trời. "
             "CHỈ trả về một object JSON DUY NHẤT, không thêm chữ nào khác, "
             "đúng các khóa sau (số thực, đơn vị như mô tả):\n"
             "{\n"
@@ -665,9 +706,16 @@ class SproutBridge:
             '  "datMin": độ ẩm đất thấp nhất (%),\n'
             '  "datMax": độ ẩm đất cao nhất (%),\n'
             '  "sangMin": ngưỡng CƯỜNG ĐỘ ÁNH SÁNG tối thiểu tính theo LUX '
-            '(KHÔNG phải %) trước khi cần bật đèn quang hợp bổ sung — tham khảo: '
-            'cây ưa bóng/trong nhà khoảng 100-500 lux, cây ưa sáng bán phần '
-            'khoảng 500-2000 lux, cây ưa nắng trực tiếp khoảng 2000-10000 lux,\n'
+            '(thang mô phỏng 0-1000 lux, KHÔNG phải lux thật ngoài trời và '
+            'KHÔNG phải %) trước khi cần bật đèn quang hợp bổ sung — tham '
+            'khảo: cây ưa bóng/trong nhà khoảng 50-150 lux, cây ưa sáng bán '
+            'phần khoảng 150-400 lux, cây ưa nắng trực tiếp khoảng 400-700 lux,\n'
+            '  "sangMax": ngưỡng CƯỜNG ĐỘ ÁNH SÁNG tối đa tính theo LUX (cùng '
+            'thang mô phỏng 0-1000 lux) mà cây còn chịu được trước khi bị '
+            'stress/cháy lá do quá nắng (PHẢI lớn hơn sangMin, và PHẢI nhỏ '
+            'hơn hoặc bằng 1000) — tham khảo: cây ưa bóng khoảng 300-500 lux, '
+            'cây ưa sáng bán phần khoảng 500-800 lux, cây ưa nắng trực tiếp '
+            'khoảng 800-1000 lux,\n'
             '  "ghiChu": ghi chú ngắn gọn (dưới 60 ký tự) bằng tiếng Việt\n'
             "}"
         )
@@ -705,6 +753,29 @@ class SproutBridge:
                 log("Gemini", f"sangMin ngoài khoảng lux hợp lệ (0-100000): "
                               f"{ket_qua['sangMin']} — bỏ ngưỡng đèn")
                 return None
+            if not (0 < ket_qua["sangMax"] <= 100000):
+                log("Gemini", f"sangMax ngoài khoảng lux hợp lệ (0-100000): "
+                              f"{ket_qua['sangMax']} — bỏ ngưỡng đèn")
+                return None
+            if ket_qua["sangMin"] >= ket_qua["sangMax"]:
+                log("Gemini", f"sangMin ({ket_qua['sangMin']}) >= sangMax "
+                              f"({ket_qua['sangMax']}) — bỏ ngưỡng đèn")
+                return None
+
+            # Ghim (clamp) về trần thực tế của LDR trong mạch Proteus demo
+            # (~1000 lux) phòng khi Gemini lỡ bỏ qua gợi ý trong prompt và
+            # trả về giá trị theo lux thật ngoài trời. Không bỏ cả hồ sơ,
+            # chỉ hạ giá trị ánh sáng cho khớp phần cứng đang dùng.
+            if ket_qua["sangMin"] > PROTEUS_LUX_MAX or ket_qua["sangMax"] > PROTEUS_LUX_MAX:
+                log("Gemini", f"sangMin/sangMax ({ket_qua['sangMin']}/"
+                              f"{ket_qua['sangMax']}) vượt trần LDR Proteus "
+                              f"(~{PROTEUS_LUX_MAX} lux) — ghim lại cho khớp mô phỏng")
+                ty_le = ket_qua["sangMin"] / ket_qua["sangMax"] if ket_qua["sangMax"] else 0.5
+                ket_qua["sangMax"] = min(ket_qua["sangMax"], PROTEUS_LUX_MAX)
+                ket_qua["sangMin"] = min(ket_qua["sangMin"],
+                                          max(1, int(ket_qua["sangMax"] * ty_le)))
+                if ket_qua["sangMin"] >= ket_qua["sangMax"]:
+                    ket_qua["sangMin"] = max(1, ket_qua["sangMax"] - 1)
 
             ket_qua.setdefault("ghiChu", "")
             return ket_qua
@@ -779,7 +850,7 @@ class SproutBridge:
                 time.sleep(0.15)
                 self.send(f"SET_SOIL,{ho_so['datMin']},{ho_so['datMax']}")
                 time.sleep(0.15)
-                self.send(f"SET_LIGHT,{ho_so['sangMin']}")
+                self.send(f"SET_LIGHT,{ho_so['sangMin']},{ho_so['sangMax']}")
                 time.sleep(0.15)
 
                 # --- Gửi tên cây (đã bỏ dấu) để LCD vật lý hiển thị đúng cây ---
@@ -798,7 +869,7 @@ class SproutBridge:
                             "nhietMin": ho_so["nhietMin"], "nhietMax": ho_so["nhietMax"],
                             "amKKMin":  ho_so["amKKMin"],  "amKKMax":  ho_so["amKKMax"],
                             "datMin":   ho_so["datMin"],   "datMax":   ho_so["datMax"],
-                            "sangMin":  ho_so["sangMin"]
+                            "sangMin":  ho_so["sangMin"],  "sangMax":  ho_so["sangMax"]
                         },
                         "ghiChu": ho_so.get("ghiChu", ""),
                         "capNhatLuc": now()
@@ -876,7 +947,7 @@ class SproutBridge:
 
 if __name__ == "__main__":
     print("=" * 55)
-    print("  S.P.R.O.U.T Bridge v3.3 — Serial (VSPE) <-> Firebase")
+    print("  S.P.R.O.U.T Bridge v3.5 — Serial (VSPE) <-> Firebase")
     print("=" * 55)
 
     if not init_firebase():
