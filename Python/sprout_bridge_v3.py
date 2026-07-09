@@ -1,87 +1,6 @@
 """
-S.P.R.O.U.T — Python Bridge v3.5
-Nâng cấp từ v3.4: THÊM NGƯỠNG "QUÁ SÁNG" (sangMax)
-
-  THAY ĐỔI SO VỚI v3.4:
-    - Trước đây ánh sáng chỉ có 1 ngưỡng (sangMin/nguongDen) để bật đèn
-      quang hợp khi thiếu sáng, trong khi nhiệt độ/độ ẩm KK/độ ẩm đất đều
-      có CẶP ngưỡng Min-Max đầy đủ. Hệ quả: Gemini không có chỗ đề xuất
-      mức "quá sáng" (vd cây bị cháy lá dưới nắng gắt), hệ thống cũng
-      không cảnh báo trường hợp này.
-    - Đã thêm field "sangMax" vào hồ sơ cây (Gemini + cache + Firebase),
-      thêm "nguongSangMax" vào self.nguong, tăng số field DATA từ Arduino
-      lên 22 (thêm nguongSangMax trước "mode").
-    - Lệnh SET_LIGHT đổi từ 1 tham số sang 2 tham số (min, max) — khớp
-      với thay đổi bên .ino. Web/Firebase gửi lệnh SET_LIGHT giờ cần cả
-      "min" và "max" (giống SET_TEMP/SET_SOIL/SET_HUMI).
-    - LƯU Ý: phần cứng KHÔNG có thiết bị che nắng, nên sangMax chỉ dùng
-      để CẢNH BÁO (giống cách datMax cảnh báo "ngập" mà không có máy hút
-      nước riêng), không điều khiển relay nào.
-
-  (Các ghi chú của v3.4 vẫn giữ nguyên bên dưới)
-  ------------------------------------------------------------
-  THAY ĐỔI SO VỚI v3.3:
-    - FIX LỖI NGHIÊM TRỌNG: Arduino tính PA_anhSang và nguong_den theo
-      LUX THỰC TẾ (0-100000, xem docAnhSangLux() bên .ino), nhưng toàn bộ
-      phần Python + prompt Gemini trước đây lại giả định đơn vị là %
-      (0-100). Hệ quả: khi Gemini trả về "sangMin" (nghĩ là %, ví dụ 70),
-      giá trị đó được gửi thẳng xuống Arduino qua lệnh SET_LIGHT,70 —
-      nhưng Arduino hiểu đó là 70 LUX (rất khác ý nghĩa ban đầu). Điều
-      này khiến ngưỡng "thiếu sáng" bị lệch hoàn toàn so với thực tế,
-      gây cảnh báo sai (báo thiếu sáng dù ánh sáng đo được vẫn ổn, hoặc
-      ngược lại). Đã đổi toàn bộ pipeline (Python + web) sang dùng LUX
-      thống nhất với Arduino — không còn quy đổi % ở đâu cả.
-    - Prompt Gemini giờ yêu cầu "sangMin" theo LUX (có gợi ý khoảng giá
-      trị tham khảo) thay vì %.
-    - nguongDen mặc định đổi từ 40.0 (%) -> 300.0 (lux) cho khớp với
-      giá trị mặc định nguong_den = 300 bên .ino.
-
-  (Các ghi chú của v3.3 vẫn giữ nguyên bên dưới)
-  ------------------------------------------------------------
-  THAY ĐỔI SO VỚI v3.2:
-    - FIX LỖI NGHIÊM TRỌNG: xu_ly_loai_cay() trước đây khi lấy hồ sơ cây
-      từ cache KHÔNG kiểm tra xem cache có đủ field hay không. Nếu 1 cây
-      trong plant_profiles.json bị thiếu field (do lưu từ phiên bản cũ,
-      hoặc do lỗi ghi file) thì dòng self.send(f"SET_LIGHT,{ho_so['sangMin']}")
-      sẽ crash với KeyError -> làm chết thread giữa chừng -> các lệnh
-      sau đó (SET_TENCAY, ghi Firebase thongTinCay) KHÔNG BAO GIỜ chạy
-      -> LCD và web không cập nhật tên cây/ngưỡng dù log báo "đã áp dụng".
-      Đã thêm kiểm tra: nếu cache thiếu field bắt buộc thì tự động xóa
-      cache lỗi đó và gọi lại Gemini để lấy hồ sơ mới, đầy đủ.
-    - Bọc toàn bộ phần áp ngưỡng xuống Arduino + ghi Firebase trong
-      try/except để nếu có lỗi bất ngờ khác cũng không làm chết thread
-      một cách âm thầm — sẽ log rõ ràng và ghi lỗi lên Firebase để web
-      hiển thị cho người dùng biết thay vì im lặng "treo".
-
-  (Các ghi chú của v3.2 vẫn giữ nguyên bên dưới)
-  ------------------------------------------------------------
-  THAY ĐỔI SO VỚI v3.1:
-    - GHI NHỚ cây đang trồng: lưu vào current_plant.json, mỗi lần bridge
-      khởi động lại sẽ tự áp lại đúng cây/ngưỡng cũ (không cần nhập lại)
-    - Gửi tên cây (đã bỏ dấu) xuống Arduino bằng lệnh SET_TENCAY để LCD
-      vật lý cũng hiển thị đúng cây đang trồng
-
-Pipeline: Proteus → VSPE (COM ảo) → Serial → Firebase RTDB → Web 3D
-
-Cấu trúc Firebase (web 3D đọc từ đây):
-  /sprout/
-    camBien/        <- cảm biến real-time từ Arduino (anhSang tính theo LUX)
-    thietBi/        <- trạng thái relay
-    nguong/         <- ngưỡng điều khiển hiện tại (nguongDen tính theo LUX)
-    lenh/           <- webapp ghi vào đây để điều khiển (gồm cả SET_PLANT)
-    canhBao/        <- lịch sử cảnh báo (push)
-    aiLog/          <- kết quả PHÂN TÍCH ĐỊNH KỲ (rule-based, KHÔNG dùng Gemini
-                        để tránh tốn token — đây là "thông báo mặc định")
-    thongTinCay/    <- thông tin loại cây hiện tại + ngưỡng do Gemini đề xuất
-    trangThai/      <- online/offline, mode, aiMoiNhat, canhBaoMoi
-
-  GHI CHÚ VỀ AI:
-    - Phân tích/tư vấn định kỳ mỗi AI_INTERVAL giây: RULE-BASED, chạy offline,
-      KHÔNG gọi API ngoài. Đây là hành vi MẶC ĐỊNH của hệ thống.
-    - Gemini CHỈ được gọi khi người dùng nhập một LOẠI CÂY MỚI (chưa có trong
-      file cache plant_profiles.json, hoặc cache của cây đó bị lỗi/thiếu
-      field). Nếu cây đã có trong cache và hợp lệ, hệ thống dùng lại kết
-      quả cũ, KHÔNG gọi API -> tiết kiệm token tối đa.
+Bridge Python cho hệ thống S.P.R.O.U.T: đọc dữ liệu từ Arduino, cập nhật
+Firebase và gửi lệnh điều khiển dựa trên ngưỡng cây đang chọn.
 """
 
 import serial
@@ -100,50 +19,35 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 
-# ================================================================
-# CẤU HÌNH — CHỈNH Ở ĐÂY
-# ================================================================
-
-SERIAL_PORT  = "COM4"        # Cổng COM phía Python trong cặp VSPE
-                              # (Proteus dùng COM3, Python dùng COM4 hoặc ngược lại)
-BAUD_RATE    = 9600
+# Configuration
+SERIAL_PORT = "COM4"  # COM port used by the VSPE bridge
+BAUD_RATE = 9600
 FIREBASE_URL = "https://sprout-3609f-default-rtdb.asia-southeast1.firebasedatabase.app/"
-SERVICE_KEY  = "sprout-3609f-firebase-adminsdk-fbsvc-eabd4ae960.json"
+SERVICE_KEY = "sprout-3609f-firebase-adminsdk-fbsvc-eabd4ae960.json"
 
-AI_INTERVAL  = 30            # Chu kỳ phân tích rule-based mặc định (giây) — KHÔNG gọi Gemini
-HISTORY_INTERVAL = 30        # Ghi lịch sử mỗi N giây
+AI_INTERVAL = 30
+HISTORY_INTERVAL = 30
 
-# Trần lux thực tế mà LDR trong mạch Proteus demo này đo được (~1000 lux,
-# do đặc tính linh kiện/nguồn sáng mô phỏng — KHÔNG phải giới hạn công thức).
-# Dùng để ghim ngưỡng sáng do Gemini đề xuất, không dùng thang lux thật
-# ngoài trời (có thể lên tới hàng chục nghìn lux) cho bản demo Proteus.
+# Demo Proteus light range; thresholds are clamped to this value.
 PROTEUS_LUX_MAX = 1000
 
-# ----------------------------------------------------------------
-# CẤU HÌNH GEMINI AI — chỉ gọi khi người dùng nhập LOẠI CÂY MỚI
-# ----------------------------------------------------------------
-GEMINI_API_KEY  = ""   # Lấy tại https://aistudio.google.com/apikey
-GEMINI_MODEL    = "gemini-2.5-flash"                      # Model rẻ, nhanh, đủ dùng cho tác vụ này
+# Gemini configuration
+GEMINI_API_KEY = ""
+GEMINI_MODEL = "gemini-2.5-flash"
 GEMINI_ENDPOINT = (
     f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 )
 
-# File cache local — lưu ngưỡng đã hỏi Gemini để KHÔNG hỏi lại (tiết kiệm token)
+# Local cache files
 PLANT_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plant_profiles.json")
-
-# File lưu "cây đang trồng hiện tại" — để bridge khởi động lại vẫn nhớ,
-# không cần người dùng nhập lại tên cây mỗi lần bật hệ thống
 CURRENT_PLANT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "current_plant.json")
 
-# Các field BẮT BUỘC phải có trong 1 hồ sơ cây hợp lệ (dùng để validate
-# cả kết quả mới từ Gemini LẪN dữ liệu đọc từ cache cũ trên đĩa)
+# Required fields for a valid plant profile.
 PLANT_REQUIRED_FIELDS = ["nhietMin", "nhietMax", "amKKMin", "amKKMax",
                           "datMin", "datMax", "sangMin", "sangMax"]
 
 
-# ================================================================
-# TIỆN ÍCH
-# ================================================================
+# Helpers
 
 def now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -171,9 +75,7 @@ def ho_so_hop_le(ho_so: dict) -> bool:
     return all(k in ho_so for k in PLANT_REQUIRED_FIELDS)
 
 
-# ================================================================
-# CHUẨN HÓA TÊN CÂY & CACHE JSON (để hạn chế gọi Gemini)
-# ================================================================
+# Plant name normalization and cache helpers
 
 def chuan_hoa_ten_cay(ten: str) -> str:
     """Đưa tên cây về dạng khóa thống nhất: bỏ dấu, chữ thường, gộp khoảng
@@ -237,9 +139,7 @@ def bo_dau_lcd(ten: str, gioi_han: int = 16) -> str:
     return ten[:gioi_han]
 
 
-# ================================================================
-# KHỞI TẠO FIREBASE
-# ================================================================
+# Firebase initialization
 
 def init_firebase():
     try:
@@ -252,9 +152,7 @@ def init_firebase():
         return False
 
 
-# ================================================================
-# BRIDGE CLASS
-# ================================================================
+# Bridge class
 
 class SproutBridge:
 
@@ -365,11 +263,7 @@ class SproutBridge:
             return
         kind = parts[0].upper()
 
-        # ---- DATA chính ----
-        # DATA,nhiet,amKK,dat,nuoc,sang,cua,
-        #      quat,bom,suoi,den,hutam,tangam,
-        #      nhietMin,nhietMax,amMin,amMax,datMin,datMax,
-        #      nguongDen,nguongSangMax,mode
+        # Data frame from Arduino
         if kind == "DATA" and len(parts) >= 22:
             try:
                 with self.lock:
@@ -408,12 +302,10 @@ class SproutBridge:
             except (ValueError, IndexError) as e:
                 log("Parse", f"Lỗi parse DATA: {e} | line={line}")
 
-        # ---- ALERT ----
         elif kind == "ALERT":
             content = ",".join(parts[1:])
             self.write_alert(content)
 
-        # ---- ACK từ Arduino ----
         elif kind == "ACK":
             log("ACK", ",".join(parts[1:]))
 
@@ -430,9 +322,7 @@ class SproutBridge:
         else:
             log("RAW", line)
 
-    # ----------------------------------------------------------------
-    # ĐẨY DỮ LIỆU LÊN FIREBASE
-    # ----------------------------------------------------------------
+    # Push sensor and device state to Firebase
 
     def push_firebase(self):
         ts = now()
@@ -480,9 +370,7 @@ class SproutBridge:
         except Exception as e:
             log("Firebase", f"Lỗi ghi cảnh báo: {e}")
 
-    # ----------------------------------------------------------------
-    # LẮNG NGHE LỆNH TỪ FIREBASE (webapp/web 3D ghi xuống)
-    # ----------------------------------------------------------------
+    # Listen for control commands from Firebase
 
     def listen_commands(self):
         """
@@ -563,9 +451,7 @@ class SproutBridge:
 
         db.reference("/sprout/lenh").listen(on_cmd)
 
-    # ----------------------------------------------------------------
-    # GỬI LỆNH XUỐNG ARDUINO
-    # ----------------------------------------------------------------
+    # Send commands to Arduino
 
     def send(self, cmd: str):
         if self.ser and self.ser.is_open:
@@ -575,9 +461,7 @@ class SproutBridge:
         else:
             log("Serial", "Chưa kết nối, không gửi được!")
 
-    # ----------------------------------------------------------------
-    # AI PHÂN TÍCH (rule-based)
-    # ----------------------------------------------------------------
+    # Rule-based analysis
 
     def maybe_ai(self):
         if time.time() - self.lastAiTime < AI_INTERVAL:
@@ -673,9 +557,7 @@ class SproutBridge:
 
         return {"tomTat": tom, "khuyenNghi": kn, "lcdMsg": lcd}
 
-    # ----------------------------------------------------------------
-    # GEMINI AI — CHỈ GỌI KHI GẶP LOẠI CÂY MỚI (chưa có trong cache)
-    # ----------------------------------------------------------------
+    # Gemini-based plant profile lookup
 
     def goi_gemini_lay_chi_so(self, ten_cay_hienthi: str):
         """
@@ -890,9 +772,7 @@ class SproutBridge:
                 except Exception:
                     pass
 
-    # ----------------------------------------------------------------
-    # GHI NHỚ CÂY: khôi phục cây đã chọn ở lần chạy trước
-    # ----------------------------------------------------------------
+    # Restore the previously selected plant on startup
 
     def khoi_phuc_cay_da_chon(self):
         """Chạy 1 lần khi bridge vừa khởi động: nếu trước đó người dùng đã
@@ -908,9 +788,7 @@ class SproutBridge:
         log("Cây", f"Khôi phục cây đã chọn trước đó: '{ten_goc}'")
         self.xu_ly_loai_cay(ten_goc)
 
-    # ----------------------------------------------------------------
-    # CHẠY
-    # ----------------------------------------------------------------
+    # Run loop
 
     def run(self):
         if not self.connect():

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import vhdt.sprout.data.AiLogItem
 import vhdt.sprout.data.CamBien
@@ -39,6 +40,10 @@ class SproutViewModel @JvmOverloads constructor(
     private val _lichSu = MutableStateFlow<List<LichSuDiem>>(emptyList())
     val lichSu: StateFlow<List<LichSuDiem>> = _lichSu.asStateFlow()
 
+    // SỐ ĐIỂM LỊCH SỬ CẦN TẢI — thay đổi động theo tab Giờ/Ngày/Tháng ở màn Biểu đồ.
+    // Mặc định 150 điểm đủ cho tab "Giờ" (bridge ghi mỗi 30s -> 1h ~ 120 điểm, cộng dư).
+    private val _soDiemLichSu = MutableStateFlow(150)
+
     private val _canhBao = MutableStateFlow<List<CanhBaoItem>>(emptyList())
     val canhBao: StateFlow<List<CanhBaoItem>> = _canhBao.asStateFlow()
 
@@ -47,7 +52,7 @@ class SproutViewModel @JvmOverloads constructor(
 
     // --- TÊN CÂY (hiển thị ở Tổng quan) ---
     private val _tenCay = MutableStateFlow("S.P.R.O.U.T")
-    val tenCay: StateFlow<String> = _tenCay
+    val tenCay: StateFlow<String> = _tenCay.asStateFlow()
 
     private val _dangXuLyCay = MutableStateFlow(false)
     val dangXuLyCay: StateFlow<Boolean> = _dangXuLyCay.asStateFlow()
@@ -58,19 +63,36 @@ class SproutViewModel @JvmOverloads constructor(
         viewModelScope.launch { repo.theoDoiNguong().collect { _nguong.value = it } }
         viewModelScope.launch { repo.theoDoiTrangThai().collect { _trangThai.value = it } }
 
-        // Lắng nghe thông tin cây và cập nhật cả _thongTinCay lẫn _tenCay
         viewModelScope.launch {
             repo.theoDoiThongTinCay().collect {
                 _thongTinCay.value = it
                 _dangXuLyCay.value = false
-                // CẬP NHẬT TÊN CÂY CHO MÀN HÌNH TỔNG QUAN
                 _tenCay.value = it?.ten ?: "S.P.R.O.U.T"
             }
         }
 
-        viewModelScope.launch { repo.theoDoiLichSu().collect { _lichSu.value = it } }
+        // Lắng nghe lịch sử — flatMapLatest sẽ TỰ HỦY listener cũ và MỞ listener mới
+        // với limitToLast(soDiem) mới mỗi khi _soDiemLichSu đổi (ví dụ khi người dùng
+        // chuyển tab Giờ/Ngày/Tháng ở màn Biểu đồ).
+        viewModelScope.launch {
+            _soDiemLichSu
+                .flatMapLatest { soDiem -> repo.theoDoiLichSu(soDiem) }
+                .collect { _lichSu.value = it }
+        }
+
         viewModelScope.launch { repo.theoDoiCanhBao().collect { _canhBao.value = it } }
         viewModelScope.launch { repo.theoDoiAiLog().collect { _aiLog.value = it } }
+    }
+
+    /**
+     * Gọi từ màn Biểu đồ mỗi khi người dùng đổi tab Giờ/Ngày/Tháng, để tải đủ
+     * số điểm dữ liệu thô cần thiết cho việc gom nhóm/tính trung bình.
+     * KHÔNG đổi gì phía Firebase/Python — chỉ đổi limitToLast() khi đọc.
+     */
+    fun datSoDiemLichSu(soDiem: Int) {
+        if (_soDiemLichSu.value != soDiem) {
+            _soDiemLichSu.value = soDiem
+        }
     }
 
     // ---------------- Màn "Tự động / Thủ công" ----------------

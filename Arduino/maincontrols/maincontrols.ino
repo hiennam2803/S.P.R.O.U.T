@@ -1,86 +1,3 @@
-/*
-  ================================================================
-  DU AN: S.P.R.O.U.T v2.5 (them canh bao ANH SANG con thieu)
-  Smart Plant Responsive & Optimized Unified Tracker
-  ------------------------------------------------------------
-  THAY DOI SO VOI BAN TRUOC (v2.4):
-    - FIX: kiemTraCayCoVanDe() truoc day KHONG kiem tra anh sang nen du
-      troi toi/thieu sang, he thong chi lang le bat den ma KHONG hien
-      canh bao nao (khac voi nhiet do/do am/dat da co canh bao rieng).
-      Da them canh bao "TOI:<lux>lux<<nguong>" tren LCD + gui
-      ALERT,ANH_SANG_YEU len Python/Firebase de web cung thay duoc.
-  ------------------------------------------------------------
-  THAY DOI SO VOI BAN v2.5 (-> v2.6): THEM NGUONG SANG_MAX
-    - Truoc day anh sang CHI co 1 nguong (nguong_den) de bat den khi troi
-      toi, trong khi nhiet do/do am KK/do am dat deu co CAP nguong Min-Max
-      day du. He qua: Gemini/Python KHONG CO CHO de de xuat muc "qua sang"
-      (vd cay bi chay la duoi nang gat), va LCD/Firebase khong bao gio
-      canh bao truong hop nay.
-    - Da them nguong_sangMax (LUX). Neu PA_anhSang > nguong_sangMax thi
-      coi la "cay co van de" + canh bao ALERT,ANH_SANG_MANH, tuong tu
-      cach dat_max canh bao "ngap" ma khong co thiet bi rieng de xu ly.
-    - Giao thuc SET_LIGHT doi tu 1 tham so (nguong) sang 2 tham so
-      (min,max): SET_LIGHT,min,max. DATA gui them 1 truong nguongSangMax.
-  ------------------------------------------------------------
-  THAY DOI SO VOI BAN v2.3:
-    - FIX LOI: chayLogicTuDong() truoc day KHONG co dong nao dieu khien
-      AP_denBat theo anh sang -> den quang hop KHONG BAO GIO tu bat o
-      che do AUTO. Da them lai logic: AP_denBat = (PA_anhSang < nguong_den)
-    - Doi cam bien LDR (A0) tu tinh theo % (0-100) sang tinh LUX THUC TE,
-      dung cong thuc thuc nghiem cho quang tro GL5528 (loai pho bien
-      trong mo phong Proteus). nguong_den doi mac dinh tu 40(%) -> 300(lux)
-  ================================================================
-  QUY UOC TEN BIEN:
-    PA_     = Proteus -> Arduino  : gia tri cam bien doc tu mach Proteus
-    AP_     = Arduino -> Python   : trang thai thiet bi gui len Python
-    nguong_ = nguong nguoi dung cau hinh, Python co the chinh qua SET_*
-
-  GIAO THUC SERIAL (9600 baud):
-    Arduino -> Python (2s/lan):
-      DATA,nhieDo,doAmKK,doAmDat,mucNuoc,anhSang,
-           cua,quat,bom,suoi,den,hutAm,tangAm,
-           nhietMin,nhietMax,amMin,amMax,datMin,datMax,
-           nguongDen,nguongSangMax,mode
-
-    Python -> Arduino:
-      SET_MODE,AUTO|MANUAL
-      SET_TEMP,min,max
-      SET_SOIL,min,max
-      SET_HUMI,min,max
-      SET_LIGHT,min,max       (don vi LUX. min = bat den khi anh sang duoi
-                                muc nay; max = canh bao khi anh sang qua
-                                muc nay, KHONG co thiet bi rieng de xu ly)
-      CMD_QUAT,0|1      (chi MANUAL)
-      CMD_BOM,0|1       (chi MANUAL)
-      CMD_SUOI,0|1      (chi MANUAL)
-      CMD_DEN,0|1       (chi MANUAL)
-      CMD_HUTAM,0|1     (chi MANUAL)
-      CMD_TANGAM,0|1    (chi MANUAL)
-      AI_TUVAN,<noi_dung>
-      SET_TENCAY,<ten_cay>  (toi da 16 ky tu, bo dau)
-
-  GHI CHU QUAN TRONG:
-    - Chan D2 (cua) CHI LA CAM BIEN doc trang thai dong/mo, KHONG co
-      relay/servo de dieu khien cua. He thong chi canh bao khi cua mo,
-      khong "mo cua" duoc bang lenh.
-    - nguong_den va PA_anhSang gio tinh theo LUX (khong con la %). Ben
-      Python/Gemini phai gui gia tri theo don vi lux nay.
-
-  SO DO CHAN:
-    D2  = chanCuaPA      (cam bien cua - INPUT_PULLUP, CHI DOC)
-    D4  = chanDHT        (DHT11)
-    D5  = chanQuatPA     (relay quat hut nhiet)
-    D6  = chanBomPA      (relay bom tuoi)
-    D7  = chanSuoiPA     (relay lo suoi)
-    D8  = chanDenPA      (relay den quang hop)
-    D9  = chanTangAmPA   (relay quat tang am)
-    D10 = chanHutAmPA    (relay quat hut am)
-    A0  = chanAnhSangPA  (LDR)
-    A1  = chanDatPA      (cam bien do am dat)
-    A2  = chanNuocPA     (cam bien muc nuoc)
-  ================================================================
-*/
-
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -105,12 +22,8 @@
 #define chanTangAmPA   9
 #define chanHutAmPA    10
 
-// Cau hinh doi ADC cua LDR sang LUX. GIA DINH mach la cau phan ap chuan:
-// A0 la diem giua LDR (noi len VCC) va 1 dien tro co dinh (noi xuong GND).
-// NEU trong Proteus dau nguoc lai (LDR xuong GND doi cho voi dien tro),
-// gia tri se bi dao nguoc (sang <-> toi) — bao minh biet de doi lai cong thuc.
-const float LDR_VCC       = 5.0;   // dien ap cap cho cau phan ap (V)
-const float LDR_R_CODINH  = 10.0;  // gia tri dien tro co dinh trong mach (kOhm)
+const float LDR_VCC       = 5.0;
+const float LDR_R_CODINH  = 10.0;
 
 
 // ================================================================
@@ -123,18 +36,9 @@ float nguong_amKKMin   = 50.0;
 float nguong_amKKMax   = 85.0;
 int   nguong_datMin    = 30;
 int   nguong_datMax    = 70;
-int   nguong_den       = 300;   // bat den khi anh sang < nguong nay (LUX)
-int   nguong_sangMax   = 900;   // canh bao "qua sang" khi anh sang > nguong nay (LUX)
-                                 // (KHONG co thiet bi che nang -> chi canh bao)
-                                 // Mac dinh 900 (thay vi 10000) vi LDR trong mach
-                                 // Proteus demo nay chi do thuc te toi da ~1000 lux
-                                 // (gioi han linh kien/nguon sang mo phong, KHONG
-                                 // phai gioi han cong thuc). Neu sau nay chuyen
-                                 // sang mach/LDR that co dai rong hon, chinh lai
-                                 // gia tri nay (va dai goi y ben Python) cho khop.
-int   nguong_nuocCan   = 10;   // khoa bom khi muc nuoc < nguong nay (%)
-
-// KHÔNG dùng hysteresis cho bơm nữa (tắt ngay khi đạt datMax hoặc nuoc het)
+int   nguong_den       = 300;
+int   nguong_sangMax   = 900;
+int   nguong_nuocCan   = 10;
 
 
 // ================================================================
@@ -263,15 +167,6 @@ void docCamBien() {
 }
 
 
-// ================================================================
-// DOI ADC CUA LDR SANG LUX (gan dung)
-// Cong thuc thuc nghiem cho quang tro GL5528 hay dung trong mo phong:
-//    Lux = 12518931 * RLDR(Ohm) ^ -1.4059
-// Neu do sang qua thuc te bi lech (den khong bat du toi, hoac bat lien
-// tuc du sang), chinh lai LDR_R_CODINH cho khop voi dien tro that trong
-// mach, hoac bao minh de doi lai cong thuc cho dung chieu dau.
-// ================================================================
-
 float docAnhSangLux() {
   int   adc  = analogRead(chanAnhSangPA);
   float vOut = adc * (LDR_VCC / 1023.0);
@@ -302,17 +197,11 @@ void chayLogicTuDong() {
   AP_hutAmBat  = (PA_doAmKK > nguong_amKKMax);
   AP_tangAmBat = (PA_doAmKK < nguong_amKKMin);
 
-  // Do am dat: bat khi dat < nguong_datMin, tat khi dat >= nguong_datMax hoac nuoc het
   if (PA_doAmDat < nguong_datMin && !PA_nuocHet) {
     AP_bomBat = true;
   } else if (PA_doAmDat >= nguong_datMax || PA_nuocHet) {
     AP_bomBat = false;
   }
-  // Lưu ý: nếu dat đang ở giữa min và max, giữ nguyên trạng thái cũ (không thay đổi)
-  // vì AP_bomBat được đặt ở đây mỗi chu kỳ, nó sẽ giữ nguyên giá trị trước đó
-
-  // Anh sang: bat den quang hop khi lux do duoc thap hon nguong
-  // (DAY LA PHAN BI THIEU O BAN TRUOC -> den khong bao gio tu bat)
   AP_denBat = (PA_anhSang < nguong_den);
 }
 
