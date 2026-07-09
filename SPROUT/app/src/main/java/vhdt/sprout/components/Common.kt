@@ -41,7 +41,7 @@ import vhdt.sprout.ui.theme.XanhLa
 fun GlassCard(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.15f),
-    borderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+    borderColor: Color = Color(0xAE5FFF52),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(

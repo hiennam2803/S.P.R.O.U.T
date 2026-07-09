@@ -52,7 +52,6 @@ fun BotBar(navController: NavController) {
 
     NavigationBar(
         modifier = Modifier
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(gradientBrush),
         containerColor = Color.Transparent
     ) {

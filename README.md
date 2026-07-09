@@ -1,347 +1,336 @@
 # 🌱 S.P.R.O.U.T
 
-**Smart Plant Regulation & Optimization Using Technology**
+Smart Plant Regulation & Optimization Using Technology
 
-> Hệ thống buồng nuôi cây thông minh — Đồ án môn IoT
-> Nền tảng: Arduino UNO · Proteus · Python · Firebase · AI API
-
----
-
-## Mục lục
-
-- [Giới thiệu](#giới-thiệu)
-- [Tính năng](#tính-năng)
-- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
-- [Phần cứng](#phần-cứng)
-- [Giao thức Serial](#giao-thức-serial)
-- [Cài đặt &amp; Chạy](#cài-đặt--chạy)
-- [Chế độ hoạt động](#chế-độ-hoạt-động)
-- [Thuật toán điều khiển AUTO](#thuật-toán-điều-khiển-auto)
-- [Tích hợp AI](#tích-hợp-ai)
-- [Cấu trúc dự án](#cấu-trúc-dự-án)
-- [Kế hoạch mở rộng](#kế-hoạch-mở-rộng)
+> Dự án IoT mô phỏng buồng trồng cây thông minh, tích hợp Arduino, Proteus, Python, Firebase, Android và AI để theo dõi và điều khiển môi trường trồng cây một cách tự động.
 
 ---
 
-## Giới thiệu
+## 1. Giới thiệu
 
-S.P.R.O.U.T là một hệ thống IoT mô phỏng buồng nuôi cây khép kín, tự động duy trì môi trường lý tưởng cho cây trồng dựa trên dữ liệu cảm biến thời gian thực. Hệ thống tích hợp AI để phân tích sức khỏe cây và hỗ trợ người dùng ra quyết định trong cả hai chế độ tự động và thủ công.
+S.P.R.O.U.T là một hệ thống IoT mô phỏng buồng trồng cây khép kín, giúp giám sát và điều chỉnh môi trường sống cho cây trồng bằng các cảm biến và thiết bị điều khiển. Dự án được xây dựng như một sản phẩm học tập/demo cho môn IoT, nhưng có cấu trúc đủ rõ ràng để mở rộng thành một hệ thống thực tế.
 
-Dự án giao tiếp qua **cổng COM ảo** (tạo bằng VSPE), cho phép mô phỏng hoàn toàn trên máy tính với Proteus mà không cần phần cứng thật.
+Hệ thống gồm 4 tầng chính:
 
----
+1. Tầng cảm biến và điều khiển phần cứng: Arduino + Proteus
+2. Tầng trung gian: bridge Python nhận dữ liệu từ Arduino, xử lý và đồng bộ lên Firebase
+3. Tầng ứng dụng: Android app viết bằng Kotlin + Jetpack Compose
+4. Tầng thông minh: AI phân tích tình trạng cây với Gemini để đưa ra gợi ý
 
-## Tính năng
-
-- **Giám sát 5 thông số môi trường**: nhiệt độ, độ ẩm không khí, độ ẩm đất, mực nước bồn, cường độ ánh sáng
-- **6 thiết bị điều khiển độc lập**: quạt hút nhiệt, bơm tưới, lò sưởi, đèn quang hợp, quạt hút ẩm, quạt tăng ẩm
-- **Chế độ AUTO**: Arduino tự cân bằng môi trường theo ngưỡng cấu hình
-- **Chế độ MANUAL**: người dùng điều khiển từng thiết bị qua Python CLI
-- **AI phân tích định kỳ**: đánh giá tình trạng cây, hiển thị kết quả lên LCD và ghi log Firebase
-- **Ngưỡng điều chỉnh từ xa**: Python gửi lệnh `SET_*` để cập nhật tham số Arduino không cần nạp lại firmware
-- **Bảo vệ phần cứng**: khóa bơm tự động khi bồn nước cạn (< 10%)
-- **LCD 20×4**: hiển thị trạng thái real-time chống nhấp nháy
-- **Cảnh báo Serial**: `ALERT,WATER_EMPTY` và `ALERT,DOOR_OPEN`
+Dự án này cho phép người dùng quan sát môi trường cây trồng theo thời gian thực, thay đổi ngưỡng điều khiển, chuyển đổi giữa chế độ tự động và thủ công, đồng thời lưu lịch sử và cảnh báo vào hệ thống trực tuyến.
 
 ---
 
-## Kiến trúc hệ thống
+## 2. Mục tiêu của dự án
 
-```
-┌─────────────────────────────┐
-│  Proteus — Arduino UNO      │
-│  SPROUT_Arduino.ino         │
-│  COM3 (ảo - VSPE)           │
-└──────────────┬──────────────┘
-               │  Serial 9600 baud
-               │  Giao thức CSV text
-┌──────────────▼──────────────┐
-│  VSPE — COM Pair            │
-│  COM3 <──────────> COM4     │
-└──────────────┬──────────────┘
-               │
-┌──────────────▼──────────────┐
-│  Python — sprout_controller │
-│  sprout_controller.py       │
-│  COM4 (ảo - VSPE)           │
-└──────┬───────────────┬──────┘
-       │               │
-┌──────▼──────┐  ┌─────▼──────┐
-│  AI API     │  │  Firebase  │
-│  (OpenAI /  │  │  Realtime  │
-│   Claude)   │  │  Database  │
-└─────────────┘  └─────┬──────┘
-                        │
-               ┌────────▼───────┐
-               │  Web App       │
-               │  Android App   │
-               └────────────────┘
-```
+S.P.R.O.U.T hướng tới các mục tiêu sau:
+
+- Tạo một mô hình buồng trồng cây thông minh có thể tự động duy trì điều kiện môi trường phù hợp.
+- Giảm việc can thiệp thủ công bằng cách dựa trên dữ liệu cảm biến để điều khiển thiết bị.
+- Cho phép người dùng theo dõi trạng thái cây qua ứng dụng Android.
+- Tạo nền tảng để học cách tích hợp phần cứng, phần mềm, mạng và AI trong một hệ thống IoT hoàn chỉnh.
+- Mở rộng khả năng thành một giải pháp thực tế cho nhà kính nhỏ, vườn mini hoặc phòng trồng cây nội thất.
 
 ---
 
-## Phần cứng
+## 3. Tính năng chính
 
-### Sơ đồ chân Arduino UNO
+### 3.1 Giám sát môi trường
 
-| Chân       | Linh kiện                 | Vai trò                                 |
-| ----------- | -------------------------- | ---------------------------------------- |
-| `D2`      | Cảm biến cửa            | `INPUT_PULLUP` — LOW = cửa mở       |
-| `D4`      | DHT11                      | Đọc nhiệt độ & độ ẩm không khí |
-| `D5`      | Relay → Quạt hút nhiệt | Bật khi`temp > TEMP_MAX`              |
-| `D6`      | Relay → Bơm tưới       | Bật khi`soil < SOIL_MIN`              |
-| `D7`      | Relay → Lò sưởi        | Bật khi`temp < TEMP_MIN`              |
-| `D8`      | Relay → Đèn quang hợp  | Bật khi`light < LIGHT_THR`            |
-| `D9`      | Relay → Quạt tăng ẩm   | Bật khi`humi < HUMI_MIN`              |
-| `D10`     | Relay → Quạt hút ẩm    | Bật khi`humi > HUMI_MAX`              |
-| `A0`      | LDR                        | Đo cường độ ánh sáng              |
-| `A1`      | Cảm biến độ ẩm đất  | Đo độ ẩm đất (0–100%)             |
-| `A2`      | Cảm biến mực nước     | Đo mức nước bồn (0–100%)           |
-| `SDA/SCL` | LCD I2C 20×4 (0x3F)       | Hiển thị trạng thái                  |
+Hệ thống theo dõi các thông số sau:
 
-### Thư viện Arduino cần cài
+- Nhiệt độ
+- Độ ẩm không khí
+- Độ ẩm đất
+- Mực nước trong bồn
+- Cường độ ánh sáng
+- Trạng thái cửa (nếu có mô phỏng/ cảm biến)
 
-```
-DHT sensor library     (by Adafruit)
-LiquidCrystal I2C      (by Frank de Brabander)
-Wire                   (built-in)
-```
+### 3.2 Điều khiển thiết bị
 
----
+Các thiết bị có thể được điều khiển thông qua hệ thống bao gồm:
 
-## Giao thức Serial
+- Quạt làm mát / hút nhiệt
+- Bơm tưới nước
+- Lò sưởi
+- Đèn quang hợp
+- Quạt hút ẩm
+- Quạt tăng ẩm
 
-Baudrate: **9600**. Mọi bản tin kết thúc bằng `\n`.
+### 3.3 Chế độ hoạt động
 
-### Arduino → Python (mỗi 2 giây)
+- Chế độ AUTO: hệ thống tự động quyết định bật/tắt thiết bị dựa trên ngưỡng cấu hình.
+- Chế độ MANUAL: người dùng điều khiển từng thiết bị bằng ứng dụng hoặc hệ thống trung gian.
 
-**Bản tin DATA chính:**
+### 3.4 Theo dõi và lưu trữ
 
-```
-DATA,<temp>,<humi>,<soil>,<water>,<light>,<door>,
-     <fan>,<pump>,<heat>,<light_dev>,<humiFan>,<cool>,
-     <TEMP_MIN>,<TEMP_MAX>,<HUMI_MIN>,<HUMI_MAX>,
-     <SOIL_MIN>,<SOIL_MAX>,<LIGHT_THR>,<mode>
-```
+- Dữ liệu cảm biến được gửi tới Firebase Realtime Database.
+- Ứng dụng Android có thể đọc và hiển thị dữ liệu thời gian thực.
+- Hệ thống lưu lịch sử hoạt động, cảnh báo và phân tích AI.
 
-Ví dụ:
+### 3.5 Hỗ trợ AI
 
-```
-DATA,28.5,62.0,45,80,30,0,0,0,0,1,0,0,18.0,30.0,50.0,85.0,30,70,40,AUTO
-```
-
-**Bản tin cảnh báo:**
-
-```
-ALERT,WATER_EMPTY
-ALERT,DOOR_OPEN
-```
-
-**Phản hồi lệnh:**
-
-```
-ACK,SET_MODE,AUTO
-ACK,CMD_PUMP
-ERR,PUMP_BLOCKED,WATER_EMPTY
-ERR,CMD_IN_AUTO_MODE
-```
-
-### Python → Arduino (theo yêu cầu)
-
-| Lệnh                      | Mô tả                            | Ví dụ                      |
-| -------------------------- | ---------------------------------- | ---------------------------- |
-| `SET_MODE,<AUTO\|MANUAL>` | Chuyển chế độ                  | `SET_MODE,AUTO`            |
-| `SET_TEMP,<min>,<max>`   | Ngưỡng nhiệt độ (°C)         | `SET_TEMP,18,30`           |
-| `SET_SOIL,<min>,<max>`   | Ngưỡng độ ẩm đất (%)        | `SET_SOIL,30,70`           |
-| `SET_HUMI,<min>,<max>`   | Ngưỡng độ ẩm KK (%)           | `SET_HUMI,50,85`           |
-| `SET_LIGHT,<ngưỡng>`   | Ngưỡng bật đèn (%)            | `SET_LIGHT,40`             |
-| `CMD_FAN,<0\|1>`          | **(Manual)** Quạt nhiệt    | `CMD_FAN,1`                |
-| `CMD_PUMP,<0\|1>`         | **(Manual)** Bơm tưới     | `CMD_PUMP,1`               |
-| `CMD_HEAT,<0\|1>`         | **(Manual)** Lò sưởi      | `CMD_HEAT,0`               |
-| `CMD_LIGHT,<0\|1>`        | **(Manual)** Đèn           | `CMD_LIGHT,1`              |
-| `CMD_HUMIFAN,<0\|1>`      | **(Manual)** Quạt hút ẩm  | `CMD_HUMIFAN,0`            |
-| `CMD_COOL,<0\|1>`         | **(Manual)** Quạt tăng ẩm | `CMD_COOL,1`               |
-| `AI_ADVICE,<text>`       | Gửi kết quả AI lên LCD         | `AI_ADVICE,CAY KHOE T:28C` |
-
-> **Lưu ý:** Lệnh `CMD_*` chỉ có hiệu lực khi đang ở chế độ MANUAL. Gửi trong AUTO mode sẽ nhận `ERR,CMD_IN_AUTO_MODE`.
+Bridge Python có thể gửi dữ liệu tới Gemini để phân tích tình trạng cây và đưa ra gợi ý ngưỡng hoặc hành động phù hợp.
 
 ---
 
-## Cài đặt & Chạy
+## 4. Kiến trúc hệ thống
 
-### 1. Tạo COM pair với VSPE
+```text
+[Proteus + Arduino UNO]
+          │
+          │ Serial / COM port
+          ▼
+[Python Bridge - sprout_bridge_v3.py]
+          │
+          ├── Firebase Realtime Database
+          ├── Gemini AI
+          └── Logic xử lý dữ liệu / cảnh báo
+          │
+          ▼
+[Android App - SPROUT/]
+```
 
-1. Mở **VSPE** → **Device** → **Create**
-2. Chọn kiểu **Pair** → đặt `COM3` và `COM4` → **Create**
-3. Proteus/Arduino dùng **COM3**, Python dùng **COM4**
+### 4.1 Vai trò từng thành phần
 
-### 2. Nạp firmware Arduino (Proteus)
+- Arduino/Proteus: mô phỏng cảm biến và thiết bị điều khiển.
+- Python bridge: đọc dữ liệu từ cổng Serial, làm trung gian, lưu dữ liệu và gửi cảnh báo.
+- Firebase: lưu trạng thái hiện tại, lịch sử và cấu hình.
+- Android app: giao diện người dùng để xem và điều khiển hệ thống.
+- Gemini AI: hỗ trợ phân tích nhận định tình trạng cây.
 
-1. Biên dịch `SPROUT_Arduino.ino` trong Arduino IDE
-2. Xuất file `.hex`
-3. Trong Proteus: click đúp vào Arduino UNO → chọn file `.hex` → OK
-4. Chạy simulation — cửa sổ Virtual Terminal hiển thị Serial log
+---
 
-### 3. Chạy Python controller
+## 5. Công nghệ sử dụng
+
+### 5.1 Phần cứng
+
+- Arduino UNO
+- Proteus (mô phỏng linh kiện và giao tiếp Serial)
+- Cảm biến / thiết bị mô phỏng như:
+  - DHT11 (nhiệt độ và độ ẩm không khí)
+  - Cảm biến độ ẩm đất
+  - Cảm biến mực nước
+  - LDR / cảm biến ánh sáng
+  - Relay điều khiển thiết bị
+
+### 5.2 Phần mềm
+
+- Python 3
+- Firebase Admin SDK
+- Firebase Realtime Database
+- Kotlin
+- Jetpack Compose
+- Gradle
+- Android Studio
+- Gemini API (tùy chọn)
+
+---
+
+## 6. Cấu trúc thư mục
+
+```text
+S.P.R.O.U.T/
+├── Arduino/
+│   └── maincontrols/
+│       └── maincontrols.ino
+├── Proteus/
+│   ├── S.P.R.O.U.T.pdsprj
+│   └── Project Backups/
+├── Python/
+│   ├── sprout_bridge_v3.py
+│   ├── plant_profiles.json
+│   └── current_plant.json
+├── SPROUT/
+│   ├── app/
+│   │   ├── build.gradle.kts
+│   │   ├── google-services.json
+│   │   └── src/main/java/vhdt/sprout/
+│   ├── build.gradle.kts
+│   └── gradle/
+├── sprout-3609f-firebase-adminsdk-fbsvc-eabd4ae960.json
+└── README.md
+```
+
+### 6.1 Vai trò từng thư mục
+
+- Arduino/: mã nguồn cho phần cứng mô phỏng.
+- Proteus/: project mô phỏng điện tử và bản backup.
+- Python/: bridge trung gian, cache hồ sơ cây, dữ liệu hiện tại.
+- SPROUT/: ứng dụng Android.
+- File JSON Firebase: credential dùng cho Python bridge.
+
+---
+
+## 7. Luồng hoạt động hệ thống
+
+### 7.1 Từ cảm biến đến ứng dụng
+
+1. Arduino nhận dữ liệu từ cảm biến và gửi qua Serial.
+2. Python bridge đọc dữ liệu từ cổng COM.
+3. Bridge xử lý dữ liệu, kiểm tra ngưỡng và cập nhật Firebase.
+4. Android app đọc dữ liệu từ Firebase và hiển thị trạng thái cho người dùng.
+5. Nếu bật AI, bridge có thể gửi dữ liệu tới Gemini và nhận gợi ý điều chỉnh.
+
+### 7.2 Luồng điều khiển
+
+- Người dùng có thể chọn chế độ AUTO hoặc MANUAL.
+- Trong AUTO, hệ thống tự điều khiển thiết bị dựa trên ngưỡng.
+- Trong MANUAL, người dùng điều khiển thiết bị trực tiếp.
+- Trạng thái điều khiển cũng được đồng bộ lên Firebase.
+
+---
+
+## 8. Cài đặt và chạy dự án
+
+### 8.1 Yêu cầu hệ thống
+
+- Python 3.10+
+- Android Studio
+- Arduino IDE (nếu cần biên dịch firmware riêng)
+- Proteus (nếu chạy mô phỏng phần cứng)
+- Tài khoản Firebase
+- API key Gemini (tùy chọn)
+
+### 8.2 Cài đặt Python bridge
+
+Cài đặt các thư viện cần thiết:
 
 ```bash
-# Cài thư viện
-pip install pyserial requests
-
-# Chỉnh cổng COM trong file (mặc định COM4)
-# SERIAL_PORT = "COM4"   ← dòng 22 trong sprout_controller.py
-
-# Chạy
-python sprout_controller.py
+pip install pyserial firebase-admin requests
 ```
 
-### 4. Lệnh CLI cơ bản
+Sau đó chỉnh các tham số quan trọng trong file Python:
 
+- `SERIAL_PORT`: cổng COM kết nối với Arduino/Proteus
+- `FIREBASE_URL`: URL Realtime Database
+- `SERVICE_KEY`: đường dẫn tới file credentials Firebase
+- `GEMINI_API_KEY`: nếu dùng AI
+
+Chạy bridge:
+
+```bash
+python Python/sprout_bridge_v3.py
 ```
-> auto              # Chuyển AUTO mode
-> manual            # Chuyển MANUAL mode
-> fan 1             # (Manual) Bật quạt nhiệt
-> pump 0            # (Manual) Tắt bơm
-> heat 1            # (Manual) Bật lò sưởi
-> light 1           # (Manual) Bật đèn
-> humifan 0         # (Manual) Tắt quạt hút ẩm
-> cool 1            # (Manual) Bật quạt tăng ẩm
-> thr temp 20 32    # Đặt ngưỡng nhiệt 20–32°C
-> thr soil 25 75    # Đặt ngưỡng đất 25–75%
-> thr humi 45 80    # Đặt ngưỡng ẩm KK 45–80%
-> thr light 35      # Đặt ngưỡng đèn 35%
-> status            # Xem trạng thái hiện tại
-> ai                # Gọi AI phân tích ngay
-> quit              # Thoát
-```
+
+### 8.3 Chạy ứng dụng Android
+
+1. Mở thư mục SPROUT bằng Android Studio.
+2. Chờ Gradle sync hoàn tất.
+3. Chọn emulator hoặc thiết bị thật.
+4. Chạy ứng dụng.
+
+> File google-services.json đã nằm trong thư mục app để kết nối Firebase.
+
+### 8.4 Chạy mô phỏng Arduino/Proteus
+
+- Mở file Arduino trong thư mục Arduino/maincontrols.
+- Mở dự án Proteus và chạy mô phỏng.
+- Đảm bảo cổng COM và baud rate khớp với Python bridge.
 
 ---
 
-## Chế độ hoạt động
+## 9. Cấu hình dữ liệu Firebase
 
-### AUTO Mode
+Dự án sử dụng Firebase Realtime Database để lưu:
 
-Arduino tự động điều chỉnh **4 vòng điều khiển độc lập**:
+- trạng thái cảm biến hiện tại
+- trạng thái thiết bị
+- ngưỡng cảnh báo
+- lịch sử dữ liệu
+- thông tin cây đang được chọn
+- log AI và cảnh báo
 
-```
-Nhiệt độ  ──► temp > TEMP_MAX  → FAN ON  (D5)
-              temp < TEMP_MIN  → HEAT ON (D7)
+Mỗi bản ghi thường được lưu theo cấu trúc phân tầng, ví dụ:
 
-Độ ẩm KK  ──► humi > HUMI_MAX → HUMI_FAN ON (D10)
-              humi < HUMI_MIN → COOL ON    (D9)
-
-Độ ẩm đất ──► soil < SOIL_MIN → PUMP ON  (D6)  [có hysteresis]
-              soil > SOIL_MAX → PUMP OFF (D6)
-
-Ánh sáng  ──► light < LIGHT_THR → LIGHT ON (D8)
-```
-
-Python nhận `DATA` định kỳ, gọi AI phân tích mỗi 30 giây, gửi kết quả `AI_ADVICE` về để hiển thị LCD. **Arduino không tự bật/tắt thiết bị theo lời khuyên AI** — AI chỉ đóng vai trò tư vấn và ghi log.
-
-### MANUAL Mode
-
-Arduino **không chạy `runAutoLogic()`**. Mọi thiết bị chỉ thay đổi khi Python gửi lệnh `CMD_*`. AI vẫn phân tích và hiển thị kết quả lên LCD để hướng dẫn người dùng ra quyết định thủ công.
-
-Bảo vệ bơm (`waterEmpty`) vẫn hoạt động ở cả hai chế độ.
-
----
-
-## Thuật toán điều khiển AUTO
-
-### Ngưỡng mặc định
-
-| Thông số           | Min | Max | Đơn vị               |
-| -------------------- | --- | --- | ----------------------- |
-| Nhiệt độ          | 18  | 30  | °C                     |
-| Độ ẩm KK          | 50  | 85  | %                       |
-| Độ ẩm đất       | 30  | 70  | %                       |
-| Ngưỡng đèn       | —  | 40  | % (bật khi < ngưỡng) |
-| Ngưỡng nước cạn | —  | 10  | % (khóa bơm)          |
-
-### Vùng an toàn (Dead Band)
-
-Độ ẩm không khí có vùng trung tính **50–85%** — không có thiết bị nào hoạt động. Đây là vùng tối ưu cho hầu hết cây trồng. Độ ẩm đất áp dụng **hysteresis** 30–70% tránh bơm bật/tắt liên tục.
-
----
-
-## Tích hợp AI
-
-### Mock AI (mặc định)
-
-File `sprout_controller.py` đi kèm một **mock AI** viết bằng Python thuần, không cần API key. Mock này phân tích dữ liệu cảm biến theo luật (rule-based) và trả về JSON tương tự API thật.
-
-### Bật AI thật (OpenAI)
-
-Trong `sprout_controller.py`, chỉnh 2 dòng:
-
-```python
-USE_REAL_AI = True
-OPENAI_KEY  = "sk-xxxxxxxxxxxxxxxx"
-```
-
-Hàm `_real_ai_analyze()` đã được viết sẵn — gửi dữ liệu cảm biến + ngưỡng hiện tại lên GPT-3.5-turbo và nhận về JSON phân tích.
-
-### Định dạng JSON phân tích AI
-
-```json
-{
-  "summary":           "Cây khỏe mạnh. T:28C H:62% Soil:45%",
-  "advice":            "Tiếp tục theo dõi, độ ẩm đất ổn định",
-  "lcd_msg":           "CAY KHOE! T:28C H:62%",
-  "suggest_threshold": [],
-  "auto_adjustments":  [],
-  "raw_sensors":       { ... },
-  "timestamp":         "2025-06-28T10:30:00"
-}
-```
-
-### Tích hợp Firebase (tự thực hiện)
-
-Trong code Python có comment `# TODO: luu result vao Firebase`. Cấu trúc Firebase đề xuất:
-
-```
+```text
 /sprout/
-  ├── sensors/latest          ← ghi đè mỗi 2 giây
-  ├── sensors/{timestamp}     ← lịch sử cảm biến
-  ├── devices/latest          ← trạng thái thiết bị
-  ├── ai_log/{timestamp}      ← kết quả phân tích AI
-  └── alerts/{timestamp}      ← cảnh báo (nước cạn, cửa mở)
+  /trangThai
+  /camBien
+  /thietBi
+  /nguong
+  /lichSu
+  /canhBao
+  /aiLog
 ```
 
 ---
 
-## Cấu trúc dự án
+## 10. AI và phân tích cây
 
-```
-S.P.R.O.U.T/
-├── SPROUT_Arduino.ino       # Firmware Arduino (Proteus)
-├── sprout_controller.py     # Python controller + Mock AI
-├── README.md                # Tài liệu này
-│
-├── (tự làm)
-│   ├── web-app/             # Dashboard web (Firebase)
-│   └── android-app/         # App Android (Firebase)
-```
+Bridge Python có thể kết nối với Gemini API để phân tích tình trạng cây dựa trên dữ liệu cảm biến. Mục đích của AI là:
+
+- đánh giá tình trạng cây hiện tại
+- gợi ý cách điều chỉnh môi trường
+- hỗ trợ quyết định tự động hoặc thủ công
+- cung cấp lời khuyên dễ hiểu cho người dùng
+
+Nếu chưa cấu hình API key, hệ thống vẫn có thể chạy ở chế độ cơ bản mà không cần AI.
 
 ---
 
-## Kế hoạch mở rộng
+## 11. Mô hình điều khiển tự động
 
-- [ ] Gắn API key AI thật (OpenAI / Claude / Gemini)
-- [ ] Viết Firebase integration đầy đủ trong Python
-- [ ] Dashboard web real-time (React + Firebase)
-- [ ] App Android (Flutter + Firebase)
-- [ ] Thêm cảm biến CO₂ và pH đất
-- [ ] Lịch tưới nước theo lịch (scheduler)
-- [ ] Thông báo push khi có cảnh báo
+Trong chế độ AUTO, hệ thống thường làm việc theo logic ngưỡng:
 
----
+- Nếu nhiệt độ quá cao → bật quạt làm mát / hút nhiệt
+- Nếu nhiệt độ quá thấp → bật lò sưởi
+- Nếu độ ẩm không khí thấp → bật quạt tăng ẩm
+- Nếu độ ẩm không khí cao → bật quạt hút ẩm
+- Nếu độ ẩm đất thấp → bật bơm tưới
+- Nếu ánh sáng thấp → bật đèn quang hợp
 
-## Thành viên & Môn học
-
-> Đồ án môn: **Internet of Things (IoT)**
-> Nền tảng mô phỏng: **Proteus 8** + **VSPE**
+Điều này có thể được điều chỉnh bằng các ngưỡng tùy chỉnh trong hệ thống.
 
 ---
 
-*S.P.R.O.U.T — Grow smarter, not harder 🌿*
+## 12. Ghi chú quan trọng
+
+- Đây là dự án mô phỏng học tập, nên có thể cần chỉnh lại cổng COM tùy máy.
+- Nếu dùng AI, hãy chắc chắn đã điền đúng `GEMINI_API_KEY`.
+- Nếu Firebase không kết nối, hãy kiểm tra file service account và URL của database.
+- Với môi trường Windows, COM port có thể khác nhau giữa các lần chạy.
+
+---
+
+## 13. Khắc phục sự cố thường gặp
+
+### Không thấy cổng COM
+
+- Kiểm tra lại việc tạo cặp COM bằng VSPE hoặc phần mềm giả lập.
+- Đảm bảo Arduino/Proteus đang chạy đúng cổng.
+
+### Python bridge không kết nối Firebase
+
+- Kiểm tra file service account.
+- Kiểm tra URL database.
+- Xác nhận rằng các package Python đã cài đúng.
+
+### Android app không cập nhật dữ liệu
+
+- Kiểm tra kết nối Firebase.
+- Kiểm tra quyền mạng và cấu hình google-services.json.
+- Kiểm tra dữ liệu có được ghi đúng vào Realtime Database không.
+
+---
+
+## 14. Kế hoạch phát triển
+
+- Tối ưu giao diện Android.
+- Thêm nhiều loại cảm biến như pH, CO₂ hoặc ánh sáng UV.
+- Cải thiện logic điều khiển tự động bằng thuật toán tốt hơn.
+- Thêm cảnh báo push và lịch tưới nước thông minh.
+- Mở rộng thành hệ thống quản lý nhiều buồng trồng hoặc nhiều khu vực.
+- Tích hợp dashboard web để theo dõi từ máy tính.
+
+---
+
+## 15. Kết luận
+
+S.P.R.O.U.T là một dự án IoT mang tính giáo dục và demo, nhưng có đủ các thành phần cần thiết để thể hiện cách xây dựng một hệ thống buồng trồng cây thông minh từ đầu đến cuối: phần cứng, truyền thông, nền tảng dữ liệu, ứng dụng người dùng và trí tuệ nhân tạo.
+
+Dự án này không chỉ giúp hiểu về IoT mà còn cho thấy cách một ý tưởng kỹ thuật có thể được chuyển hóa thành một hệ thống có thể quan sát, điều khiển và mở rộng trong thực tế.
+
+---
+
+S.P.R.O.U.T — Grow smarter, not harder 🌿
